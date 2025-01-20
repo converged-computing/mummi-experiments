@@ -528,3 +528,61 @@ First CPU Run
 ## Notes
 
 - We shouldn't be generating samples like we do - e.g., I am watching it churn out starting simulations but the containers for the first 2 haven't been pulled yet. The iteration almost doesn't matter - before we had a ton generated under one iteration, and now we have just 3. The difference is that we are checking the other steps more frequently (e.g., for createsim to finish).
+
+## Results
+
+Notes:
+
+- I am using the eksctl reported time for when the workers groups are created / deleted to derive the total cost of the cluster, which is easiest since we don't have elasticity
+We can't get reliable information about jobs finishing from the pods, we need to get them from the jobs.
+- Jobs that never complete (succeed or fail) are ones that are still running when the cluster is deleted. There could be other ways to consider these, but for now I am considering them sunk cost because we don't have final result data.
+- All runs produced the same data output, as in 6x cganalysis full results (and some number of createsims / initial MLserver output)
+
+### Labels
+
+- gpu-manual (purple): is the first run, where there was a bug in counting. This only meant that jobs weren't launched when they should have been. This means the overall cluster cost will be higher (due to delay in running and be debugging) but the jobs we measure (the images here) are not impacted.
+- gpu (green): is the second, fully automated run (with the bug above fixed).
+- cpu-manual: is the only run of hpc6a, and it required a manual restart of the mlserver and wfmanager that froze due to rabbitmq. This will not be reflected in individual run times, but will the overall cluster up time (and cost).
+
+### Pull times
+
+![results/img/pull_times_by_experiment.png](results/img/pull_times_by_experiment.png)
+
+- This includes all containers for the cluster, and the majority are our analysis containers.
+- We would expect CPU pulls to be faster than GPU, because containers are smaller. This is exactly what we see.
+
+### Job times 
+
+![results/img/job_times_by_experiment.png](results/img/job_times_by_experiment.png)
+
+#### (cganalysis)
+
+- I noticed this in running - the actual end time of cganalysis can go up to 35 minutes. I assume there is some kind of iteration running, and it just stops after it sees it has gone beyond the time limit (but is free to do that within the context of the iteration)
+- We can (maybe) use that to estimate time it would take to run a longer timespan (we talked about this in the meeting)
+- Because we stop it, we can't say anything about differences in running CGanalysis on CPU vs GPU (but logically it needs GPU)
+
+#### (createsim)
+- I assume the variability in times for the GPU environments is more about variability in createsims than anything about the environments.
+- Eyeballing it, I'd say a createsims cpu run is approximately 3-6 minutes longer on CPU than GPU.
+
+### Total times
+
+![results/img/total_times_by_experiment.png](results/img/total_times_by_experiment.png)
+
+I like this plot because it shows what is often not shown - the cost of not having good automation. The gpu-manual run that needed debugging was up just over an hour longer than the other gpu run, because I needed to debug, but primarily because when I was debugging we weren't doing analyses. The accumulated time of that (1 hour) that was added to still get 6 cganalysis results led to the increase in cost (~18) (shown below). I think this is interesting because most papers would report the analysis run times and not the cluster times.
+
+### Costs
+
+```bash
+{'gpu-manual': 58.925399999999996, 'gpu': 39.3006, 'cpu-manual': 40.9488}
+```
+
+Our estimate for gpu was spot on - we estimated $40.54, and (when nothing goes wrong, the second value) we got really close to that. However, we did overestimate that time (20 minutes) when it took between 14-18, so that extra wiggle time includes container pulling and cluster prep. The first run (gpu-manual) being above that reflects the extra time for runs and my debugging time. For CPU, we were below our estimate ($46.80), despite the issue, and that is because we overestimated the time to run, putting 30 minutes when it took closer to 20.
+
+### Results Produced
+
+This shows easily how inefficient the workflow orchestration is. Even when we reduce the mlserver output (and make it run more iterations) we still generate > 200 simulation starting points. We of course use less than 10.
+
+```bash
+{'createsim': {'cpu-manual': 8, 'gpu-manual': 10, 'gpu': 8}, 'cganalysis': {'cpu-manual': 6, 'gpu-manual': 9, 'gpu': 6}, 'mlserver': {'cpu-manual': 243, 'gpu-manual': 204, 'gpu': 216}}
+```
