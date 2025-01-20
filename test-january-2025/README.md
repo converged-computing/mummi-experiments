@@ -584,5 +584,5 @@ Our estimate for gpu was spot on - we estimated $40.54, and (when nothing goes w
 This shows easily how inefficient the workflow orchestration is. Even when we reduce the mlserver output (and make it run more iterations) we still generate > 200 simulation starting points. We of course use less than 10.
 
 ```bash
-{'createsim': {'cpu-manual': 8, 'gpu-manual': 10, 'gpu': 8}, 'cganalysis': {'cpu-manual': 6, 'gpu-manual': 9, 'gpu': 6}, 'mlserver': {'cpu-manual': 243, 'gpu-manual': 204, 'gpu': 216}}
+{'createsim': {'cpu-manual': 8, 'gpu-manual': 10, 'gpu': 8}, 'cganalysis': {'cpu-manual': 6, 'gpu-manual': 7, 'gpu': 6}, 'mlserver': {'cpu-manual': 243, 'gpu-manual': 204, 'gpu': 216}}
 ```

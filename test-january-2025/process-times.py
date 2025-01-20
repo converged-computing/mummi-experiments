@@ -412,6 +412,9 @@ def plot_times(df, outdir):
         results = list(recursive_find("data", name))
         if "gro" in name:
             name = "mlserver"
+        # These were manual pushes by me
+        if name == "cganalysis":
+            results = [x for x in results if 'cganalysis-0' not in x]
         result_counts[name] = {}
         filtered = [x for x in results if "cpu" in x]
         result_counts[name]["cpu-manual"] = len(filtered)
