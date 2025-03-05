@@ -1,0 +1,31 @@
+apiVersion: mummi.converged-computing.org/v1alpha1
+kind: MiniMummi
+metadata:
+  name: mummi-sample
+spec:
+  mlserver:
+    image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlserver
+
+  rabbitmq:
+    image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:rabbitmq
+
+  # Defaults to 6 mummi nnodes, interactive mode is for debugging
+  manager:
+    image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:wfmanager
+    numberMaxSelectedPatchBuffer: 3
+    numberMaxPatchesSelectionsPerIteration: 3
+    interactive: true
+    # MUMMI_NNODES
+    nodes: 6
+    
+  # Jobs for the Mummi workflow manager to submit / orchestrate
+  # Right now we use defaults for most things (bundle size, nodes, etc)
+  jobs:
+    cganalysis:
+      image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis
+      config:
+        coresPerTask: 94
+    createsim:
+      image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims
+      config:
+        coresPerTask: 94

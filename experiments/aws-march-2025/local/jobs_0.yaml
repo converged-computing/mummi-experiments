@@ -1,0 +1,40 @@
+name: mlrunner
+# TODO add output /usr/workspace/usernetes/mummi/workdir/run
+config:
+  nodes: 1
+  nproc: 1
+  coresPerTask: 6
+  # The output here will be $TMPDIR/mummi/<jobid>/<jobid.gro>
+  command: singularity exec --bind /usr/workspace/usernetes/mummi/workdir/ --bind /usr/workspace/usernetes/mummi/workdir/model-protein_latent_space-mini_mummi_ls-c2289_z32-t2024-10-01-23-33-17_h443704:/opt/clones/mummi_resources/ml/chonky-model ./mini-mummi_mlrunner.sif /opt/pixi/bin/pixi run --manifest-path /pixi-env/pixi.toml bash ./entrypoint.sh
+script: |
+  mummi_mlserver_nnodes=1
+  MUMMI_APP=/opt/clones/mummi-ras
+  export MUMMI_RESOURCES=/opt/clones/mummi_resources
+  export MUMMI_APP
+  WORKDIR=/usr/workspace/usernetes/mummi/workdir/
+  export MUMMI_ROOT=$WORKDIR/mummi
+  mkdir -p $MUMMI_ROOT
+  model="/opt/clones/mummi_resources/ml/chonky-model/CG_pos_data_summary_pos_dis_C1_v1.npz"
+  ws=$MUMMI_ROOT/mlserver
+  resources="martini3-validator"
+  complex="ras-rbdcrd-ref-CG.gro"
+  outpath=$MUMMI_ROOT/$jobid/mlrunner
+  mkdir -p $outpath
+  cd $MUMMI_ROOT/$jobid
+  cmd="mummi-ml start --jobid {{jobid}} --workspace=${ws} --outdir=${outpath} --tag mlrunner --plain-http --encoder-model ${model} --ml-outdir=${ws} --feedback --resources ${resources} --complex=${complex}"
+  NUM_THREADS=$(nproc)
+  export OMP_NUM_THREADS=$NUM_THREADS
+  export KERAS_BACKEND='theano'
+  umask 007
+  python $MUMMI_APP/mummi_ras/scripts/create_organization.py
+  echo "$cmd"
+  $cmd
+  retval=$?
+  # Move into respective output directory so easy to find
+  if [[ "${retval}" != "0" ]]; then
+      exit $retval
+  fi
+  # This assumes we will just generate one output file
+  outfile=$(ls $ws/$jobid/$jobid_*.gro) 
+  mv $outfile $ws/$jobid/$jobid.gro
+  exit $retval
