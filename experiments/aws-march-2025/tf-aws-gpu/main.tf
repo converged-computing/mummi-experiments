@@ -5,19 +5,18 @@ locals {
   name      = "flux"
   pwd       = basename(path.cwd)
   region    = "us-east-1"
-  ami       = "ami-04e2ce24ead3f6e63"
+  ami       = "ami-07dc0107c4c03dff7"
   placement = "eks-efa-testing"
 
   instance_type = "p3.2xlarge"
   vpc_cidr      = "10.0.0.0/16"
   # Ubuntu 24.04 needs a newer ed25519 type - rsa only works with high values
-  key_name      = "ed-the-dinosaur"
+  key_name = "ed-the-dinosaur"
 
   # hpc6a has ens5 (see ifconfig)
   ethernet_device = "ens5"
 
-  # Must be larger than ami (100)
-  # I probably should have done 30, we can rebuild if needed
+  # Must be larger than ami (120)
   volume_size = 130
 
   # Set autoscaling to consistent size so we don't scale for now
@@ -330,11 +329,11 @@ resource "aws_efs_file_system" "shared_storage" {
   }
 }
 
-resource "aws_efs_mount_target" "mount_target_a" {
-  file_system_id  = aws_efs_file_system.shared_storage.id
-  subnet_id       = aws_subnet.public_c.id
-  security_groups = [aws_security_group.security_group.id]
-}
+#resource "aws_efs_mount_target" "mount_target_a" {
+#  file_system_id  = aws_efs_file_system.shared_storage.id
+#  subnet_id       = aws_subnet.public_c.id
+#  security_groups = [aws_security_group.security_group.id]
+#}
 
 resource "aws_efs_mount_target" "mount_target_b" {
   file_system_id  = aws_efs_file_system.shared_storage.id

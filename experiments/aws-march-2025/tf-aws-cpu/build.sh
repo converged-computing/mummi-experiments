@@ -192,4 +192,10 @@ singularity pull --docker-login docker://633731392008.dkr.ecr.us-east-1.amazonaw
 singularity pull --docker-login docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims
 singularity cache clean
 
+# Copy data over
+mkdir -p /tmp/data
+singularity exec --bind /tmp/data:/tmp/data mini-mummi_mlrunner.sif cp /opt/clones/model.tar.gz /tmp/data/
+tar -xzvf /tmp/data/model.tar.gz
+
+
 # At this point we have what we need!

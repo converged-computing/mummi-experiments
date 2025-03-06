@@ -5,7 +5,7 @@ config:
   nproc: 1
   coresPerTask: 6
   # The output here will be $TMPDIR/mummi/<jobid>/<jobid.gro>
-  command: singularity exec --bind /home/ubuntu/containers/model-protein_latent_space-mini_mummi_ls-c2289_z32-t2024-10-01-23-33-17_h443704:/opt/clones/mummi_resources/ml/chonky-model ./mini-mummi_mlrunner.sif /opt/pixi/bin/pixi run --manifest-path /pixi-env/pixi.toml bash ./entrypoint.sh
+  command: singularity exec --bind /home/ubuntu/containers/model-protein_latent_space-mini_mummi_ls-c2289_z32-t2024-10-01-23-33-17_h443704:/opt/clones/mummi_resources/ml/chonky-model /home/ubuntu/containers/mini-mummi_mlrunner.sif /opt/pixi/bin/pixi run --manifest-path /pixi-env/pixi.toml bash ./entrypoint.sh
 script: |
   mummi_mlserver_nnodes=1
   MUMMI_APP=/opt/clones/mummi-ras
