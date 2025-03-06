@@ -2,22 +2,22 @@
 # VARIABLES # for you to edit!
 
 locals {
-  name      = "flux"
-  pwd       = basename(path.cwd)
-  region    = "us-east-2"
-  ami       = "ami-0fd5069156fce962e"
+  name   = "flux"
+  pwd    = basename(path.cwd)
+  region = "us-east-2"
+  ami    = "ami-0fd5069156fce962e"
+  #ami       = "ami-0e7c1a3721524ddab"
   placement = "eks-efa-testing"
 
   instance_type = "hpc6a.48xlarge"
   vpc_cidr      = "10.0.0.0/16"
-  key_name      = "tahcos-cat"
+  key_name      = "dinosaur-rsa"
 
   # hpc6a has ens5 (see ifconfig)
   ethernet_device = "ens5"
 
-  # Must be larger than ami (100)
-  # I probably should have done 30, we can rebuild if needed
-  volume_size = 110
+  # Must be larger than ami (120)
+  volume_size = 130
 
   # Set autoscaling to consistent size so we don't scale for now
   min_size     = 1

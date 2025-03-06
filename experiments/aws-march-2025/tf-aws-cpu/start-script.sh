@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Install AWS client
-python3 -m pip install awscli
+python3 -m pip install awscli --break-system-packages
 
 # Wait for the count to be up
 while [[ $(aws ec2 describe-instances --region ${region} --filters "Name=tag:selector,Values=${selector_name}-selector" | jq .Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateDnsName | wc -l) -ne ${desired_size} ]]

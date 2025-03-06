@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Install AWS client
-python3 -m pip install awscli
+python3 -m pip install awscli --break-system-packages
 
 # Wait for the count to be up
 while [[ $(aws ec2 describe-instances --region ${region} --filters "Name=tag:selector,Values=${selector_name}-selector" | jq .Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateDnsName | wc -l) -ne ${desired_size} ]]
@@ -190,3 +190,14 @@ sudo chmod oug+w /dev/infiniband/rdma_cm
 # this needs to be run interactively.
 sudo chown -R $USER /home/ubuntu
 cd /home/ubuntu
+
+sudo apt-get update
+sudo apt-get -y install git binutils rustc cargo pkg-config libssl-dev gettext
+git clone https://github.com/aws/efs-utils /tmp/efs-utils
+cd /tmp/efs-utils
+./build-deb.sh
+sudo apt-get -y install ./build/amazon-efs-utils*deb
+sudo mount -t efs mummi-gpu-efs:/ /mnt/efs
+
+# TODO need to unmount before destroy
+# sudo umount /mnt/efs

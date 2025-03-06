@@ -5,25 +5,26 @@ config:
   nproc: 1
   walltime: '0:45:00'
   coresPerTask: 6
-  command: singularity exec --bind /usr/workspace/usernetes/mummi ./mini-mummi_createsims.sif bash ./entrypoint.sh
+  command: singularity exec /home/ubuntu/containers/mini-mummi_createsims.sif bash ./entrypoint.sh
 script: |
   MUMMI_APP=/opt/clones/mummi-ras
   MUMMI_RESOURCES=/opt/clones/mummi_resources
   export MUMMI_APP MUMMI_RESOURCES
-  export MUMMI_ROOT=/usr/workspace/usernetes/mummi
-  locpath=$MUMMI_ROOT/workdir/mummi/${jobid}
-  mkdir -p $locpath/createsim $locpath/workdir
+  WORKDIR=/home/ubuntu/workdir
+  export MUMMI_ROOT=$WORKDIR/mummi
+  locpath=$MUMMI_ROOT/${jobid}
+  mkdir -p $locpath/createsim $locpath/tmp
   cd ${locpath}
   export OMP_NUM_THREADS=6
   outfile=$(ls mlrunner/structure*.gro)
-  cp ${outfile} $locpath/workdir/${jobid}.gro
-  cd $locpath/workdir
+  cp ${outfile} $locpath/tmp/${jobid}.gro
+  cd $locpath/tmp
   mummi_createsim \
     --fstype simple \
     --patch ${jobid} \
     --inpath $(pwd) \
     --outpath $locpath/createsim \
-    --outlocal $locpath/workdir \
+    --outlocal $locpath/tmp \
     --logpath $locpath \
     --loglevel 2 \
     --gromacs gmx \

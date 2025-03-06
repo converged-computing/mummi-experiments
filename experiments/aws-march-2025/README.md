@@ -31,6 +31,13 @@ cd ./mummi-experiments/experiments/aws-march-2025
 
 Note that the State Machine Operator setup requires the mlrunner container, which is deployed from the [mummi-operator](https://github.com/converged-computing/mummi-operator). 
 
+## Metrics to Collect
+
+ - Timing for events (Kubernetes and via the manager)
+ - Total time for experiment (able to calculate cost for entire cluster)
+ - Number of outputs for each step produced (e.g., the ML server produces too many)
+ - A cool angle would be to use the cost analyzer to run a mock workflow with different designs
+
 ## Discussion and Questions
 
  - The scale for the experiments (see suggestion above)
@@ -41,9 +48,21 @@ Note that the State Machine Operator setup requires the mlrunner container, whic
  - autoscaling sizes up to what?
  - events to wrap in the state machine operator?
  - local configs (for each of CPU and GPU)?
+ - We can also primarily run GPU, but do just one environment comparison with CPU (e.g., Kubernetes)
  - other features I am forgetting?
+ - For AWS, I'm having trouble with getting the shared storage working (at least haven't yet). 
+ - Another issue with newer flux (ubuntu 24.04) is that ssh doesn't work. I'm going to try again and add my authorized key.
+ - As a fallback, we could have flux share the data directory with flux archive at the end of each step.
  
 High level, because we are demonstrating the features moreso than mummi, I think cutting at 30 minutes (or even sooner) is reasonable. I also don't think the output of Mummi is as important as the overall timings, unless there is something interesting with respect to performance on CPU vs. GPU.
+
+## TODO Vanessa
+
+- Both AMIs need to be rebuilt with my key added to authorized keys, and the data for the model pre-extracted.
+  - [x] GPU is done
+  - [ ] Still need to do CPU (tested on older image)
+- [ ] Test entire workflow with shared filesystem - deletion is erroneous. Could fall back to flux archive, but not ideal.
+- [ ] Discussion and feedback on experiments
 
 
 ## Experiments
@@ -61,7 +80,54 @@ cd tf-aws-cpu
 make
 ```
 
-Experiment orchestration TBA. Note to self - I need to pull the GPU variants of each container for the CPU cluster and re-save the image (currently I pulled CPU variants to test).
+Then get the lead instance IP and shell in. Experiment orchestration underway.
+
+TBA. Note to self - I rebuilt the GPU image with GPU pulls and my authorized key added, and it needs testing with the GPU workflow and a shared filesystem. I tested the CPU setup on an older flux install, and that would need a rebuild that also has the authorized key. 
+
+And note to delete, I had trouble with make destroy and the autoscaling group. I needed to delete both the storage and autoscaling group manually.
+
+```console
+# Storage
+aws delete-file-system --file-system-id mummi-gpu-efs --region us-east-1
+aws delete-file-system --file-system-id mummi-cpu-efs --region us-east-2
+
+# Autoscaling
+aws autoscaling delete-auto-scaling-group --force-delete --auto-scaling-group-name flux-autoscaling-group --region us-east-1
+aws autoscaling delete-auto-scaling-group --force-delete --auto-scaling-group-name flux-autoscaling-group --region us-east-2
+```
+
+#### Setup
+
+We need to clone and install the state machine operator.
+
+```bash
+# a88dfe2f98c46896f499a52754eb906fef67eb43 March 5, 2025
+git clone https://github.com/converged-computing/state-machine-operator
+cd state-machine-operator
+```
+Install to python:
+
+```bash
+sudo python3 -m pip install -e ./python/
+```
+
+And you will need the repository root here to create the clusters, etc (TODO)
+
+```bash
+git clone https://github.com/converged-computing/mummi-experiments
+cd ./mummi-experiments/experiments/aws-march-2025
+```
+
+The containers should already be pulled and data extracted. 
+Create the working directory to run
+
+```bash
+flux exec -r all mkdir -p /home/ubuntu/workdir
+cd /home/ubuntu/workdir
+```
+
+Will write up next - the containers have been tested a-la-carte on CPU.
+
 
 ### Kubernetes with Operators
 
@@ -124,63 +190,13 @@ Run the Experiment:
 
 ```bash
 kubectl apply -f ./crd/state-machine-operator/gpu-mummi.yaml
-```
-
-Delete the GPU cluster
-
-```bash
-eksctl delete cluster --config-file ./eks-config-gpu-6.yaml --wait
-kubectl delete pods --all --all-namespaces
-```
-
-## CPU
-
-### AWS Bare Metal
-
-Deploy the setup. 
-
-```bash
-cd tf-aws-cpu
-make
-```
-
-Experiment orchestration TBA.
-
-### Kubernetes with Operators
-
-```bash
-eksctl create cluster --config-file ./eks-config-hpc6a.yaml 
-aws eks update-kubeconfig --region us-east-2 --name mini-mummi
-```
-
-Install the monitoring tool.
-
-```bash
-kubectl create namespace monitoring
-kubectl apply -f ../event-monitor
-
-# In a different terminal, this will save nodes and collect events.
-run_number=1
-environ=cpu
-mkdir -p ./monitor/state-machine-operator/${environ}/${run_number}
-kubectl get nodes -o json > ./monitor/state-machine-operator/${environ}/${run_number}/nodes-$(date +%s).json
-kubectl logs -n monitoring $(kubectl get pods -n monitoring -o json | jq -r .items[0].metadata.name) -f |& tee ./monitor/state-machine-operator/${environ}/${run_number}/events-$(date +%s).json
-```
-
-Install the operator
-
-```bash
-make test-deploy-recreate
-```
-
-Run the Experiment:
-
-```bash
 kubectl apply -f ./crd/state-machine-operator/cpu-mummi.yaml
 ```
 
+Delete the GPU or CPU cluster
+
 ```bash
-eksctl delete cluster --config-file ./eks-config-hpc6a.yaml --wait
+eksctl delete cluster --config-file ./eks-config-gpu-static.yaml --wait
 kubectl delete pods --all --all-namespaces
 ```
 

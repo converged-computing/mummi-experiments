@@ -4,20 +4,21 @@
 locals {
   name      = "flux"
   pwd       = basename(path.cwd)
-  region    = "us-east-2"
-  ami       = "ami-0fd5069156fce962e"
+  region    = "us-east-1"
+  ami       = "ami-04e2ce24ead3f6e63"
   placement = "eks-efa-testing"
 
-  instance_type = "p5.2xlarge"
+  instance_type = "p3.2xlarge"
   vpc_cidr      = "10.0.0.0/16"
-  key_name      = "dinosaur"
+  # Ubuntu 24.04 needs a newer ed25519 type - rsa only works with high values
+  key_name      = "ed-the-dinosaur"
 
   # hpc6a has ens5 (see ifconfig)
   ethernet_device = "ens5"
 
   # Must be larger than ami (100)
   # I probably should have done 30, we can rebuild if needed
-  volume_size = 110
+  volume_size = 130
 
   # Set autoscaling to consistent size so we don't scale for now
   min_size     = 1
@@ -311,15 +312,42 @@ resource "aws_launch_template" "launch_template" {
     }
   }
 
+  # EFA not supported (but we don't need it)
   # https://github.com/terraform-aws-modules/terraform-aws-autoscaling/blob/master/examples/complete/main.tf
   network_interfaces {
     associate_public_ip_address = true
     security_groups             = [aws_security_group.security_group.id]
-    description                 = "Elastic Fiber Adapter (EFA)"
     delete_on_termination       = true
-    device_index                = 0
-    interface_type              = "efa"
+    # device_index                = 0
+    #  interface_type              = "efa"
   }
+}
+
+resource "aws_efs_file_system" "shared_storage" {
+  creation_token = "mummi-gpu-efs"
+  tags = {
+    Name = "SharedStorageEFS"
+  }
+}
+
+resource "aws_efs_mount_target" "mount_target_a" {
+  file_system_id  = aws_efs_file_system.shared_storage.id
+  subnet_id       = aws_subnet.public_c.id
+  security_groups = [aws_security_group.security_group.id]
+}
+
+resource "aws_efs_mount_target" "mount_target_b" {
+  file_system_id  = aws_efs_file_system.shared_storage.id
+  subnet_id       = aws_subnet.public_b.id
+  security_groups = [aws_security_group.security_group.id]
+}
+
+output "efs_id" {
+  value = aws_efs_file_system.shared_storage.id
+}
+
+output "efs_dns_name" {
+  value = aws_efs_file_system.shared_storage.dns_name
 }
 
 resource "aws_autoscaling_group" "autoscaling_group" {

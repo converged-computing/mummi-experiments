@@ -193,9 +193,9 @@ sudo apt-get install -y cuda-drivers
 # aws ecr get-login-password --region us-east-1
 mkdir /home/ubuntu/containers
 cd /home/ubuntu/containers
-singularity pull --docker-login docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlrunner
-singularity pull --docker-login docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis
-singularity pull --docker-login docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims
+singularity pull --docker-login docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlrunner-gpu
+singularity pull --docker-login docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-gpu
+singularity pull --docker-login docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-gpu
 singularity cache clean
 
 # At this point we have what we need!
