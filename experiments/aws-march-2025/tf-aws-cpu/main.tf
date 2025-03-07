@@ -13,6 +13,9 @@ locals {
   vpc_cidr      = "10.0.0.0/16"
   key_name      = "dinosaur-rsa"
 
+  # Elastic filesystem name
+  efs_name = "mummi-cpu-efs"
+
   # hpc6a has ens5 (see ifconfig)
   ethernet_device = "ens5"
 
@@ -59,6 +62,7 @@ data "template_file" "startup_script" {
     desired_size    = local.desired_size
     ethernet_device = local.ethernet_device
     region          = local.region
+    efs_name        = local.efs_name
   })
 }
 
@@ -353,3 +357,32 @@ resource "aws_autoscaling_group" "autoscaling_group" {
     version = "$Latest"
   }
 }
+
+# Elastic filesystem
+# TODO:
+# add timings to createsims, mlrunner, and cganalysis and rebuild / push containers
+# bring up cluster without efs, re-pull containers and save images
+# bring up images again with efs and mount / unmount.
+# test workflow ability to restore from stopped state.
+
+#resource "aws_efs_file_system" "shared_storage" {
+#  creation_token = local.efs_name
+#  tags = {
+#    Name = "SharedStorageEFS"
+#  }
+#}
+
+#resource "aws_efs_mount_target" "mount_target_b" {
+#  file_system_id  = aws_efs_file_system.shared_storage.id
+#  subnet_id       = aws_subnet.public_b.id
+#  security_groups = [aws_security_group.security_group.id]
+#}
+
+#output "efs_id" {
+#  value = aws_efs_file_system.shared_storage.id
+#}
+
+#output "efs_dns_name" {
+#  value = aws_efs_file_system.shared_storage.dns_name
+#}
+

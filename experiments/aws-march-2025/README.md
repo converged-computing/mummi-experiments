@@ -8,10 +8,10 @@ I think we should first do experiments that show incremental improvement on diff
 
 - Mummi Operator on AWS (represents the old design where the ML server requires an entire node)
    - For each of CPU and GPU (this will assess the tradeoff between the two, assuming limit of cganalysis time)
-   - For each of CPU and GPU with autoscaling allowed
+   - For each of CPU and GPU starting at max size and allowing cluster to downscale
 - State Machine Operator on AWS
    - For each of CPU and GPU (this will assess the tradeoff between the two, assuming limit of cganalysis time)
-   - For each of CPU and GPU with autoscaling allowed
+   - For each of CPU and GPU starting at max size and allowing cluster to downscale
 - State Machine Operator with Singularity and Flux (Bare Metal AWS)
    - For each of CPU and GPU (if possible)
 
@@ -31,6 +31,16 @@ cd ./mummi-experiments/experiments/aws-march-2025
 
 Note that the State Machine Operator setup requires the mlrunner container, which is deployed from the [mummi-operator](https://github.com/converged-computing/mummi-operator). 
 
+## Notes
+
+Figuring out which resource type is best would be a second idea/goal.
+Idea would be to run each step on different nodes, and choose minimum time.
+But for this study we assume each stage has an assigned node type.
+Compare potpourri cluster with homogeneous cluster (time and cost)
+At the beginning, create N of node type. As the composition of the cluster changes, the autoscaler needs to kick in to provision the node needed.
+
+If time, think of ways to have state machine operator act as node selector.
+
 ## Metrics to Collect
 
  - Timing for events (Kubernetes and via the manager)
@@ -41,23 +51,21 @@ Note that the State Machine Operator setup requires the mlrunner container, whic
 ## Discussion and Questions
 
  - The scale for the experiments (see suggestion above)
- - The scale for the follow up production run (and if this is a good idea, what are we demonstrating)?
- - Should we run the operators on the same clusters or generate new ones?
- - Are we stopping cganalysis at 30 minutes (I'm not sure we can afford it if we don't)
- - Is there benefit to saving output data for the simulation if we cut at 30 minutes?
- - autoscaling sizes up to what?
- - events to wrap in the state machine operator?
- - local configs (for each of CPU and GPU)?
- - We can also primarily run GPU, but do just one environment comparison with CPU (e.g., Kubernetes)
- - other features I am forgetting?
+    - 10 jobs total, 6 starting size and max size allowed to scale to.
+    - Need a way to monitor when nodes come up and down (look at Kubernetes event exporter)
+    - For node types, GPU and CPU (ask Loic if interesting to test different types of CPU nodes for stages)
+ - Run experiments on different clusters
+ - Are we stopping cganalysis at 30 minutes (I'm not sure we can afford it if we don't) (Yes)
+ - Save all output data (includes timings)
+ - Other features I am forgetting? Vertical pod autoscaling?
  - For AWS, I'm having trouble with getting the shared storage working (at least haven't yet). 
- - Another issue with newer flux (ubuntu 24.04) is that ssh doesn't work. I'm going to try again and add my authorized key.
- - As a fallback, we could have flux share the data directory with flux archive at the end of each step.
  
 High level, because we are demonstrating the features moreso than mummi, I think cutting at 30 minutes (or even sooner) is reasonable. I also don't think the output of Mummi is as important as the overall timings, unless there is something interesting with respect to performance on CPU vs. GPU.
 
 ## TODO Vanessa
 
+- Come up with random patterns to run.
+- Add timings to createsims and cganalysis.
 - Both AMIs need to be rebuilt with my key added to authorized keys, and the data for the model pre-extracted.
   - [x] GPU is done
   - [ ] Still need to do CPU (tested on older image)
@@ -111,11 +119,11 @@ Install to python:
 sudo python3 -m pip install -e ./python/
 ```
 
-And you will need the repository root here to create the clusters, etc (TODO)
+And you will need the repository root here to create the clusters.
 
 ```bash
+cd ../
 git clone https://github.com/converged-computing/mummi-experiments
-cd ./mummi-experiments/experiments/aws-march-2025
 ```
 
 The containers should already be pulled and data extracted. 
@@ -124,6 +132,12 @@ Create the working directory to run
 ```bash
 flux exec -r all mkdir -p /home/ubuntu/workdir
 cd /home/ubuntu/workdir
+# For some reason flux not on PYTHONPATH
+export PYTHONPATH=/usr/lib/python3.10/site-packages
+
+# TODO change this to repository path
+# Start the manager to start the workflow. We assume flux is running
+state-machine-manager start ./local/cpu/state-machine-workflow.yaml --config-dir=./local/cpu --scheduler flux --filesystem --workdir /home/ubuntu/workdir
 ```
 
 Will write up next - the containers have been tested a-la-carte on CPU.

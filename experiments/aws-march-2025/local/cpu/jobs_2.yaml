@@ -3,22 +3,21 @@ config:
   nodes: 1
   nproc: 1
   coresPerTask: 6
-  command: singularity exec /home/ubuntu/containers/mini-mummi_cganalysis.sif bash ./entrypoint.sh
+  command: /usr/local/bin/singularity exec /home/ubuntu/containers/mini-mummi_cganalysis.sif bash ./entrypoint.sh
 script: |
   MUMMI_APP=/opt/clones/mummi-ras
   MUMMI_RESOURCES=/opt/clones/mummi_resources
   export MUMMI_APP MUMMI_RESOURCES
-  WORKDIR=/home/ubuntu/workdir
-  export MUMMI_ROOT=$WORKDIR/mummi
+  export MUMMI_ROOT=$(dirname $(dirname $outpath))
+  locpath=$(dirname $outpath)
   export OMPI_COMM_WORLD_RANK=1
   export OMP_NUM_THREADS=6
-  locpath=$MUMMI_ROOT/${jobid}
-  mkdir -p $locpath/cganalysis $locpath/tmp
+  locpath=$outpath
+  mkdir -p $locpath/tmp
   cd ${locpath}
   ls
   cframe=0
   echo ">> xtclast = $xtclast, cframe = $cframe"
-  outpath=$locpath/cganalysis
   mummi_cganalysis \
         --simname ${jobid} \
         --path $locpath/createsim \
@@ -31,7 +30,7 @@ script: |
         --simcores 6 \
         --nprocs 1 \
         --stopsimtime 100 \
-        --simruntime 0.01 \
+        --simruntime 0.5 \
         --logstdout \
         --loglevel 2 \
         --no-gpu \

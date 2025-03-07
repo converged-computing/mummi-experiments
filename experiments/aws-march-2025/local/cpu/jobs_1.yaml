@@ -2,18 +2,16 @@ name: createsim
 # Note that we could add an output directoy here, but are writing into the script directly instead
 config:
   nodes: 1
-  nproc: 1
-  walltime: '0:45:00'
+  nproc: 94
   coresPerTask: 6
   command: singularity exec /home/ubuntu/containers/mini-mummi_createsims.sif bash ./entrypoint.sh
 script: |
   MUMMI_APP=/opt/clones/mummi-ras
   MUMMI_RESOURCES=/opt/clones/mummi_resources
   export MUMMI_APP MUMMI_RESOURCES
-  WORKDIR=/home/ubuntu/workdir
-  export MUMMI_ROOT=$WORKDIR/mummi
-  locpath=$MUMMI_ROOT/${jobid}
-  mkdir -p $locpath/createsim $locpath/tmp
+  export MUMMI_ROOT=$(dirname $(dirname $outpath))
+  locpath=$(dirname $outpath)
+  mkdir -p $locpath/tmp
   cd ${locpath}
   export OMP_NUM_THREADS=6
   outfile=$(ls mlrunner/structure*.gro)

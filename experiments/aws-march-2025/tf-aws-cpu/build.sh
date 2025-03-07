@@ -103,9 +103,9 @@ wget https://github.com/flux-framework/flux-pmix/releases/download/v0.6.0/flux-p
     sudo make install
 
 # Flux sched
-wget https://github.com/flux-framework/flux-sched/releases/download/v0.43.0/flux-sched-0.43.0.tar.gz && \
-    tar -xzvf flux-sched-0.43.0.tar.gz && \
-    mv flux-sched-0.43.0 /opt/flux-sched && \
+wget https://github.com/flux-framework/flux-sched/releases/download/v0.37.0/flux-sched-0.37.0.tar.gz && \
+    tar -xzvf flux-sched-0.37.0.tar.gz && \
+    mv flux-sched-0.37.0 /opt/flux-sched && \
     cd /opt/flux-sched && \
     mkdir build && \
     cd build && \
@@ -197,5 +197,15 @@ mkdir -p /tmp/data
 singularity exec --bind /tmp/data:/tmp/data mini-mummi_mlrunner.sif cp /opt/clones/model.tar.gz /tmp/data/
 tar -xzvf /tmp/data/model.tar.gz
 
+# This is for the amazon efs utils
+sudo apt-get update
+sudo apt-get -y install git binutils rustc cargo pkg-config libssl-dev gettext
+git clone https://github.com/aws/efs-utils /tmp/efs-utils
+cd /tmp/efs-utils
+./build-deb.sh
+sudo apt-get -y install ./build/amazon-efs-utils*deb
+
+# To mount:
+# sudo mount -t efs mummi-gpu-efs:/ /mnt/efs
 
 # At this point we have what we need!

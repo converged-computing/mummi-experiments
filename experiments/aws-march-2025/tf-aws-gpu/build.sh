@@ -102,15 +102,7 @@ wget https://github.com/flux-framework/flux-pmix/releases/download/v0.6.0/flux-p
     make -j && \
     sudo make install
 
-# Flux sched
-wget https://github.com/flux-framework/flux-sched/releases/download/v0.43.0/flux-sched-0.43.0.tar.gz && \
-    tar -xzvf flux-sched-0.43.0.tar.gz && \
-    mv flux-sched-0.43.0 /opt/flux-sched && \
-    cd /opt/flux-sched && \
-    mkdir build && \
-    cd build && \
-    cmake ../ && make -j && sudo make install && sudo ldconfig && \
-    echo "DONE flux build"
+# No flux sched - We will use simple sched for now
 
 # Flux curve.cert
 # Ensure we have a shared curve certificate
@@ -183,7 +175,7 @@ export VERSION=4.0.1 && \
  sudo make -C builddir install
 
 # Install nvidia drivers
-wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
 sudo dpkg -i cuda-keyring_1.1-1_all.deb
 sudo apt update
 sudo apt-get install -y cuda-drivers
@@ -196,11 +188,19 @@ cd /home/ubuntu/containers
 singularity pull --docker-login docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlrunner-gpu
 singularity pull --docker-login docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-gpu
 singularity pull --docker-login docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-gpu
-singularity cache clean
+singularity cache clean --force
 
 # Copy data over
 mkdir -p /tmp/data
 singularity exec --bind /tmp/data:/tmp/data mini-mummi_mlrunner-gpu.sif cp /opt/clones/model.tar.gz /tmp/data/
 tar -xzvf /tmp/data/model.tar.gz
+
+# TODO this needs to be done with container re-pull
+sudo apt-get update
+sudo apt-get -y install git binutils rustc cargo pkg-config libssl-dev gettext
+git clone https://github.com/aws/efs-utils /tmp/efs-utils
+cd /tmp/efs-utils
+./build-deb.sh
+sudo apt-get -y install ./build/amazon-efs-utils*deb
 
 # At this point we have what we need!

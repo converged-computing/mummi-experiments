@@ -10,8 +10,10 @@ locals {
 
   instance_type = "p3.2xlarge"
   vpc_cidr      = "10.0.0.0/16"
-  # Ubuntu 24.04 needs a newer ed25519 type - rsa only works with high values
   key_name = "ed-the-dinosaur"
+
+  # Elastic filesystem name
+  efs_name        = "mummi-gpu-efs"
 
   # hpc6a has ens5 (see ifconfig)
   ethernet_device = "ens5"
@@ -59,7 +61,8 @@ data "template_file" "startup_script" {
     desired_size    = local.desired_size
     ethernet_device = local.ethernet_device
     region          = local.region
-  })
+    efs_name        = local.efs_name
+ })
 }
 
 provider "aws" {
@@ -311,7 +314,7 @@ resource "aws_launch_template" "launch_template" {
     }
   }
 
-  # EFA not supported (but we don't need it)
+  # EFA not supported (but we don't need it here)
   # https://github.com/terraform-aws-modules/terraform-aws-autoscaling/blob/master/examples/complete/main.tf
   network_interfaces {
     associate_public_ip_address = true
@@ -322,32 +325,6 @@ resource "aws_launch_template" "launch_template" {
   }
 }
 
-resource "aws_efs_file_system" "shared_storage" {
-  creation_token = "mummi-gpu-efs"
-  tags = {
-    Name = "SharedStorageEFS"
-  }
-}
-
-#resource "aws_efs_mount_target" "mount_target_a" {
-#  file_system_id  = aws_efs_file_system.shared_storage.id
-#  subnet_id       = aws_subnet.public_c.id
-#  security_groups = [aws_security_group.security_group.id]
-#}
-
-resource "aws_efs_mount_target" "mount_target_b" {
-  file_system_id  = aws_efs_file_system.shared_storage.id
-  subnet_id       = aws_subnet.public_b.id
-  security_groups = [aws_security_group.security_group.id]
-}
-
-output "efs_id" {
-  value = aws_efs_file_system.shared_storage.id
-}
-
-output "efs_dns_name" {
-  value = aws_efs_file_system.shared_storage.dns_name
-}
 
 resource "aws_autoscaling_group" "autoscaling_group" {
   name              = "${local.name}-autoscaling-group"
@@ -380,3 +357,26 @@ resource "aws_autoscaling_group" "autoscaling_group" {
     version = "$Latest"
   }
 }
+
+
+resource "aws_efs_file_system" "shared_storage" {
+  creation_token = local.efs_name
+  tags = {
+    Name = "SharedStorageEFS"
+  }
+}
+
+resource "aws_efs_mount_target" "mount_target_b" {
+  file_system_id  = aws_efs_file_system.shared_storage.id
+  subnet_id       = aws_subnet.public_b.id
+  security_groups = [aws_security_group.security_group.id]
+}
+
+output "efs_id" {
+  value = aws_efs_file_system.shared_storage.id
+}
+
+output "efs_dns_name" {
+  value = aws_efs_file_system.shared_storage.dns_name
+}
+
