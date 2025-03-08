@@ -41,8 +41,9 @@ Note that the State Machine Operator setup requires the mlrunner container, whic
 ## Discussion and Questions
 
  - The scale for the experiments (see suggestion above)
-    - 6 state machines (18 jobs total), 6 starting size and max size allowed to scale to.
-    - Need a way to monitor when nodes come up and down (Kubernetes event exporter)
+    - 6 state machines (18 jobs total) for Mummi Operator comparison
+    - 10 jobs total for setups that afford downsizing.
+    - Need a way to monitor when nodes come up and down (Kubernetes event exporter?)
     - For node types, GPU and CPU
  - Run experiments on different clusters
  - We are stopping cganalysis at 30 minutes
