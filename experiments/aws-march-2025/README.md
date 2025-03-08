@@ -132,30 +132,3 @@ sudo umount /mnt/efs
 flux exec -r all sudo umount /mnt/efs
 ```
 
-Will write up next - the containers have been tested a-la-carte on CPU.
-
-
-#### State Machine Operator
-
-Install the operator. Note this requires pushing to a development registry, and you'd need to customize if you don't have access (you likely won't, but I doubt anyone will try to reproduce this).
-
-```bash
-# commit
-git clone https://github.com/converged-computing/state-machine-operator
-cd state-machine-operator
-make test-deploy-recreate
-```
-
-Run the Experiment:
-
-```bash
-kubectl apply -f ./crd/state-machine-operator/gpu-mummi.yaml
-kubectl apply -f ./crd/state-machine-operator/cpu-mummi.yaml
-```
-
-Delete the GPU or CPU cluster
-
-```bash
-eksctl delete cluster --config-file ./eks-config-gpu-static.yaml --wait
-kubectl delete pods --all --all-namespaces
-```

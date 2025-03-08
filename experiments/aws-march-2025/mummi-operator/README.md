@@ -2,7 +2,7 @@
 
 > This paradigm is part of the Mummi experiments. Here we are testing using the Mummi Operator, which uses the mlserver and rabbitmq for work.
 
-We won't run autoscaling with the Mummi Operator, the reason being that it doens't make a difference. Traditional mummi has no understanding of when it is done, so jobs continue to be submitted, so autoscaling would not kick in to downscale the cluster. Note that to get the exact digests for containers used, see the final-pods-state.json files in the monitor sub-directories here.
+We won't run autoscaling with the Mummi Operator, the reason being that it doesn't make a difference. Traditional mummi has no understanding of when it is done, so jobs continue to be submitted, so autoscaling would not kick in to downscale the cluster. Note that to get the exact digests for containers used, see the final-pods-state.json files in the monitor sub-directories here.
 
 ```bash
 git clone https://github.com/converged-computing/mummi-experiments
@@ -28,20 +28,20 @@ kubectl create namespace monitoring
 kubectl apply -f ../../../event-monitor
 
 # In a different terminal, this will save nodes and collect events.
-# environ=gpu-static
-# region=us-east-1
-# instance=p3.2xlarge
+# environ=cpu-static-0
+# region=us-east-2
+# instance=hpc6a.48xlarge
 
-environ=cpu-static-0
-region=us-east-2
-instance=hpc6a.48xlarge
+environ=gpu-static-0
+region=us-east-1
+instance=p3.2xlarge
 
 mkdir -p ./monitor/${environ}
 kubectl get nodes -o json > ./monitor/${environ}/nodes-$(date +%s).json
 
 # Topology API (only for hpc instance types)
 # Note that I was running an a la carte gpu instance in this region, needs to be filtered out
-aws ec2 describe-instance-topology --region ${region} --filters Name=instance-type,Values=${instance} > ./monitor/${environ}/topology.json
+# aws ec2 describe-instance-topology --region ${region} --filters Name=instance-type,Values=${instance} > ./monitor/${environ}/topology.json
 aws ec2 describe-instances --filters "Name=instance-type,Values=${instance}" --region ${region}  > ./monitor/${environ}/instances.json
 
 kubectl logs -n monitoring $(kubectl get pods -n monitoring -o json | jq -r .items[0].metadata.name) -f |& tee ./monitor/${environ}/events-$(date +%s).json
@@ -49,8 +49,11 @@ kubectl logs -n monitoring $(kubectl get pods -n monitoring -o json | jq -r .ite
 
 #### Mummi Operator
 
+This is private, so we install from a local build.
+
 ```bash
-# commit used for GPU: 3653b9e8d82d71656fbcf0860d288d1715f4aec3
+# commit used for test runs: 3653b9e8d82d71656fbcf0860d288d1715f4aec3
+# commit used for GPU and CPU final runs: 6ae1f9e6c968c6dd6fba2107dd664d46a0db114f
 git clone https://github.com/converged-computing/mummi-operator
 cd mummi-operator
 make test-deploy-recreate
@@ -161,7 +164,7 @@ We see that message in the else in our logs, meaning that in both cases we retur
 
 ### Runs
 
-> cpu-static-0
+> cpu-static-0 (final)
 
 This was the fixed (final run) and for this run we observe 3 of each job running at once (starting with createsim) and as soon as we finish those three, three cganalysis kick off. This sequence would get out of sync given a failure of createsim, which would then add stagger to the execution due to the wasted time.
 
@@ -177,7 +180,7 @@ Last cganalysis completed:
 
 For some reason the ML server didn't trigger nearly as many structure generations - I don't know why. I might need to do a re-run of one or the other to sanity check. 
 
-> gpu-static
+> gpu-static (final)
 
 This was fixed to only allow one run and if fail, the job fails. I also remembered there is no actual stopping point, so I needed to stop it when we had 6 completed (I didn't before). Observations:
 - It doesn't seem to be nicely orchestrated so that, for example, when createsims jobs are done and cganalysis are underway, it can go back and launch more createsim. It seems to get stuck running cganalysis (submit) until they are complete or change and then go back to the first step.
@@ -195,8 +198,6 @@ kill -s SIGINT <process_id>
 ```
 
 And make sure to select the python. Then save the log with times.
-
-> gpu-static-fail-0
 
 ## Run 1
 
