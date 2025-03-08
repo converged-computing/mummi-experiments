@@ -5,7 +5,8 @@ locals {
   name   = "flux"
   pwd    = basename(path.cwd)
   region = "us-east-2"
-  ami    = "ami-0fd5069156fce962e"
+  ami    = "ami-0b8765b694b0db6d5"
+  #ami    = "ami-0fd5069156fce962e"
   #ami       = "ami-0e7c1a3721524ddab"
   placement = "eks-efa-testing"
 
@@ -62,7 +63,7 @@ data "template_file" "startup_script" {
     desired_size    = local.desired_size
     ethernet_device = local.ethernet_device
     region          = local.region
-    efs_name        = local.efs_name
+    efs_name        = aws_efs_file_system.shared_storage.dns_name
   })
 }
 
@@ -358,31 +359,23 @@ resource "aws_autoscaling_group" "autoscaling_group" {
   }
 }
 
-# Elastic filesystem
-# TODO:
-# add timings to createsims, mlrunner, and cganalysis and rebuild / push containers
-# bring up cluster without efs, re-pull containers and save images
-# bring up images again with efs and mount / unmount.
-# test workflow ability to restore from stopped state.
+resource "aws_efs_file_system" "shared_storage" {
+  creation_token = local.efs_name
+  tags = {
+    Name = "SharedStorageEFS"
+  }
+}
 
-#resource "aws_efs_file_system" "shared_storage" {
-#  creation_token = local.efs_name
-#  tags = {
-#    Name = "SharedStorageEFS"
-#  }
-#}
+resource "aws_efs_mount_target" "mount_target_b" {
+  file_system_id  = aws_efs_file_system.shared_storage.id
+  subnet_id       = aws_subnet.public_b.id
+  security_groups = [aws_security_group.security_group.id]
+}
 
-#resource "aws_efs_mount_target" "mount_target_b" {
-#  file_system_id  = aws_efs_file_system.shared_storage.id
-#  subnet_id       = aws_subnet.public_b.id
-#  security_groups = [aws_security_group.security_group.id]
-#}
+output "efs_id" {
+  value = aws_efs_file_system.shared_storage.id
+}
 
-#output "efs_id" {
-#  value = aws_efs_file_system.shared_storage.id
-#}
-
-#output "efs_dns_name" {
-#  value = aws_efs_file_system.shared_storage.dns_name
-#}
-
+output "efs_dns_name" {
+  value = aws_efs_file_system.shared_storage.dns_name
+}

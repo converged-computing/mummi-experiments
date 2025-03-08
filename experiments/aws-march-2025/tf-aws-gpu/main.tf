@@ -5,15 +5,15 @@ locals {
   name      = "flux"
   pwd       = basename(path.cwd)
   region    = "us-east-1"
-  ami       = "ami-07dc0107c4c03dff7"
+  ami       = "ami-037a5894f22f6e984"
   placement = "eks-efa-testing"
 
   instance_type = "p3.2xlarge"
   vpc_cidr      = "10.0.0.0/16"
-  key_name = "ed-the-dinosaur"
+  key_name      = "ed-the-dinosaur"
 
   # Elastic filesystem name
-  efs_name        = "mummi-gpu-efs"
+  efs_name = "mummi-gpu-efs"
 
   # hpc6a has ens5 (see ifconfig)
   ethernet_device = "ens5"
@@ -61,8 +61,8 @@ data "template_file" "startup_script" {
     desired_size    = local.desired_size
     ethernet_device = local.ethernet_device
     region          = local.region
-    efs_name        = local.efs_name
- })
+    efs_name        = aws_efs_file_system.shared_storage.dns_name
+  })
 }
 
 provider "aws" {

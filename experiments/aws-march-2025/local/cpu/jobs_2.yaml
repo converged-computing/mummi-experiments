@@ -1,7 +1,7 @@
 name: cganalysis
 config:
   nodes: 1
-  nproc: 1
+  nproc: 94
   coresPerTask: 6
   command: /usr/local/bin/singularity exec /home/ubuntu/containers/mini-mummi_cganalysis.sif bash ./entrypoint.sh
 script: |
@@ -12,7 +12,6 @@ script: |
   locpath=$(dirname $outpath)
   export OMPI_COMM_WORLD_RANK=1
   export OMP_NUM_THREADS=6
-  locpath=$outpath
   mkdir -p $locpath/tmp
   cd ${locpath}
   ls

@@ -195,7 +195,6 @@ mkdir -p /tmp/data
 singularity exec --bind /tmp/data:/tmp/data mini-mummi_mlrunner-gpu.sif cp /opt/clones/model.tar.gz /tmp/data/
 tar -xzvf /tmp/data/model.tar.gz
 
-# TODO this needs to be done with container re-pull
 sudo apt-get update
 sudo apt-get -y install git binutils rustc cargo pkg-config libssl-dev gettext
 git clone https://github.com/aws/efs-utils /tmp/efs-utils

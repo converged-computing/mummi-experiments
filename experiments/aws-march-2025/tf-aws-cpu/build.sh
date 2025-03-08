@@ -102,16 +102,6 @@ wget https://github.com/flux-framework/flux-pmix/releases/download/v0.6.0/flux-p
     make -j && \
     sudo make install
 
-# Flux sched
-wget https://github.com/flux-framework/flux-sched/releases/download/v0.37.0/flux-sched-0.37.0.tar.gz && \
-    tar -xzvf flux-sched-0.37.0.tar.gz && \
-    mv flux-sched-0.37.0 /opt/flux-sched && \
-    cd /opt/flux-sched && \
-    mkdir build && \
-    cd build && \
-    cmake ../ && make -j && sudo make install && sudo ldconfig && \
-    echo "DONE flux build"
-
 # Flux curve.cert
 # Ensure we have a shared curve certificate
 flux keygen /tmp/curve.cert && \
@@ -204,8 +194,5 @@ git clone https://github.com/aws/efs-utils /tmp/efs-utils
 cd /tmp/efs-utils
 ./build-deb.sh
 sudo apt-get -y install ./build/amazon-efs-utils*deb
-
-# To mount:
-# sudo mount -t efs mummi-gpu-efs:/ /mnt/efs
 
 # At this point we have what we need!

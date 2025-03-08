@@ -190,6 +190,5 @@ sudo chmod oug+w /dev/infiniband/rdma_cm
 # this needs to be run interactively.
 sudo chown -R $USER /home/ubuntu
 cd /home/ubuntu
-
-# TODO add mount for efs_name
-# ${efs_name}
+sudo mkdir -p /mnt/efs
+sudo mount -t efs ${efs_name} /mnt/efs
