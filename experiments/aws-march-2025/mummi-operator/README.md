@@ -2,7 +2,7 @@
 
 > This paradigm is part of the Mummi experiments. Here we are testing using the Mummi Operator, which uses the mlserver and rabbitmq for work.
 
-We won't run autoscaling with the Mummi Operator, the reason being that it doens't make a difference. Traditional mummi has no understanding of when it is done, so jobs continue to be submitted, so autoscaling would not kick in to downscale the cluster.
+We won't run autoscaling with the Mummi Operator, the reason being that it doens't make a difference. Traditional mummi has no understanding of when it is done, so jobs continue to be submitted, so autoscaling would not kick in to downscale the cluster. Note that to get the exact digests for containers used, see the final-pods-state.json files in the monitor sub-directories here.
 
 ```bash
 git clone https://github.com/converged-computing/mummi-experiments
@@ -19,8 +19,8 @@ eksctl create cluster --config-file ../eks-config-gpu-static.yaml
 aws eks update-kubeconfig --region us-east-1 --name mini-mummi-gpu
 
 # CPU
-eksctl create cluster --config-file ./eks-config-cpu-static.yaml 
-aws eks update-kubeconfig --region us-east-1 --name mini-mummi
+eksctl create cluster --config-file ../eks-config-cpu-static.yaml 
+aws eks update-kubeconfig --region us-east-2 --name mini-mummi
 ```
 
 ```bash
@@ -28,16 +28,21 @@ kubectl create namespace monitoring
 kubectl apply -f ../../../event-monitor
 
 # In a different terminal, this will save nodes and collect events.
-environ=gpu-static
-# environ=cpu-static
+# environ=gpu-static
+# region=us-east-1
+# instance=p3.2xlarge
+
+environ=cpu-static
+region=us-east-2
+instance=hpc6a.48xlarge
 
 mkdir -p ./monitor/${environ}
 kubectl get nodes -o json > ./monitor/${environ}/nodes-$(date +%s).json
 
 # Topology API (only for hpc instance types)
 # Note that I was running an a la carte gpu instance in this region, needs to be filtered out
-# aws ec2 describe-instance-topology --region us-east-1 --filters Name=instance-type,Values=p3.2xlarge > ./monitor/${environ}/topology.json
-aws ec2 describe-instances --filters "Name=instance-type,Values=p3.2xlarge" --region us-east-2 > ./monitor/${environ}/instances.json
+aws ec2 describe-instance-topology --region ${region} --filters Name=instance-type,Values=${instance} > ./monitor/${environ}/topology.json
+aws ec2 describe-instances --filters "Name=instance-type,Values=${instance}" --region ${region}  > ./monitor/${environ}/instances.json
 
 kubectl logs -n monitoring $(kubectl get pods -n monitoring -o json | jq -r .items[0].metadata.name) -f |& tee ./monitor/${environ}/events-$(date +%s).json
 ```
@@ -66,8 +71,8 @@ When the workflow is complete, we can save the state, etc. First, get output for
 
 ```bash
 # In a different terminal, this will save nodes and collect events.
-environ=gpu-static
-# environ=cpu-static
+# environ=gpu-static
+environ=cpu-static
 
 kubectl logs <container>  > ./monitor/${environ}/<container>.out
 kubectl get pods -o wide > ./monitor/${environ}/final-pods-state.txt
@@ -100,6 +105,18 @@ done
 
 ## Observations and Notes
 
+> cpu-static
+
+Even with the same orchestration, in that the mlserver doesn't use a GPU node, it means we have one more node available to run jobs (because the mlserver goes from needing an entire node, claiming the GPU, to being able to run alongside another pod).
+
+Last cganalysis completed:
+
+- cganalysis-structure-iter00-000000000003-bbrgn   0/1     Completed   0          34m
+- cganalysis-structure-iter00-000000000004-cjf54   0/1     Completed   0          34m
+- cganalysis-structure-iter00-000000000005-r4wrl   0/1     Completed   0          34m
+
+For some reason the ML server didn't trigger nearly as many structure generations - I don't know why. I might need to do a re-run of one or the other to sanity check. 
+
 > gpu-static
 
 This was fixed to only allow one run and if fail, the job fails. I also remembered there is no actual stopping point, so I needed to stop it when we had 6 completed (I didn't before). Observations:
@@ -110,6 +127,10 @@ This was fixed to only allow one run and if fail, the job fails. I also remember
 - The times aren't saved (or printed) until exit so I shelled it, got the process uid, and did a SIGINT that would allow the class to call `__exit__` and print the result to the log:
 
 ```bash
+pixi shell
+pixi add htop
+# get wfmanager process
+htop
 kill -s SIGINT <process_id>
 ```
 
@@ -137,6 +158,7 @@ kubectl delete -f crd/gpu-mummi.yaml
 eksctl delete cluster --config-file ../eks-config-gpu-static.yaml --wait
 
 # CPU
+kubectl delete -f crd/cpu-mummi.yaml
 eksctl create cluster --config-file ../eks-config-cpu-static.yaml --wait
 ```
 
