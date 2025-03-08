@@ -32,7 +32,7 @@ kubectl apply -f ../../../event-monitor
 # region=us-east-1
 # instance=p3.2xlarge
 
-environ=cpu-static
+environ=cpu-static-0
 region=us-east-2
 instance=hpc6a.48xlarge
 
@@ -72,9 +72,9 @@ When the workflow is complete, we can save the state, etc. First, get output for
 ```bash
 # In a different terminal, this will save nodes and collect events.
 # environ=gpu-static
-environ=cpu-static
+environ=cpu-static-0
 
-kubectl logs <container>  > ./monitor/${environ}/<container>.out
+#kubectl logs <container>  > ./monitor/${environ}/<container>.out
 kubectl get pods -o wide > ./monitor/${environ}/final-pods-state.txt
 kubectl get pods -o json > ./monitor/${environ}/final-pods-state.json
 ```
@@ -103,7 +103,67 @@ for repo in $(oras repo list --plain-http $registry)
 done
 ```
 
+For the workflow manager to get times:
+
+```bash
+pixi shell
+pixi add htop
+# get wfmanager process
+htop
+kill -s SIGINT <process_id>
+kill -s SIGINT 364
+```
+
+## Cleanup
+
+```bash
+# GPU
+kubectl delete -f crd/gpu-mummi.yaml
+eksctl delete cluster --config-file ../eks-config-gpu-static.yaml --wait
+
+# CPU
+kubectl delete -f crd/cpu-mummi.yaml
+eksctl delete cluster --config-file ../eks-config-cpu-static.yaml --wait
+```
+
+
 ## Observations and Notes
+
+The first time I ran this (the results that don't end in -0), I noticed that the iterations for the mlserver were very different between CPU and GPU, with GPU having hundreds and CPU exactly what we needed. This came down to having different numbers of known max jobs allowed per node, a result of the different node types used between the experiments, and mummi-core hard coding the cluster names by host. In the case of unknown, we use multiprocessing to get the cores and assume one GPU. This calculation resulted in a createsims limit for GPU that was never hit, and so patches were always generated for it (see notes below). High level, this is a problem that results from using a rough heuristic to determine if more samples should be generated. In this case, we just happened to cross a threshold between the two case and get very different results. The state machine operator "fixes" it to some degree because we don't calculate relative percentages based on a manual definition of resources, we request only exactly what is needed for a final goal (the total number of cganalysis) and then the ability to run (or be pending in the queue) is dependent on the actual cluster resources. For this case, I decided to re-run both workflows using hard coded values that would minimally have similar outcomes (to trigger patch generation in the same way).
+
+For the re-runs, I made sure to set cores per task to 6 and nproc to 1, since that emulates what is done in mini mummi for each. This would mean the CPU (hpc6a) would have a max of 94 jobs per node, and the GPU (p3.2xlarge) would have 4. The nproc is primarily used for the wfmanager and kubernetes scheduling, but should not impact the job, which would see the full resources of a node (running in burstable).
+
+### Different submissions 
+
+High level, I know that the cpu and gpu runs generated different cganalysis vs. createsims that were running at the same time - the createsim would kick off 3 jobs from the getgo for CPU, but only 2 for GPU. Then since there was a difference of 1, the function to calculate patches to generate would always request 3 more, and that is why the GPU runs have >200 results for the mlserver and the CPU only 8, exactly what we needed. I can't for the life of me figure out why those initial submission numbers were different. The percentages and configurations for the mlserver should be the same in every aspect except for the resources defined. It must mean that the resource calculation resulted in different numbers of jobs for each type, and one case triggered the mlserver to generate and the other not (CPU). I don't know why, but I think this is an artifact of a manual calculation strategy - a bug that we couldn't anticipate. If we have funds at the end I could run these again with higher debug verbosity to see the choices that the wfmanager made with respect to node counts. Ah, I think I see why.
+In mummi-core generate_resource_counts, the cluster names are _hard coded_
+
+```
+def get_resource_counts():
+
+    import multiprocessing
+
+    hostname = get_hostname(contract_hostname=True)
+    if hostname == 'lassen':
+       ncores, ngpus = 42, 4
+    elif hostname == 'summit':
+       ncores, ngpus = 42, 6
+    elif hostname == 'frontier':
+       ncores, ngpus = 56, 8
+    else:
+        LOGGER.error('Unidentified hostname: {}'.format(hostname))
+        return multiprocessing.cpu_count(), 1
+
+    return ncores, ngpus
+```
+We see that message in the else in our logs, meaning that in both cases we return back the actual cpu count and 1 gpu. For the actual count, on the hpc6a instances this is 96. On the GPU instances it is only 4. This means that when we calculate the maximum jobs for each in mummi-core (called by mummi-ras for each jobTracker) that [start here](https://code.ornl.gov/admirral/mummi-core/-/blob/develop/mummi_core/workflow/jobTracker.py#L77), in the case of GPU we calculate a max of 3 for CGanalysis, and 2 for createsims. The GPU count is wrong in the case of the CPU runner, but it's the same between the two (and thus irrelevant). For CPU, since createsims is found to have 96 actual cores and  we specify the cores per task to be the same, we calculate a maximum number of jobs that turns out to be equal to the number running. When we calculate samples we need for the ML server, it turns out to be negative so we don't ask for more. When 
+
+
+### Runs
+
+> cpu-static-0
+
+This was the fixed (final run) and for this run we observe 3 of each job running at once (starting with createsim) and as soon as we finish those three, three cganalysis kick off. This sequence would get out of sync given a failure of createsim, which would then add stagger to the execution due to the wasted time.
 
 > cpu-static
 
@@ -150,15 +210,4 @@ This run was erroneous in that jobs were allowed to retry. What happened is that
 
 Overall, this run shows problems that arise when orchestration is not well connected, and services (that can fail or otherwise not function correctly) are involved. The jobs would eventually run, but since it is one big loop that is depending on other jobs finishing, and since the orchestration was thrown off with the number of components running to match resources, it seemed to result in this erroneous state. I can't comment beyond that. I stopped it around 8 completed cganalysis because I forgot it needs a manual stop.
 
-## Cleanup
-
-```bash
-# GPU
-kubectl delete -f crd/gpu-mummi.yaml
-eksctl delete cluster --config-file ../eks-config-gpu-static.yaml --wait
-
-# CPU
-kubectl delete -f crd/cpu-mummi.yaml
-eksctl create cluster --config-file ../eks-config-cpu-static.yaml --wait
-```
 
