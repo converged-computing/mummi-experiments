@@ -8,6 +8,10 @@ We won't run autoscaling with the Mummi Operator, the reason being that it doesn
 git clone https://github.com/converged-computing/mummi-experiments
 cd ./mummi-experiments/experiments/aws-march-2025/mummi-operator
 ```
+Final results:
+
+ - cpu-static-0 is final for CPU
+ - gpu-static is final for GPU
 
 ## Experiments
 
