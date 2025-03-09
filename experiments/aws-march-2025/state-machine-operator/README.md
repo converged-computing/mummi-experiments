@@ -9,13 +9,14 @@ cd ./mummi-experiments/experiments/aws-march-2025/state-machine-operator
 
 Final results:
 
- - TBA
+ - gpu-static-0
+
 
 ## Experiments
 
 There will be four experiments - one for GPU and one for CPU, and each with and without autoscaling.
 
-TODO for GPU autoscaling add --node-labels k8s.amazonaws.com/accelerator=<gpu-type> so we need a second file.
+> TODO for GPU autoscaling add --node-labels k8s.amazonaws.com/accelerator=<gpu-type> so we need a second file.
 
 ```bash
 # GPU
@@ -38,7 +39,7 @@ kubectl apply -f ../../../event-monitor
 # region=us-east-2
 # instance=hpc6a.48xlarge
 
-environ=gpu-static
+environ=gpu-static-0
 region=us-east-1
 instance=p3.2xlarge
 
@@ -77,12 +78,15 @@ When the workflow is complete, we can save the state, etc. First, get output for
 
 ```bash
 # In a different terminal, this will save nodes and collect events.
-environ=gpu-static
+environ=gpu-static-0
 # environ=cpu-static
 
 #kubectl logs <container>  > ./monitor/${environ}/<container>.out
 kubectl get pods -o wide > ./monitor/${environ}/final-pods-state.txt
 kubectl get pods -o json > ./monitor/${environ}/final-pods-state.json
+
+# Copy times from the manager
+kubectl cp mummi-manager-86ddd95986-5gctw:/workflow-times.json workflow-times.json
 ```
 
 I found the easiest thing to do was expose the headless service, and then oras pull to my local machine.
@@ -124,4 +128,4 @@ eksctl delete cluster --config-file ../eks-config-cpu-static.yaml --wait
 
 ## Observations and Notes
 
-- The first GPU run did not have the container build with times, this was a mistake on my part. I will need to run it again.
+- The first GPU run did not have the container build with times, this was a mistake on my part (gpu-static). I re-ran it again with a fix (gpu-static-0).
