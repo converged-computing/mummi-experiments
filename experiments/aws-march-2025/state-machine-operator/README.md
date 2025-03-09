@@ -10,13 +10,14 @@ cd ./mummi-experiments/experiments/aws-march-2025/state-machine-operator
 Final results:
 
  - gpu-static-0
+ - cpu-static
 
 
 ## Experiments
 
 There will be four experiments - one for GPU and one for CPU, and each with and without autoscaling.
 
-> TODO for GPU autoscaling add --node-labels k8s.amazonaws.com/accelerator=<gpu-type> so we need a second file.
+> TODO for GPU autoscaling add --node-labels k8s.amazonaws.com/accelerator=<gpu-type> so we need a second file. Also need to think about general design.
 
 ```bash
 # GPU
@@ -35,20 +36,20 @@ kubectl create namespace monitoring
 kubectl apply -f ../../../event-monitor
 
 # In a different terminal, this will save nodes and collect events.
-# environ=cpu-static
-# region=us-east-2
-# instance=hpc6a.48xlarge
+environ=cpu-static
+region=us-east-2
+instance=hpc6a.48xlarge
 
-environ=gpu-static-0
-region=us-east-1
-instance=p3.2xlarge
+# environ=gpu-static-0
+# region=us-east-1
+# instance=p3.2xlarge
 
 mkdir -p ./monitor/${environ}
 kubectl get nodes -o json > ./monitor/${environ}/nodes-$(date +%s).json
 
 # Topology API (only for hpc instance types)
 # Note that I was running an a la carte gpu instance in this region, needs to be filtered out
-# aws ec2 describe-instance-topology --region ${region} --filters Name=instance-type,Values=${instance} > ./monitor/${environ}/topology.json
+aws ec2 describe-instance-topology --region ${region} --filters Name=instance-type,Values=${instance} > ./monitor/${environ}/topology.json
 aws ec2 describe-instances --filters "Name=instance-type,Values=${instance}" --region ${region}  > ./monitor/${environ}/instances.json
 
 kubectl logs -n monitoring $(kubectl get pods -n monitoring -o json | jq -r .items[0].metadata.name) -f |& tee ./monitor/${environ}/events-$(date +%s).json
@@ -59,13 +60,14 @@ kubectl logs -n monitoring $(kubectl get pods -n monitoring -o json | jq -r .ite
 Install the operator. Note this requires pushing to a development registry, and you'd need to customize if you don't have access (you likely won't, but I doubt anyone will try to reproduce this).
 
 ```bash
-# commit
+# commit for GPU b18bd707f5cfefaef50e32b42b8849b0e05bfd2e (fixed bug for failed job)
+# commit for CPU 12557775f9ed56407f1b6a9488547281ee9a201c
 git clone https://github.com/converged-computing/state-machine-operator
 cd state-machine-operator
 make test-deploy-recreate
 ```
 
-Run the Experiment:
+Run the Experiment. Note that since the resources here are going directly to Kubernetes, we ask for exactly what we want each job to have.
 
 ```bash
 kubectl apply -f ./crd/gpu-mummi.yaml
@@ -78,8 +80,8 @@ When the workflow is complete, we can save the state, etc. First, get output for
 
 ```bash
 # In a different terminal, this will save nodes and collect events.
-environ=gpu-static-0
-# environ=cpu-static
+# environ=gpu-static-0
+environ=cpu-static
 
 #kubectl logs <container>  > ./monitor/${environ}/<container>.out
 kubectl get pods -o wide > ./monitor/${environ}/final-pods-state.txt
@@ -129,3 +131,4 @@ eksctl delete cluster --config-file ../eks-config-cpu-static.yaml --wait
 ## Observations and Notes
 
 - The first GPU run did not have the container build with times, this was a mistake on my part (gpu-static). I re-ran it again with a fix (gpu-static-0).
+- I notice we are not mapping the nproc for the entire job to the cganalysis run. But we are being consistent in doing that so they are comparable. I might do the autoscaling runs with the improvement if it makes it go faster. We couldn't compare them to these runs anyway.
