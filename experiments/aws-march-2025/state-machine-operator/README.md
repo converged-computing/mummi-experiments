@@ -9,9 +9,8 @@ cd ./mummi-experiments/experiments/aws-march-2025/state-machine-operator
 
 Final results:
 
- - gpu-static-0
- - cpu-static
-
+ - gpu-static-1
+ - cpu-static-1
 
 ## Experiments
 
@@ -36,11 +35,11 @@ kubectl create namespace monitoring
 kubectl apply -f ../../../event-monitor
 
 # In a different terminal, this will save nodes and collect events.
-environ=cpu-static
+environ=cpu-static-1
 region=us-east-2
 instance=hpc6a.48xlarge
 
-# environ=gpu-static-0
+# environ=gpu-static-1
 # region=us-east-1
 # instance=p3.2xlarge
 
@@ -60,8 +59,8 @@ kubectl logs -n monitoring $(kubectl get pods -n monitoring -o json | jq -r .ite
 Install the operator. Note this requires pushing to a development registry, and you'd need to customize if you don't have access (you likely won't, but I doubt anyone will try to reproduce this).
 
 ```bash
-# commit for GPU b18bd707f5cfefaef50e32b42b8849b0e05bfd2e (fixed bug for failed job)
-# commit for CPU 12557775f9ed56407f1b6a9488547281ee9a201c
+# commit for cpu and gpu
+# f0e880c46277e49c5b301f92bee93e58e127addc
 git clone https://github.com/converged-computing/state-machine-operator
 cd state-machine-operator
 make test-deploy-recreate
@@ -76,12 +75,12 @@ kubectl apply -f ./crd/cpu-mummi.yaml
 
 ## Saving data files
 
-When the workflow is complete, we can save the state, etc. First, get output for the different components. For each of the mlserver, rabbitmq, and wfmanager, do:
+When the workflow is complete, we can save the state, etc. First, get output for the different components. For each of the manager and registry, do:
 
 ```bash
 # In a different terminal, this will save nodes and collect events.
-# environ=gpu-static-0
-environ=cpu-static
+# environ=gpu-static-1
+environ=cpu-static-1
 
 #kubectl logs <container>  > ./monitor/${environ}/<container>.out
 kubectl get pods -o wide > ./monitor/${environ}/final-pods-state.txt
@@ -113,6 +112,7 @@ for repo in $(oras repo list --plain-http $registry)
         oras pull --plain-http $registry/$repo:$tag
     done
 done
+cd $root
 ```
 
 ## Cleanup
@@ -127,8 +127,8 @@ kubectl delete -f crd/cpu-mummi.yaml
 eksctl delete cluster --config-file ../eks-config-cpu-static.yaml --wait
 ```
 
+## Notes
 
-## Observations and Notes
-
-- The first GPU run did not have the container build with times, this was a mistake on my part (gpu-static). I re-ran it again with a fix (gpu-static-0).
-- I notice we are not mapping the nproc for the entire job to the cganalysis run. But we are being consistent in doing that so they are comparable. I might do the autoscaling runs with the improvement if it makes it go faster. We couldn't compare them to these runs anyway.
+- The GPU mlrunner had an error, but it simply created another state machine to replace it.
+- The state machine operator uses GROMACS instead of GROMACS_PARTS to support feedback better, they are functionally equivalent
+- It's hard to say (this is subjective) but it seems like there are more errors when gromacs is running on CPU.
