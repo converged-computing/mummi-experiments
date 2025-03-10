@@ -66,7 +66,7 @@ spec:
       nodes: 1
       gpus: 1
       walltime: '0:45:00'
-      coresPerTask: 6
+      coresPerTask: 7
 
     image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-gpu
     registry:
@@ -77,7 +77,8 @@ spec:
       MUMMI_APP=/opt/clones/mummi-ras MUMMI_ROOT=$MUMMI_APP
       MUMMI_RESOURCES=/opt/clones/mummi_resources
       export MUMMI_ROOT MUMMI_APP MUMMI_RESOURCES
-      export OMP_NUM_THREADS=6
+      # Each GPU job only has 7 threads to match mummi-operator runs
+      export OMP_NUM_THREADS=7
       splitup=(${jobid//_/ })
       simdir=$(echo ${splitup[1]})
       simname=${jobid}
@@ -103,7 +104,7 @@ spec:
     config:
       nodes: 1
       gpus: 1
-      coresPerTask: 6
+      coresPerTask: 7
 
     image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-gpu
     registry:
@@ -115,7 +116,7 @@ spec:
       MUMMI_RESOURCES=/opt/clones/mummi_resources
       export MUMMI_ROOT MUMMI_APP MUMMI_RESOURCES
       export OMPI_COMM_WORLD_RANK=1
-      export OMP_NUM_THREADS=6
+      export OMP_NUM_THREADS=7
       simname=${jobid}
       locpath=/tmp/workdir
       mv /tmp/out ${locpath}
@@ -132,7 +133,7 @@ spec:
         --fbio mummi \
         --simbin gmx \
         --backend GROMACS \
-        --simcores 6 \
+        --simcores ${OMP_NUM_THREADS} \
         --nprocs 1 \
         --stopsimtime 100 \
         --frameProcessBatchSize 10 \

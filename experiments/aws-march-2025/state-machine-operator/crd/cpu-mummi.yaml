@@ -62,8 +62,8 @@ spec:
     config:
       nodes: 1
       walltime: '0:45:00'
-      coresPerTask: 6
-      nproc: 94
+      # This actually goes into the pod resource spec, so we ask for 94/96
+      coresPerTask: 94
 
     image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims
     registry:
@@ -74,7 +74,7 @@ spec:
       MUMMI_APP=/opt/clones/mummi-ras MUMMI_ROOT=$MUMMI_APP
       MUMMI_RESOURCES=/opt/clones/mummi_resources
       export MUMMI_ROOT MUMMI_APP MUMMI_RESOURCES
-      export OMP_NUM_THREADS=6
+      export OMP_NUM_THREADS=94
       splitup=(${jobid//_/ })
       simdir=$(echo ${splitup[1]})
       simname=${jobid}
@@ -100,8 +100,7 @@ spec:
     config:
       nodes: 1
       walltime: '0:45:00'
-      coresPerTask: 6
-      nproc: 94
+      coresPerTask: 94
 
     image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis
     registry:
@@ -113,7 +112,7 @@ spec:
       MUMMI_RESOURCES=/opt/clones/mummi_resources
       export MUMMI_ROOT MUMMI_APP MUMMI_RESOURCES
       export OMPI_COMM_WORLD_RANK=1
-      export OMP_NUM_THREADS=6
+      export OMP_NUM_THREADS=94
       simname=${jobid}
       locpath=/tmp/workdir
       mv /tmp/out ${locpath}
@@ -130,7 +129,7 @@ spec:
         --fbio mummi \
         --simbin gmx \
         --backend GROMACS \
-        --simcores 6 \
+        --simcores ${OMP_NUM_THREADS} \
         --nprocs 1 \
         --stopsimtime 100 \
         --frameProcessBatchSize 10 \
