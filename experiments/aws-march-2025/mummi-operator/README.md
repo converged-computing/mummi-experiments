@@ -139,4 +139,160 @@ eksctl delete cluster --config-file ../eks-config-cpu-static.yaml --wait
 
 Also see [notes](notes.md) from testing runs.
 
+## Quick Analysis
 
+Notes:
+
+ - There was one createsims job in the GPU run that never completed, so its running time is the full workflow. It's an outlier that is removed from the plot.
+ - The workflow and analysis times are filtered to not include anything < 1 second
+ 
+These are just some quick glances at a small amount of data for the runs here. I still need to add the state machine operator runs, do autoscaling runs, add both to these plots, then calculate costs. These are only moderately interesting to suggest that GPU is faster than CPU for this one setup using the MuMMI Operator (and costs TBA). I can guarantee you the state machine operator is much faster to do the same work!
+
+![results/img/function_times_by_experiment.png](results/img/function_times_by_experiment.png)
+
+Some quick glances at output - this is hugely incomplete because we aren't comparing to anything interesting, but it's a start to parsing results.
+
+### Job Times
+
+This shows total job times for each job type between environments. The createsim cpu static was hurt because one of the jobs ran for the entire lifecycle of the workflow, occupying an entire node, and never finished. This means we ran with 1 instead of 2 nodes for that entire job family, which I imagine at least 1.5x the time.  These are mean job times:
+
+```console
+job         experiment
+cganalysis  cpu-static    11011
+            gpu-static    12764
+createsim   cpu-static    11671
+            gpu-static     6999
+```
+![results/img/job_times_by_experiment.png](results/img/job_times_by_experiment.png)
+
+Here are times in a format easier to parse - these are the total summed times across jobs (so much longer than total experiment).
+
+```console
+cpu-static  cganalysis_load_mdanalysis              cganalysis        2.848357
+            cganalysis_main_analysis                cganalysis    10669.224872
+            cganalysis_run                          cganalysis    10702.452909
+            cganalysis_run_simulation               cganalysis       30.064158
+            cganalysis_simrun                       cganalysis       30.063611
+            createsim_runtime                       createsim     11539.840796
+            createsims_create_cg_patch              createsim         0.008023
+            createsims_generate_velocities          createsim       795.179892
+            createsims_gromacs_energy_minimization  createsim         13.77891
+            createsims_gromacs_make_ndx             createsim         3.853949
+            createsims_mdrun_lipids_water           createsim        62.172606
+            createsims_prime_cg_sim                 createsim         9.299346
+            createsims_pull_molecules               createsim      6723.913401
+            createsims_relax_protein                createsim       524.463825
+            createsims_setup_cg_sim                 createsim     11530.384827
+            createsims_short_equilibration          createsim      3381.785427
+            createsims_trjconv_lipids_water         createsim          3.13095
+gpu-static  cganalysis_load_mdanalysis              cganalysis         4.54782
+            cganalysis_main_analysis                cganalysis    10669.915184
+            cganalysis_run                          cganalysis     10705.02571
+            cganalysis_run_simulation               cganalysis        30.06628
+            cganalysis_simrun                       cganalysis       30.065417
+            createsim_runtime                       createsim      5985.272172
+            createsims_create_cg_patch              createsim         0.010622
+            createsims_generate_velocities          createsim       375.236755
+            createsims_gromacs_energy_minimization  createsim        31.108696
+            createsims_gromacs_make_ndx             createsim         4.059878
+            createsims_mdrun_lipids_water           createsim        61.680779
+            createsims_prime_cg_sim                 createsim        12.679048
+            createsims_pull_molecules               createsim      3447.000841
+            createsims_relax_protein                createsim       286.955927
+            createsims_setup_cg_sim                 createsim      5972.406913
+            createsims_short_equilibration          createsim      1727.927006
+            createsims_trjconv_lipids_water         createsim         7.306555
+Name: duration, dtype: object
+```
+
+### Pull Times
+
+These are total summed pulling times, just for containers relevant to mummi (the others are small and trivial anyway). Obviously GPU containers are bigger and take longer.
+
+```console
+experiment
+cpu-static     864.742588
+gpu-static    2028.059534
+```
+
+![results/img/pull_times_by_experiment.png](results/img/pull_times_by_experiment.png)
+
+### Job Counts Completed
+
+These are job completions, as assessed by the output that we have. Note that this does not include jobs that were running and didn't complete.
+
+```console
+Experiment Job Counts (completed with results)
+   experiment        job count
+0  cpu-static   mlsample    32
+1  cpu-static  createsim    10
+2  cpu-static  cganlysis     6
+3  gpu-static   mlsample    18
+4  gpu-static  createsim     8
+5  gpu-static  cganlysis     6
+```
+
+Given we needed just 6, here are excess.
+
+```console
+Excess Completed
+   experiment         job count
+0  cpu-static    mlsample    26
+1  cpu-static   createsim     4
+2  cpu-static  cganalysis     0
+3  gpu-static    mlsample    12
+4  gpu-static   createsim     2
+5  gpu-static  cganalysis     0
+```
+
+The mlsample generates quickly enough that we will not have any partial results (generated but not done).
+
+### Partial Job Excess
+
+These are running that started but didn't complete. You can look at the final-pod-state.txt in each output directory to see where this comes from. These are in _addition_ to the excess above in terms of time. We could likely calculate the extra cost of these extra completed runs and incompleted partial runs.
+
+- GPU:
+  - createsim: 2 running (107m, 3m35s) - the first here is the job that ran for the entire experiment!
+  - cganalysis: 2 running (17m, 3m51s)
+- CPU:
+  - createsim: 2 running (4m 21s, 69s)
+  - cganalysis: 3 running (114s, 14m, 22m)
+
+
+### Workflow Manager Times
+
+We can look at summed times for the workflow manager, and really there are only a few that add up to anything significant.
+
+```console
+experiment  global                            
+cpu-static  wfmanager_add_cgframes_to_ml             0.011165
+            wfmanager_add_new_patches_mlserver     149.925664
+            wfmanager_add_new_patches_to_ml          0.007669
+            wfmanager_init_mlserver                  0.019922
+            wfmanager_init_scheduling                0.000901
+            wfmanager_run_workflow                6347.938754
+            wfmanager_setup                          0.029337
+            wfmanager_update_jobs                  504.523301
+gpu-static  wfmanager_add_cgframes_to_ml             0.016649
+            wfmanager_add_new_patches_mlserver     135.387265
+            wfmanager_add_new_patches_to_ml          0.012758
+            wfmanager_init_mlserver                  0.019885
+            wfmanager_init_scheduling                0.001567
+            wfmanager_run_workflow                6557.589562
+            wfmanager_setup                          0.048264
+            wfmanager_update_jobs                  616.059775
+Name: duration, dtype: object
+```
+
+Here we see the most relevant is the workflow running time to get 6 samples - we will want to compare this across environments.
+
+```console
+experiment  global                            
+cpu-static  wfmanager_add_new_patches_mlserver       0.353598
+            wfmanager_run_workflow                6347.938754
+            wfmanager_update_jobs                    1.189913
+gpu-static  wfmanager_add_new_patches_mlserver       0.309103
+            wfmanager_run_workflow                6557.589562
+            wfmanager_update_jobs                    1.406529
+Name: duration, dtype: object
+```
