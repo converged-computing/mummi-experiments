@@ -9,8 +9,8 @@ cd ./mummi-experiments/experiments/aws-march-2025/state-machine-operator
 
 Final results:
 
- - XX
- - XX
+ - gpu-static-1
+ - cpu-static-1
 
 ## Experiments
 
@@ -35,20 +35,20 @@ kubectl create namespace monitoring
 kubectl apply -f ../../../event-monitor
 
 # In a different terminal, this will save nodes and collect events.
-# environ=cpu-static
-# region=us-east-2
-# instance=hpc6a.48xlarge
+environ=cpu-static-1
+region=us-east-2
+instance=hpc6a.48xlarge
 
-environ=gpu-static-1
-region=us-east-1
-instance=p3.2xlarge
+# environ=gpu-static-1
+# region=us-east-1
+# instance=p3.2xlarge
 
 mkdir -p ./monitor/${environ}
 kubectl get nodes -o json > ./monitor/${environ}/nodes-$(date +%s).json
 
 # Topology API (only for hpc instance types)
 # Note that I was running an a la carte gpu instance in this region, needs to be filtered out
-# aws ec2 describe-instance-topology --region ${region} --filters Name=instance-type,Values=${instance} > ./monitor/${environ}/topology.json
+aws ec2 describe-instance-topology --region ${region} --filters Name=instance-type,Values=${instance} > ./monitor/${environ}/topology.json
 aws ec2 describe-instances --filters "Name=instance-type,Values=${instance}" --region ${region}  > ./monitor/${environ}/instances.json
 
 kubectl logs -n monitoring $(kubectl get pods -n monitoring -o json | jq -r .items[0].metadata.name) -f |& tee ./monitor/${environ}/events-$(date +%s).json
@@ -60,7 +60,7 @@ Install the operator. Note this requires pushing to a development registry, and 
 
 ```bash
 # commit for cpu and gpu
-# 
+# f0e880c46277e49c5b301f92bee93e58e127addc
 git clone https://github.com/converged-computing/state-machine-operator
 cd state-machine-operator
 make test-deploy-recreate
@@ -75,12 +75,12 @@ kubectl apply -f ./crd/cpu-mummi.yaml
 
 ## Saving data files
 
-When the workflow is complete, we can save the state, etc. First, get output for the different components. For each of the mlserver, rabbitmq, and wfmanager, do:
+When the workflow is complete, we can save the state, etc. First, get output for the different components. For each of the manager and registry, do:
 
 ```bash
 # In a different terminal, this will save nodes and collect events.
-environ=gpu-static-1
-# environ=cpu-static
+# environ=gpu-static-1
+environ=cpu-static-1
 
 #kubectl logs <container>  > ./monitor/${environ}/<container>.out
 kubectl get pods -o wide > ./monitor/${environ}/final-pods-state.txt
@@ -112,6 +112,7 @@ for repo in $(oras repo list --plain-http $registry)
         oras pull --plain-http $registry/$repo:$tag
     done
 done
+cd $root
 ```
 
 ## Cleanup
@@ -130,3 +131,4 @@ eksctl delete cluster --config-file ../eks-config-cpu-static.yaml --wait
 
 - The GPU mlrunner had an error, but it simply created another state machine to replace it.
 - The state machine operator uses GROMACS instead of GROMACS_PARTS to support feedback better, they are functionally equivalent
+- It's hard to say (this is subjective) but it seems like there are more errors when gromacs is running on CPU.
