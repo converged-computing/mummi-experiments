@@ -10,7 +10,7 @@ cd ./mummi-experiments/experiments/aws-march-2025/mummi-operator
 ```
 Final results:
 
- - XXXX is final for CPU
+ - cpu-static-1 is final for CPU
  - gpu-static-1 is final for GPU
 
 ## Experiments
@@ -32,20 +32,20 @@ kubectl create namespace monitoring
 kubectl apply -f ../../../event-monitor
 
 # In a different terminal, this will save nodes and collect events.
-# environ=cpu-static-0
-# region=us-east-2
-# instance=hpc6a.48xlarge
+environ=cpu-static-1
+region=us-east-2
+instance=hpc6a.48xlarge
 
-environ=gpu-static-1
-region=us-east-1
-instance=p3.2xlarge
+# environ=gpu-static-1
+# region=us-east-1
+# instance=p3.2xlarge
 
 mkdir -p ./monitor/${environ}
 kubectl get nodes -o json > ./monitor/${environ}/nodes-$(date +%s).json
 
 # Topology API (only for hpc instance types)
 # Note that I was running an a la carte gpu instance in this region, needs to be filtered out
-# aws ec2 describe-instance-topology --region ${region} --filters Name=instance-type,Values=${instance} > ./monitor/${environ}/topology.json
+aws ec2 describe-instance-topology --region ${region} --filters Name=instance-type,Values=${instance} > ./monitor/${environ}/topology.json
 aws ec2 describe-instances --filters "Name=instance-type,Values=${instance}" --region ${region}  > ./monitor/${environ}/instances.json
 
 kubectl logs -n monitoring $(kubectl get pods -n monitoring -o json | jq -r .items[0].metadata.name) -f |& tee ./monitor/${environ}/events-$(date +%s).json
@@ -56,7 +56,7 @@ kubectl logs -n monitoring $(kubectl get pods -n monitoring -o json | jq -r .ite
 This is private, so we install from a local build.
 
 ```bash
-# commit used for GPU and CPU final runs: cd88384394fc601a474551aa4c4adfb573eb3131
+# commit used for GPU and CPU final runs: c1c45464eaa360116cb7ab6b1787b46bbcbf2ad7
 git clone https://github.com/converged-computing/mummi-operator
 cd mummi-operator
 make test-deploy-recreate
@@ -77,8 +77,8 @@ When the workflow is complete, we can save the state, etc. First, get output for
 
 ```bash
 # In a different terminal, this will save nodes and collect events.
-environ=gpu-static-1
-# environ=cpu-static-0
+# environ=gpu-static-1
+environ=cpu-static-1
 
 #kubectl logs <container>  > ./monitor/${environ}/<container>.out
 kubectl get pods -o wide > ./monitor/${environ}/final-pods-state.txt
@@ -134,7 +134,8 @@ eksctl delete cluster --config-file ../eks-config-cpu-static.yaml --wait
 
 ## Notes
 
-- For the GPU runs, one of the createsims ran the entire duration of the study, meaning there was only one node for createsims. It increased the time by 1.5x likely.
+- For the GPU runs, one of the createsims ran the entire duration of the study, meaning there was only one node for createsims. It increased the time by 1.5x likely, and the study (cost) is going to be hugely impacted by it.
+- For the CPU runs, where there is an error (and the job is deleted) and a temporary change to the number of createsims job, the condition kicks in to generate more samples, and typically multiple iterations run to generate more samples than are needed. We would want this to happen, but for the sample generation to be more tightly linked with what is needed for createsims. For example, we only needed one sample here, but multiple loops were run to generate about 10 more.
 
 Also see [notes](notes.md) from testing runs.
 
