@@ -12,8 +12,8 @@ spec:
   # Defaults to 6 mummi nnodes, interactive mode is for debugging
   manager:
     image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:wfmanager
-    numberMaxSelectedPatchBuffer: 3
-    numberMaxPatchesSelectionsPerIteration: 3
+    numberMaxSelectedPatchBuffer: 2
+    numberMaxPatchesSelectionsPerIteration: 2
     nodes: 6
     
   # Jobs for the Mummi workflow manager to submit / orchestrate
@@ -22,11 +22,11 @@ spec:
     cganalysis:
       image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis
       config:
-        coresPerTask: 6
+        coresPerTask: 94
         nproc: 1
     createsim:
       image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims
       config:
-        coresPerTask: 6
+        coresPerTask: 94
         nproc: 1
         walltime: '0:45:00'

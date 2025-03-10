@@ -12,6 +12,7 @@ spec:
     image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:rabbitmq
 
   # Defaults to 6 mummi nnodes, interactive mode is for debugging
+  # createsim will be calculated to have 2 jobs, and cg 3. 1 node is used for wfmanager
   manager:
     image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:wfmanager
     numberMaxSelectedPatchBuffer: 2
@@ -25,11 +26,16 @@ spec:
       image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-gpu
       config:
         gpus: 1
-        coresPerTask: 1
+        # This is what goes into OMP_NUM_THREADS to determine what gromacs can use
+        # But we also use for scheduling, so we have to ask for slightly less than a node
+        coresPerTask: 7
+        # This goes into cganalysis options as self.nt, but I don't see it used anywhere
         nproc: 1
     createsim:
       image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-gpu
       config:
         gpus: 1
-        coresPerTask: 1
+        # This goes into the OMP_NUM_THREADS for the -ntomp to gmx. Note that -ntmpi is set to 1
+        coresPerTask: 7
+        # I don't see this is used meaningfully
         nproc: 1

@@ -22,12 +22,12 @@ There will be four experiments - one for GPU and one for CPU, and each with and 
 ```bash
 # GPU
 eksctl create cluster --config-file ../eks-config-gpu-static.yaml
-eksctl create cluster --config-file ../eks-config-gpu-autoscaling.yaml
+eksctl create cluster --asg-access --config-file ../eks-config-gpu-autoscaling.yaml
 aws eks update-kubeconfig --region us-east-1 --name mini-mummi-gpu
 
 # CPU
 eksctl create cluster --config-file ../eks-config-cpu-static.yaml 
-eksctl create cluster --config-file ../eks-config-cpu-autoscaling.yaml
+eksctl create cluster --asg-access --config-file ../eks-config-cpu-autoscaling.yaml
 aws eks update-kubeconfig --region us-east-2 --name mini-mummi
 ```
 
