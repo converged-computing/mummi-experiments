@@ -223,13 +223,13 @@ These are job completions, as assessed by the output that we have. Note that thi
 
 ```console
 Experiment Job Counts (completed with results)
-   experiment        job count
-0  cpu-static   mlsample    32
-1  cpu-static  createsim    10
-2  cpu-static  cganlysis     6
-3  gpu-static   mlsample    18
-4  gpu-static  createsim     8
-5  gpu-static  cganlysis     6
+   experiment         job count
+0  cpu-static    mlsample    32
+1  cpu-static   createsim    10
+2  cpu-static  cganalysis     6
+3  gpu-static    mlsample    18
+4  gpu-static   createsim     8
+5  gpu-static  cganalysis     6
 ```
 
 Given we needed just 6, here are excess.

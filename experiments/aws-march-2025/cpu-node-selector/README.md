@@ -59,7 +59,7 @@ eksctl create cluster --config-file eks-config-cpu-autoscaling-test.yaml
 aws eks update-kubeconfig --region us-east-1 --name mini-mummi
 ```
 
-We want to see if the events exported includes node data.
+I am trying a strategy where I bring up one static group for a control plane, and the other groups will start at size 0. I've confirmed that node events export to the kubernetes event exporter, but the node it is running on cannot be deleted. Let's install it first.
 
 ```bash
 kubectl create namespace monitoring
