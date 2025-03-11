@@ -10,10 +10,14 @@ In order to make a fair comparison, we need to run the analysis on the same inpu
 docker build -t ghcr.io/converged-computing/mummi-experiments:cpu-node-selector .
 
 # And for arm (or better, use the one we already built that is public)
-docker buildx build --no-cache --platform linux/arm64 --build-arg tag=createsims-arm --push -t ghcr.io/converged-computing/mummi-experiments:cpu-node-selector-arm -f Dockerfile.arm .
+docker buildx build --no-cache --platform linux/arm64 --build-arg tag=createsims-arm --load -t ghcr.io/converged-computing/mummi-experiments:cpu-node-selector-arm -f Dockerfile.arm .
+docker push ghcr.io/converged-computing/mummi-experiments:cpu-node-selector-arm
 
 # Run, but be careful if your machine will cough up a fan.
 docker run ghcr.io/converged-computing/mummi-experiments:cpu-node-selector
+
+# Or on an arm machine:
+docker run -it --entrypoint bash ghcr.io/converged-computing/mummi-experiments:cpu-node-selector-arm /entrypoint.sh
 docker push ghcr.io/converged-computing/mummi-experiments:cpu-node-selector
 ```
 
@@ -48,6 +52,10 @@ Create the cluster. The strategy we use is to have an autoscaling group for each
 ```bash
 eksctl create cluster --config-file ./crd/eks-config-cpu.yaml
 aws eks update-kubeconfig --region us-east-1 --name mini-mummi
+
+# This is for hpc6a (in a different zone)
+eksctl create cluster --config-file ./crd/eks-config-hpc6a.yaml
+aws eks update-kubeconfig --region us-east-2 --name mini-mummi
 ```
 
 Install the monitor on the single node that is persistent.
@@ -55,7 +63,7 @@ Install the monitor on the single node that is persistent.
 ```bash
 kubectl create namespace monitoring
 kubectl apply -f ../../../event-monitor
-environ=cpu-autoscale-0
+environ=cpu-autoscale-3
 mkdir -p ./monitor/$environ
 kubectl logs -n monitoring $(kubectl get pods -n monitoring -o json | jq -r .items[0].metadata.name) -f |& tee ./monitor/${environ}/events-$(date +%s).json
 ```
@@ -78,7 +86,9 @@ make test-deploy-recreate
 At this point we should have what we need for the experiment. The node test should autoscale the cluster to have one node of each type (so the first pod is pending). Run the experiment!
 
 ```bash
-kubectl apply -f crd/cpu-mummi.yaml
+# Run separately for each of arm and amd to be conservative
+kubectl apply -f crd/cpu-mummi-amd64.yaml
+kubectl apply -f crd/cpu-mummi-hpc6a.yaml
 ```
 
 To save output:
@@ -117,5 +127,64 @@ And delete.
 
 ```bash
 eksctl delete cluster --config-file ../crd/eks-config-cpu.yaml
+eksctl delete cluster --config-file crd/eks-config-hpc6a.yaml 
 ```
  
+## Analysis
+
+Here we can see that the hpc7g is the greatest bang for the buck, at least for the instances tested here.
+
+![results/img/createsims_cost_by_instance.png](results/img/createsims_cost_by_instance.png)
+![results/img/createsims_runtimes_by_instance.png](results/img/createsims_cost_by_instance.png)
+
+```console
+instance
+c6in-12xlarge     1154.191626
+c7a-12xlarge       560.955119
+c7g-16xlarge        479.53508
+hpc6a-48xlarge    1234.329169
+hpc7g-16xlarge     479.034933
+m6a-16xlarge      1615.040867
+m6g-16xlarge       636.083563
+r7iz-8xlarge      1399.340623
+```
+
+But does the hpc7g take longer?
+
+```console
+c6in-12xlarge     1154.191626
+c7a-12xlarge       560.955119
+c7g-16xlarge        479.53508
+hpc7g-16xlarge     479.034933
+m6a-16xlarge      1615.040867
+m6g-16xlarge       636.083563
+r7iz-8xlarge      1399.340623
+```
+
+For runs with only 2 samples, one of the runtimes went over and the job was cancelled. The c7a-12xlarge
+I used for testing and saved the extra data. The times are really consistent so it seems OK to include and not throw off the distribution, but if we want, we can randomly select 3 (or choose the last 3).
+
+```console
+Name: duration, dtype: object
+instance
+c6in-12xlarge     0.872697
+c7a-12xlarge      0.383787
+c7g-16xlarge      0.309034
+hpc6a-48xlarge    0.987463
+hpc7g-16xlarge    0.223949
+m6a-16xlarge      1.240441
+m6g-16xlarge      0.435364
+r7iz-8xlarge      1.156788
+```
+```console
+                iteration  event  duration  global  hourly_cost  hours  cost
+instance                                                                    
+c6in-12xlarge           2      2         2       2            2      2     2
+c7a-12xlarge           12     12        12      12           12     12    12
+c7g-16xlarge            3      3         3       3            3      3     3
+hpc6a-48xlarge          3      3         3       3            3      3     3
+hpc7g-16xlarge          3      3         3       3            3      3     3
+m6a-16xlarge            3      3         3       3            3      3     3
+m6g-16xlarge            3      3         3       3            3      3     3
+r7iz-8xlarge            2      2         2       2            2      2     2
+```

@@ -1,0 +1,74 @@
+apiVersion: state-machine.converged-computing.org/v1alpha1
+kind: StateMachine
+metadata:
+  name: mummi
+spec:
+  manager:
+    pullPolicy: "Always"
+  workflow:
+    completed: 3
+    prefix: "structure_"
+
+  # Allow one full group (of one type) to run at once
+  cluster:
+    maxSize: 3
+  
+  # These are also default 1 thread per core
+  jobs:
+
+  # These are physical core counts
+  # 2.463 / hour
+  - name: createsim-c7a-12xlarge
+    properties:
+      node-selector: '{"nodegroup": "c7a-12xlarge"}'
+      always-succeed: "1"
+    config:
+      nodes: 1
+      walltime: '0:45:00'
+      # 48 physical cores total
+      coresPerTask: 46
+    image: ghcr.io/converged-computing/mummi-experiments:cpu-node-selector
+    registry:
+      push: createsim-c7a-12xlarge
+    script: /bin/bash /entrypoint.sh
+
+   # 2.722 / hour (this one regularly goes over 45 minutes, 2 runs enough)
+  - name: createsim-c6in-12xlarge
+    properties:
+      node-selector: '{"nodegroup": "c6in-12xlarge"}'
+      always-succeed: "1"
+    config:
+      nodes: 1
+      walltime: '0:45:00'
+      coresPerTask: 22
+    image: ghcr.io/converged-computing/mummi-experiments:cpu-node-selector
+    registry:
+      push: createsim-c6in-12xlarge
+    script: /bin/bash /entrypoint.sh
+
+   # 2.976 / hour
+  - name: createsim-r7iz-8xlarge
+    properties:
+      node-selector: '{"nodegroup": "r7iz-8xlarge"}'
+      always-succeed: "1"
+    config:
+      nodes: 1
+      walltime: '0:45:00'
+      coresPerTask: 14
+    image: ghcr.io/converged-computing/mummi-experiments:cpu-node-selector
+    registry:
+      push: createsim-r7iz-8xlarge
+    script: /bin/bash /entrypoint.sh
+
+  - name: createsim-m6a-16xlarge
+    properties:
+      node-selector: '{"nodegroup": "m6a-16xlarge"}'
+      always-succeed: "1"
+    config:
+      nodes: 1
+      walltime: '0:45:00'
+      coresPerTask: 30
+    image: ghcr.io/converged-computing/mummi-experiments:cpu-node-selector
+    registry:
+      push: createsim-m6a-16xlarge
+    script: /bin/bash /entrypoint.sh

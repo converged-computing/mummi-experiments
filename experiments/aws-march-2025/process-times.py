@@ -160,11 +160,14 @@ def workflow_manager(indirs, outdir):
         plot_type="bar",
         xlabel="Environment",
         ylabel="Running Time (seconds)",
+        rotation=360,        
+        height=3,
     )
 
     # The only meaningful comparison is the workflow running time to get 6 samples
     print("See workflow running time to get 6 samples")
     print(workflow_times.groupby(["experiment", "global"]).duration.mean())
+    print(total_time)
 
 
 def combine_data_frames(indirs, filename):
@@ -232,6 +235,8 @@ def count_outputs(indirs, outdir, completions=6):
         plot_type="bar",
         xlabel="Job Step",
         ylabel="Excess Completed Jobs (count)",
+        height=3,
+        rotation=360,
     )
 
     make_plot(
@@ -662,6 +667,7 @@ def make_plot(
     plt.xticks(rotation=rotation)
     plt.tight_layout()
     plt.savefig(os.path.join(outdir, f"{plotname}.png"))
+    plt.savefig(os.path.join(outdir, f"{plotname}.svg"))
     plt.clf()
     return ax
 
