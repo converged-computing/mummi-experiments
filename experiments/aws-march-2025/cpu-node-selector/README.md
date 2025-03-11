@@ -10,7 +10,7 @@ In order to make a fair comparison, we need to run the analysis on the same inpu
 docker build -t ghcr.io/converged-computing/mummi-experiments:cpu-node-selector .
 
 # And for arm (or better, use the one we already built that is public)
-docker buildx build --platform linux/arm64 --build-arg tag=createsims-arm --push -t ghcr.io/converged-computing/mummi-experiments:cpu-node-selector-arm - Dockerfile.arm .
+docker buildx build --no-cache --platform linux/arm64 --build-arg tag=createsims-arm --push -t ghcr.io/converged-computing/mummi-experiments:cpu-node-selector-arm -f Dockerfile.arm .
 
 # Run, but be careful if your machine will cough up a fan.
 docker run ghcr.io/converged-computing/mummi-experiments:cpu-node-selector
@@ -105,6 +105,12 @@ for repo in $(oras repo list --plain-http $registry)
     done
 done
 cd $root
+```
+
+Save cluster autoscaler logs.
+
+```bash
+kubectl logs -n kube-system cluster-autoscaler-797bf7c9bc-mtcls > cluster-autoscaler.log
 ```
 
 And delete.
