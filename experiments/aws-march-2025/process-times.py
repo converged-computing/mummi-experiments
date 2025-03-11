@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
 
 import argparse
-import collections
 import json
 import os
 import re
 import sys
+import tarfile
+import io
+
 from datetime import datetime
 
 import matplotlib.pylab as plt
 import pandas
 import seaborn as sns
 
-here = os.path.abspath(os.path.dirname(__file__))
+here = os.path.abspath(__file__)
 root = os.path.dirname(here)
 
 timestamp_format = "%Y-%m-%dT%H:%M:%SZ"
@@ -21,14 +23,15 @@ timestamp_format = "%Y-%m-%dT%H:%M:%SZ"
 def get_parser():
     parser = argparse.ArgumentParser(description="Times Explorer")
     parser.add_argument(
-        "--root",
-        help="root directory with experiment events metadata to parse",
-        default=os.path.join(here, "monitor"),
-    )
-    parser.add_argument(
         "--out",
         help="directory to save parsed results (with experiment prefix)",
-        default=os.path.join(here, "results"),
+        default=os.path.join(root, "results"),
+    )
+    parser.add_argument(
+        "--completions",
+        help="completions expected for experiments",
+        default=6,
+        type=int,
     )
     return parser
 
@@ -50,12 +53,25 @@ def recursive_find(base, pattern="*.*"):
             yield os.path.join(root, filename)
 
 
-def find_inputs(input_dir):
+def read_tarfile(filename):
+    """
+    Reads a .tar.gz file from a byte string and returns a dictionary
+    where keys are file names and values are file contents as byte strings.
+    """
+    file_contents = {}
+    with tarfile.open(filename, "r:gz") as tar:
+        for member in tar.getmembers():
+            if member.isfile():
+                file_contents[member.name] = tar.extractfile(member).read()
+    return file_contents
+
+
+def find_inputs(input_dir, pattern="*.out"):
     """
     Find inputs (times results files)
     """
     files = []
-    for filename in recursive_find(input_dir, pattern="events-"):
+    for filename in recursive_find(input_dir, pattern=pattern):
         # We only have data for small
         files.append(filename)
     return files
@@ -76,24 +92,171 @@ def main():
 
     # Output images and data
     outdir = os.path.abspath(args.out)
-    indir = os.path.abspath(args.root)
+    indir = os.path.abspath(root)
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 
-    # Find input files (skip anything with test)
-    files = find_inputs(indir)
-    if not files:
-        raise ValueError(f"There are no input files in {indir}")
+    # Specific results for each study
+    mummi_indir = os.path.join(indir, "mummi-operator", "results")
+    sm_indir = os.path.join(indir, "state-machine-operator", "results")
+    indirs = [mummi_indir, sm_indir]
+    times_df = parse_pulling_times(indirs)
+    summary_df = plot_pulling_times(times_df, outdir)
 
-    # Saves raw data to file
-    times = parse_data(indir, outdir, files)
+    #  workflow-individual-times.csv
+    # img/			       workflow-summed-times.csv
 
-    # Parse them into data frame too.
-    times_df = parse_times(times)
-    plot_times(times_df, outdir)
+    # Now let's count outputs (total and excess)
+    count_outputs(indirs, outdir, completions=args.completions)
+
+    # Now let's look at times for jobs
+    job_timings(indirs, outdir)
+
+    # Now look at times for the workflow manager
+    workflow_manager(indirs, outdir)
+
+    # TODO calculate costs, likely when we add autoscaling
+
+
+def workflow_manager(indirs, outdir):
+    """
+    Look at timings for the workflow manager
+    """
+    workflow_times = combine_data_frames(indirs, "workflow-individual-times.csv")
+    make_plot(
+        workflow_times,
+        title="Workflow Manager Accumulated Function Times",
+        ydimension="duration",
+        xdimension="global",
+        outdir=os.path.join(outdir, "img"),
+        ext="png",
+        plotname="workflow_manager_times",
+        hue="experiment",
+        plot_type="box",
+        xlabel="Function",
+        ylabel="Running Time (seconds)",
+        width=12,
+        height=12,
+    )
+
+    # The times we actually care about are for the entire workflow, and we
+    # have slightly different labels but they measure the same thing.
+    total_time = workflow_times[
+        workflow_times["global"].isin(["workflow_complete", "wfmanager_run_workflow"])
+    ]
+    total_time["global"] = "workflow_complete"
+    total_time["environment"] = [
+        x.replace("-static", "") for x in total_time["environment"]
+    ]
+    make_plot(
+        total_time,
+        title="Total Time to Run Workflow",
+        ydimension="duration",
+        xdimension="environment",
+        outdir=os.path.join(outdir, "img"),
+        ext="png",
+        plotname="workflow_total_time",
+        hue="operator",
+        plot_type="bar",
+        xlabel="Environment",
+        ylabel="Running Time (seconds)",
+    )
+
+    # The only meaningful comparison is the workflow running time to get 6 samples
+    print("See workflow running time to get 6 samples")
+    print(workflow_times.groupby(["experiment", "global"]).duration.mean())
+
+
+def combine_data_frames(indirs, filename):
+    """
+    Given indirs, where mummi is first and state machine
+    second, combine into one data frame
+    """
+    mummi = pandas.read_csv(os.path.join(indirs[0], filename), index_col=0)
+    sm = pandas.read_csv(os.path.join(indirs[1], filename), index_col=0)
+    mummi["operator"] = "mummi"
+    sm["operator"] = "state-machine"
+    combined = pandas.concat([mummi, sm])
+    # Save initial name for later backup
+    combined["environment"] = combined["experiment"]
+    combined["experiment"] = [
+        x.replace("-static", "") for x in combined["experiment"].tolist()
+    ]
+    combined["experiment"] = combined["operator"] + "-" + combined["experiment"]
+    return combined
+
+
+def job_timings(indirs, outdir):
+    """
+    Find output files for job timings.
+    """
+    function_times = combine_data_frames(indirs, "function-individual-times.csv")
+    summed_times = combine_data_frames(indirs, "function-summed-times.csv")
+    make_plot(
+        function_times,
+        title="Total Accumulated Function Times",
+        ydimension="duration",
+        xdimension="global",
+        outdir=os.path.join(outdir, "img"),
+        ext="png",
+        plotname="function_times_by_experiment",
+        hue="experiment",
+        plot_type="box",
+        xlabel="Function",
+        ylabel="Running Time (seconds)",
+        width=12,
+        height=12,
+    )
+
+
+def count_outputs(indirs, outdir, completions=6):
+    """
+    Count number of outputs for analyses.
+    """
+    completed = combine_data_frames(indirs, "jobs-completed.csv")
+    excess = combine_data_frames(indirs, "jobs-excess-completed.csv")
+    img_outdir = os.path.join(outdir, "img")
+    if not os.path.exists(img_outdir):
+        os.makedirs(img_outdir)
+
+    # Plot each
+    make_plot(
+        excess,
+        title="Excess Jobs by Experiment",
+        ydimension="count",
+        xdimension="job",
+        outdir=img_outdir,
+        ext="png",
+        plotname="excess_jobs_by_experiment",
+        hue="experiment",
+        plot_type="bar",
+        xlabel="Job Step",
+        ylabel="Excess Completed Jobs (count)",
+    )
+
+    make_plot(
+        completed,
+        title="Total Completed Jobs by Experiment",
+        ydimension="count",
+        xdimension="job",
+        outdir=img_outdir,
+        ext="png",
+        plotname="completed_jobs_by_experiment",
+        hue="experiment",
+        plot_type="bar",
+        xlabel="Job Step",
+        ylabel="Jobs (count)",
+    )
+
+    # Save combined data to file
+    excess.to_csv(os.path.join(outdir, "jobs-excess-completed.csv"))
+    completed.to_csv(os.path.join(outdir, "jobs-completed.csv"))
 
 
 def parse_time_pulled(time_pulled):
+    """
+    Parse string timestamp into seconds for pulling.
+    """
     minutes = 0
     # First check for milliseconds, if reported in ms there aren't seconds or minutes
     if "ms" in time_pulled:
@@ -106,10 +269,15 @@ def parse_time_pulled(time_pulled):
     return (minutes * 60) + seconds
 
 
-def parse_times(times):
+def parse_pulling_times(indirs):
     """
     Read events and turn into data frame with container pull times
     """
+    mummi_pulling_file = find_inputs(indirs[0], "container-pulling-times.json")[0]
+    sm_pulling_file = find_inputs(indirs[1], "container-pulling-times.json")[0]
+    mummi_pulling = read_json(mummi_pulling_file)
+    sm_pulling = read_json(sm_pulling_file)
+
     # This is for containers
     df = pandas.DataFrame(
         columns=[
@@ -120,254 +288,170 @@ def parse_times(times):
             "duration",
             "container",
             "experiment",
-            "iteration",
-            "environment",
         ]
     )
     idx = 0
 
+    operator_times = {
+        "mummi": mummi_pulling,
+        "state-machine": sm_pulling,
+    }
     # STRATEGY:
     # pod will get us pulling times
     # job will get us completion times (success or fail)
     #   jobs that do not complete in some respect are sunk cost
     #   that will be reflected in the total cluster up/down time
-    for experiment, items in times.items():
-        for uid, item in items.items():
-            # Skip non-pod and job events for now
-            kind = item["kind"]
-            if kind not in ["Pod", "Job"]:
-                continue
+    for operator, times in operator_times.items():
+        for experiment, items in times.items():
+            # Add the operator name to the experiment
+            experiment = f"{operator}-{experiment}"
 
-            # This is a problem with AWS CNI, usually shows up on deletion I think
-            if "failedcreatepodsandbox" in item["events"]:
-                continue
-
-            # The only experiment without a stated size is aws eks gpu, size 16
-            iteration = item["iteration"]
-            environment = item["environment"]
-            container = item.get("container")
-            if not container and "pulled" in item["events"]:
-                container = (
-                    re.search('["].*["]', item["events"]["pulled"]["message"])
-                    .group()
-                    .strip('"')
-                )
-
-            # PULLING
-            # We can do our own calculation based on timestamps here
-            # These seem to be better in terms of granularity
-            pulled_seconds = None
-            running_seconds = None
-            job = None
-
-            # We can derive pull plus waiting from the message here
-            # This is better data
-            if "pulled" in item["events"] and pulled_seconds is None:
-                message = item["events"]["pulled"]["message"]
-                # If it's already pulled, don't count it
-                if "already present on machine" in message.lower():
+            # Remove static to make labels shorter
+            # All these experiments are static (at least for now)
+            experiment = experiment.replace("-static", "")
+            for uid, item in items.items():
+                # Skip non-pod and job events for now
+                kind = item["kind"]
+                if kind not in ["Pod", "Job"]:
                     continue
-                time_pulled = re.search("[(].*[)]", message)
-                time_pulled = time_pulled.group().split(" ")[0].replace("(", "")
-                # parse time pulled
-                pulled_seconds = parse_time_pulled(time_pulled)
 
-            elif "pulling" in item["events"] and "pulled" in item["events"]:
-                start = item["events"]["pulling"]["timestamp"]
-                end = item["events"]["pulled"]["timestamp"]
-                parsed_end = datetime.strptime(end, timestamp_format)
-                parsed_start = datetime.strptime(start, timestamp_format)
-                elapsed = parsed_end - parsed_start
-                pulled_seconds = elapsed.seconds
-
-            # We can't use "killing" to derive pod times, they don't show up
-            # until the cluster deletion. Also note that "Completed" can be
-            # success or error - we only know this from result data
-            if kind == "Job":
-                # This is a sunk cost - a job started that didn't finish
-                if "completed" not in item["events"]:
+                # This is a problem with AWS CNI, usually shows up on deletion I think
+                if "failedcreatepodsandbox" in item["events"]:
                     continue
-                job_end = datetime.strptime(
-                    item["events"]["completed"]["timestamp"], timestamp_format
-                )
-                job_start = datetime.strptime(
-                    item["events"]["successfulcreate"]["timestamp"], timestamp_format
-                )
-                running_seconds = (job_end - job_start).seconds
-                job = uid.split("-")[0]
-            elif kind == "Pod" and container is not None:
-                if "cganalysis" in container:
-                    job = "cganalysis"
-                elif "createsim" in container:
-                    job = "createsim"
 
-            # parse all events for absolute timestamp
-            # For these we want absolute timestamps to compare across
-            # because we need to understand variation between nodes
-            pod_events = ["pulled", "pulling", "scheduled", "created", "started"]
-            job_events = ["successfulcreate", "completed"]
-            for event_name in pod_events + job_events:
-                if event_name not in item["events"]:
-                    continue
-                # For these, calculate a difference.
-                previous_event = {"created": "pulled", "started": "created"}
-                timestamp = item["events"][event_name]["timestamp"]
-                parsed_timestamp = datetime.strptime(timestamp, timestamp_format)
-                df.loc[idx, :] = [
-                    uid,
-                    kind,
-                    job,
-                    event_name + "-timestamp",
-                    parsed_timestamp.timestamp(),
-                    container,
-                    experiment,
-                    iteration,
-                    environment,
-                ]
-                idx += 1
-                if event_name in previous_event:
-                    previous_timestamp = item["events"][previous_event[event_name]][
-                        "timestamp"
-                    ]
-                    previous_timestamp = datetime.strptime(
-                        previous_timestamp, timestamp_format
+                # The only experiment without a stated size is aws eks gpu, size 16
+                container = item.get("container")
+                if not container and "pulled" in item["events"]:
+                    container = (
+                        re.search('["].*["]', item["events"]["pulled"]["message"])
+                        .group()
+                        .strip('"')
                     )
-                    elapsed = parsed_timestamp - previous_timestamp
-                    event_seconds = elapsed.seconds
+
+                # PULLING
+                # We can do our own calculation based on timestamps here
+                # These seem to be better in terms of granularity
+                pulled_seconds = None
+                running_seconds = None
+                job = None
+
+                # We can derive pull plus waiting from the message here
+                # This is better data
+                if "pulled" in item["events"] and pulled_seconds is None:
+                    message = item["events"]["pulled"]["message"]
+                    # If it's already pulled, don't count it
+                    if "already present on machine" in message.lower():
+                        continue
+                    time_pulled = re.search("[(].*[)]", message)
+                    time_pulled = time_pulled.group().split(" ")[0].replace("(", "")
+                    # parse time pulled
+                    pulled_seconds = parse_time_pulled(time_pulled)
+
+                elif "pulling" in item["events"] and "pulled" in item["events"]:
+                    start = item["events"]["pulling"]["timestamp"]
+                    end = item["events"]["pulled"]["timestamp"]
+                    parsed_end = datetime.strptime(end, timestamp_format)
+                    parsed_start = datetime.strptime(start, timestamp_format)
+                    elapsed = parsed_end - parsed_start
+                    pulled_seconds = elapsed.seconds
+
+                # We can't use "killing" to derive pod times, they don't show up
+                # until the cluster deletion. Also note that "Completed" can be
+                # success or error - we only know this from result data
+                if kind == "Job":
+                    # This is a sunk cost - a job started that didn't finish
+                    if "completed" not in item["events"]:
+                        continue
+                    job_end = datetime.strptime(
+                        item["events"]["completed"]["timestamp"], timestamp_format
+                    )
+                    job_start = datetime.strptime(
+                        item["events"]["successfulcreate"]["timestamp"],
+                        timestamp_format,
+                    )
+                    running_seconds = (job_end - job_start).seconds
+                    job = uid.split("-")[0]
+
+                elif kind == "Pod" and container is not None:
+                    if "cganalysis" in container:
+                        job = "cganalysis"
+                    elif "createsim" in container:
+                        job = "createsim"
+
+                # parse all events for absolute timestamp
+                # For these we want absolute timestamps to compare across
+                # because we need to understand variation between nodes
+                pod_events = ["pulled", "pulling", "scheduled", "created", "started"]
+                job_events = ["successfulcreate", "completed"]
+                for event_name in pod_events + job_events:
+                    if event_name not in item["events"]:
+                        continue
+                    # For these, calculate a difference.
+                    previous_event = {"created": "pulled", "started": "created"}
+                    timestamp = item["events"][event_name]["timestamp"]
+                    parsed_timestamp = datetime.strptime(timestamp, timestamp_format)
                     df.loc[idx, :] = [
                         uid,
                         kind,
                         job,
-                        event_name,
-                        event_seconds,
+                        event_name + "-timestamp",
+                        parsed_timestamp.timestamp(),
                         container,
                         experiment,
-                        iteration,
-                        environment,
                     ]
                     idx += 1
-                continue
+                    if event_name in previous_event:
+                        previous_timestamp = item["events"][previous_event[event_name]][
+                            "timestamp"
+                        ]
+                        previous_timestamp = datetime.strptime(
+                            previous_timestamp, timestamp_format
+                        )
+                        elapsed = parsed_timestamp - previous_timestamp
+                        event_seconds = elapsed.seconds
+                        df.loc[idx, :] = [
+                            uid,
+                            kind,
+                            job,
+                            event_name,
+                            event_seconds,
+                            container,
+                            experiment,
+                        ]
+                        idx += 1
+                    continue
 
-            if pulled_seconds is not None:
-                df.loc[idx, :] = [
-                    uid,
-                    kind,
-                    job,
-                    "pulled",
-                    pulled_seconds,
-                    container,
-                    experiment,
-                    iteration,
-                    environment,
-                ]
-                idx += 1
+                if pulled_seconds is not None:
+                    df.loc[idx, :] = [
+                        uid,
+                        kind,
+                        job,
+                        "pulled",
+                        pulled_seconds,
+                        container,
+                        experiment,
+                    ]
+                    idx += 1
 
-            if running_seconds is not None:
-                df.loc[idx, :] = [
-                    uid,
-                    kind,
-                    job,
-                    "running",
-                    running_seconds,
-                    container,
-                    experiment,
-                    iteration,
-                    environment,
-                ]
-                idx += 1
+                if running_seconds is not None:
+                    df.loc[idx, :] = [
+                        uid,
+                        kind,
+                        job,
+                        "running",
+                        running_seconds,
+                        container,
+                        experiment,
+                    ]
+                    idx += 1
     return df
 
 
-def plot_times(df, outdir):
+def calculate_timings(summary_df, outdir):
     """
-    Given an output directory, plot image to show pull times.
+    Calculate experiment costs based on timings.
+    TODO need to take costs into account
     """
-    # Let's first plot pull times
-    subset = df[df.event == "pulled"]
-    colors = sns.color_palette("hls", len(subset.experiment.unique()) + 2)
-    hexcolors = colors.as_hex()
-    experiments = list(subset.experiment.unique())
-    experiments.sort()
-    palette = collections.OrderedDict()
-    for t in experiments:
-        palette[t] = hexcolors[1]
-    img_outdir = os.path.join(outdir, "img")
-    if not os.path.exists(img_outdir):
-        os.makedirs(img_outdir)
-    make_plot(
-        subset,
-        title="Total Container Pulling Time by Experiment",
-        ydimension="duration",
-        xdimension="experiment",
-        outdir=img_outdir,
-        ext="png",
-        plotname="pull_times_by_experiment",
-        hue="experiment",
-        palette=palette,
-        plot_type="box",
-        xlabel="Container",
-        ylabel="Pull Time (seconds)",
-        # do_log=True,
-        # With log, no ylimit
-        # ylim=None,
-    )
-
-    # Now let's look at time for each job
-    # Let's first plot pull times
-    subset = df[df.event == "running"]
-    make_plot(
-        subset,
-        title="Job Times By Experiment",
-        ydimension="duration",
-        xdimension="job",
-        outdir=img_outdir,
-        ext="png",
-        plotname="job_times_by_experiment",
-        hue="experiment",
-        palette=palette,
-        plot_type="box",
-        xlabel="Job",
-        ylabel="Running Time (seconds)",
-        # do_log=True,
-        # With log, no ylimit
-        # ylim=None,
-    )
-
-    costs = {}
-
-    # here is calculating the total experiment costs
-    # this is from eksctl logs - when we see "node-x" ready
-    # This was gpu run 2
-    start_time = datetime.strptime("22:11:17", "%H:%M:%S")
-    end_time = datetime.strptime("23:31:46", "%H:%M:%S")
-    gpu_up_seconds = (end_time - start_time).seconds
-    costs["gpu"] = 3.06 * (gpu_up_seconds / 60 / 60) * 6
-
-    # This was cpu run 1
-    # start_time = datetime.strptime("20:00:34", "%H:%M:%S")
-    # end_time = datetime.strptime("22:22:45", "%H:%M:%S")
-    # cpu_up_seconds = (end_time - start_time).seconds
-    # costs["cpu-manual"] = 2.88 * (cpu_up_seconds / 60 / 60) * 6
-    print(costs)
-
-    # Let's do summary of job times
-    by_job = subset.groupby(["job", "experiment"])["duration"].sum()
-    subset = df[df.event == "pulled"]
-    by_pull = subset.groupby(["experiment"])["duration"].sum()
-    print(by_job)
-    print(by_pull)
-
-    # This is manual and gross - I'm too lazy to do it programatically now
-    # I want to go outside :)
-    summary_df = pandas.DataFrame(columns=["experiment", "event", "duration"])
-    idx = 0
-    for entry in by_job.items():
-        summary_df.loc[idx, :] = [entry[0][1], "running-" + entry[0][0], entry[1]]
-        idx += 1
-    for entry in by_pull.items():
-        summary_df.loc[idx, :] = [entry[0], "pulled", entry[1]]
-        idx += 1
-
     # Add the cost for the total cluster being up
     # This is multiplied by 6 for total nodes count
     summary_df.loc[idx, :] = ["gpu", "cluster-uptime", gpu_up_seconds * 6]
@@ -396,6 +480,102 @@ def plot_times(df, outdir):
         # ylim=None,
     )
 
+    costs = {}
+
+    # here is calculating the total experiment costs
+    # this is from eksctl logs - when we see "node-x" ready
+    # This was gpu run 2
+    start_time = datetime.strptime("22:11:17", "%H:%M:%S")
+    end_time = datetime.strptime("23:31:46", "%H:%M:%S")
+    gpu_up_seconds = (end_time - start_time).seconds
+    costs["gpu"] = 3.06 * (gpu_up_seconds / 60 / 60) * 6
+
+    # This was cpu run 1
+    # start_time = datetime.strptime("20:00:34", "%H:%M:%S")
+    # end_time = datetime.strptime("22:22:45", "%H:%M:%S")
+    # cpu_up_seconds = (end_time - start_time).seconds
+    # costs["cpu-manual"] = 2.88 * (cpu_up_seconds / 60 / 60) * 6
+    print(costs)
+
+
+def plot_pulling_times(df, outdir):
+    """
+    Given an output directory, plot image to show pull times.
+    """
+    # Let's first plot pull times
+    subset = df[df.event == "pulled"]
+    # Don't account for already pulled
+    subset = subset[subset.duration != 0]
+    # Only include analysis containers
+    subset = subset[
+        subset.container.isin([x for x in subset.container.unique() if "mummi" in x])
+    ]
+    img_outdir = os.path.join(outdir, "img")
+    if not os.path.exists(img_outdir):
+        os.makedirs(img_outdir)
+    make_plot(
+        subset,
+        title="State Machine Operator Container Pulling Times",
+        ydimension="duration",
+        xdimension="experiment",
+        outdir=img_outdir,
+        ext="png",
+        plotname="pull_times_by_experiment",
+        hue="experiment",
+        plot_type="box",
+        xlabel="Container",
+        ylabel="Pull Time (seconds)",
+        # do_log=True,
+        # With log, no ylimit
+        # ylim=None,
+    )
+
+    # Now let's look at time for each job
+    # Let's first plot pull times
+    subset = df[df.event == "running"]
+
+    # IMPORTANT - this was an outlier that will mess up the plot, but it needs to be reported
+    # It never actually finished.
+    # createsim-structure-iter00-000000000001  Job  createsim  running    82583      None  gpu-static
+    subset = subset[subset.duration != subset.duration.max()]
+
+    make_plot(
+        subset,
+        title="State Machine Operator Job Times By Experiment",
+        ydimension="duration",
+        xdimension="job",
+        outdir=img_outdir,
+        ext="png",
+        plotname="job_times_by_experiment",
+        hue="experiment",
+        plot_type="box",
+        xlabel="Job",
+        ylabel="Running Time (seconds)",
+        # do_log=True,
+        # With log, no ylimit
+        # ylim=None,
+    )
+
+    # Let's do summary of job times
+    by_job = subset.groupby(["job", "experiment"])["duration"].sum()
+    subset = df[df.event == "pulled"]
+    by_pull = subset.groupby(["experiment"])["duration"].sum()
+    print(by_job)
+    print(by_pull)
+
+    # Convert into data frame
+    summary_df = pandas.DataFrame(columns=["experiment", "event", "duration"])
+    idx = 0
+    for entry in by_job.items():
+        summary_df.loc[idx, :] = [entry[0][1], "running-" + entry[0][0], entry[1]]
+        idx += 1
+    for entry in by_pull.items():
+        summary_df.loc[idx, :] = [entry[0], "pulled", entry[1]]
+        idx += 1
+
+    # We will add costs to this based on workflow running time
+    return summary_df
+
 
 def make_plot(
     df,
@@ -412,6 +592,9 @@ def make_plot(
     outdir="img",
     do_log=False,
     ylim=None,
+    rotation=90,
+    width=7,
+    height=6,
 ):
     """
     Helper function to make common plots.
@@ -425,7 +608,7 @@ def make_plot(
         plotfunc = sns.barplot
 
     ext = ext.strip(".")
-    plt.figure(figsize=(7, 6))
+    plt.figure(figsize=(width, height))
     sns.set_style("dark")
     if plot_type == "violin":
         ax = plotfunc(
@@ -476,112 +659,11 @@ def make_plot(
     ax.set_xticklabels(ax.get_xmajorticklabels(), fontsize=14)
     ax.set_yticklabels(ax.get_yticks(), fontsize=14)
     # sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
-    plt.xticks(rotation=90)
+    plt.xticks(rotation=rotation)
     plt.tight_layout()
     plt.savefig(os.path.join(outdir, f"{plotname}.png"))
     plt.clf()
     return ax
-
-
-def read_file(filename):
-    with open(filename, "r") as fd:
-        content = fd.read()
-    return content
-
-
-def write_json(obj, filename):
-    with open(filename, "w") as fd:
-        fd.write(json.dumps(obj, indent=4))
-
-
-def parse_data(indir, outdir, files):
-    # Assemble results across filenames - we will have mixing
-    lookup = {}
-    for filename in files:
-        events = read_file(filename)
-        sections = [x.strip() for x in events.split("\n") if x.strip()]
-
-        # All unique events (reasons)
-        # {'created',
-        # 'killing',
-        # 'noderegistrationcheckerdidnotrunchecks',
-        # 'pulled',
-        # 'pulling',
-        # 'scalingreplicaset',
-        # 'scheduled',
-        # 'started',
-        # 'successfulcreate'}
-
-        iteration = int(os.path.basename(os.path.dirname(filename)))
-        environ = os.path.basename(os.path.dirname(os.path.dirname(filename)))
-
-        # Experiment lookup
-        if environ == "cpu":
-            experiment = "cpu-manual"
-        else:
-            experiment = "gpu"
-
-        # We have to separate results by experiment
-        if experiment not in lookup:
-            lookup[experiment] = {}
-
-        # For each file, create lookup with container uid
-        for section in sections:
-            try:
-                section = json.loads(section)
-            except:
-                print(f"Skipping non json {section}")
-                continue
-
-            # Discarded events
-            if "reason" not in section:
-                continue
-
-            # unique id
-            uid = section["metadata"]["name"].rsplit(".", 1)[0]
-            kind = section["involvedObject"]["kind"]
-            if uid not in lookup[experiment]:
-                lookup[experiment][uid] = {
-                    "events": {},
-                    "environment": environ,
-                    "iteration": iteration,
-                    "experiment": experiment,
-                    "kind": kind,
-                }
-            reason = section["reason"].lower()
-
-            # Use event time and fall back to first time
-            timestamp = section.get("eventTime") or section["firstTimestamp"]
-
-            # Get the container URI from pulling
-            if reason == "pulling":
-                lookup[experiment][uid]["container"] = (
-                    section["message"].rsplit(" ", 1)[-1].strip('"')
-                )
-            instance = section["reportingInstance"]
-            lookup[experiment][uid]["events"][reason] = {
-                "timestamp": timestamp,
-                "instance": instance,
-            }
-
-            # If pulled, there is extra metadata about what it calculated
-            if reason == "pulled":
-                lookup[experiment][uid]["events"][reason]["message"] = section[
-                    "message"
-                ]
-
-    # This is the primary raw data we are interested in.
-    raw_times_file = os.path.join(outdir, "raw-times.json")
-    print(f"Saving raw container times to {raw_times_file}")
-    write_json(lookup, raw_times_file)
-
-    # Get unique containers to save
-    containers = {x.get("container") for _, x in lookup.items() if x.get("container")}
-    # This gives us unique containers
-    containers_file = os.path.join(outdir, "unique-containers.json")
-    print(f"Saving list of unique containers to {containers_file}")
-    write_json(list(containers), containers_file)
-    return lookup
 
 
 if __name__ == "__main__":
