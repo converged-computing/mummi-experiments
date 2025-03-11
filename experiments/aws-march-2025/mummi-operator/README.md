@@ -11,7 +11,7 @@ cd ./mummi-experiments/experiments/aws-march-2025/mummi-operator
 Final results:
 
  - cpu-static-1 is final for CPU
- - gpu-static-1 is final for GPU
+ - XXX is final for GPU
 
 ## Experiments
 
@@ -32,20 +32,20 @@ kubectl create namespace monitoring
 kubectl apply -f ../../../event-monitor
 
 # In a different terminal, this will save nodes and collect events.
-environ=cpu-static-1
-region=us-east-2
-instance=hpc6a.48xlarge
+# environ=cpu-static-1
+# region=us-east-2
+# instance=hpc6a.48xlarge
 
-# environ=gpu-static-1
-# region=us-east-1
-# instance=p3.2xlarge
+environ=gpu-static-0
+region=us-east-1
+instance=p3.2xlarge
 
 mkdir -p ./monitor/${environ}
 kubectl get nodes -o json > ./monitor/${environ}/nodes-$(date +%s).json
 
 # Topology API (only for hpc instance types)
 # Note that I was running an a la carte gpu instance in this region, needs to be filtered out
-aws ec2 describe-instance-topology --region ${region} --filters Name=instance-type,Values=${instance} > ./monitor/${environ}/topology.json
+# aws ec2 describe-instance-topology --region ${region} --filters Name=instance-type,Values=${instance} > ./monitor/${environ}/topology.json
 aws ec2 describe-instances --filters "Name=instance-type,Values=${instance}" --region ${region}  > ./monitor/${environ}/instances.json
 
 kubectl logs -n monitoring $(kubectl get pods -n monitoring -o json | jq -r .items[0].metadata.name) -f |& tee ./monitor/${environ}/events-$(date +%s).json
@@ -77,8 +77,8 @@ When the workflow is complete, we can save the state, etc. First, get output for
 
 ```bash
 # In a different terminal, this will save nodes and collect events.
-# environ=gpu-static-1
-environ=cpu-static-1
+environ=gpu-static-0
+# environ=cpu-static-1
 
 #kubectl logs <container>  > ./monitor/${environ}/<container>.out
 kubectl get pods -o wide > ./monitor/${environ}/final-pods-state.txt
@@ -117,7 +117,7 @@ pixi add htop
 # get wfmanager process
 htop
 kill -s SIGINT <process_id>
-kill -s SIGINT 364
+kill -s SIGINT 100
 ```
 
 ## Cleanup

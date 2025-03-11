@@ -1,6 +1,6 @@
 # CPU Node Selector
 
-This portion of the experiment uses the state machine operator to select an ideal node type for the createsims step, and specifically an added feature to allow for [custom properties](https://github.com/converged-computing/state-machine-operator/pull/12). To be consistent in our step, we use the same createsims container that is pre-baked with the analysis and script to process the same gromacs input. We will have the output times for each run, and can choose the instance type based on that.
+This portion of the experiment uses the state machine operator to select an ideal node type for the createsims step, and specifically an added feature to allow for [custom properties](https://github.com/converged-computing/state-machine-operator/pull/12). To be consistent in our step, we use the same createsims container that is pre-baked with the analysis and script to process the same gromacs input. We will have the output times for each run, and can choose the instance type based on that. Here are [all the options](https://gist.github.com/vsoch/30803bea5e0bd1b6a0916cef14d54c62) for the cluster autoscaler.
 
 ## Docker
 
@@ -9,20 +9,18 @@ In order to make a fair comparison, we need to run the analysis on the same inpu
 ```bash
 docker build -t ghcr.io/converged-computing/mummi-experiments:cpu-node-selector .
 
+# And for arm (or better, use the one we already built that is public)
+docker buildx build --platform linux/arm64 --build-arg tag=createsims-arm --push -t ghcr.io/converged-computing/mummi-experiments:cpu-node-selector-arm - Dockerfile.arm .
+
 # Run, but be careful if your machine will cough up a fan.
 docker run ghcr.io/converged-computing/mummi-experiments:cpu-node-selector
 docker push ghcr.io/converged-computing/mummi-experiments:cpu-node-selector
 ```
 
-I'm working on the ability to select a node next, and I'll also need to figure out how to make a cluster with different node types. If we require, for example, all of the same node type to start, it's not clear if we should do a design that is horizontal (running the same type in the same state machines over time) or vertical (running as the same step in multiple state machines so the cluster does not need to scale). 
-
 ## Instance Types
 
-We are going to test CPU, for both ARM and X86. Our one limit is choosing instance types in the same region, which is reasonable (us-east-1). For testing (and I'll remove the ARM when it isn't ready yet):
+We are going to test CPU, for both ARM and X86. Our one limit is choosing instance types in the same region, which is reasonable (us-east-1). For testing (arm isn't ready yet)
 
-- c7g.4xlarge (Graviton3/ARM64)
-  - 16 vCPU, 32 GiB Memory
-  - $0.58 / hour
 - c7a.4xlarge:
   - 16 vCPU, 32 GiB Memory
   - $0.8211/hour
@@ -32,34 +30,27 @@ We are going to test CPU, for both ARM and X86. Our one limit is choosing instan
 
 And for the experiment. Note that some of these are multi-threaded. The difference in specs is OK - my goal was to get an hourly cost close to $3. We would want to see how it performs regardless, they don't have to be totally equal because we care about time/cost.
 
-- c7g.16xlarge (Graviton3/ARM64): 
-  - 64 vCPU, 128 GiB Memory
-  - $2.32/hour
-- hpc6a.48xlarge:
-  - 96 cores
-  - $2.88/hour
-- c6in.4xlarge (Intel enhanced networking):
-  - 48 vCPU 96 Memory GiB
+- c7g.16xlarge (Graviton3/ARM64)
+- hpc7g.16xlarge
+- c6in.16xlarge (Intel enhanced networking):
   - Note that has enhanced intel networking, unlikely to help
-  - $2.722 /hour
 - r7iz.8xlarge
    - Note has Intel high memory and frequency
-   - 32 vCPU, 256 Memory GiB
-   - $2.976/hour
-- m6g.4xlarge
-   - 16 vCPU, 64 Memory GiB
-   - $0.6160/hour
+- m6g.16xlarge
+- m6a.16xlarge
 
-## Testing
+See the [configuration YAML files](crd) for the final instances.
 
-Let's test using the autoscaler, first with two cheap node types:
+## Experiment
+
+Create the cluster. The strategy we use is to have an autoscaling group for each node type we want to test, and then one persistent node where we run services, operators, etc.
 
 ```bash
-eksctl create cluster --config-file eks-config-cpu-autoscaling-test.yaml
+eksctl create cluster --config-file ./crd/eks-config-cpu.yaml
 aws eks update-kubeconfig --region us-east-1 --name mini-mummi
 ```
 
-I am trying a strategy where I bring up one static group for a control plane, and the other groups will start at size 0. I've confirmed that node events export to the kubernetes event exporter, but the node it is running on cannot be deleted. Let's install it first.
+Install the monitor on the single node that is persistent.
 
 ```bash
 kubectl create namespace monitoring
@@ -72,9 +63,9 @@ kubectl logs -n monitoring $(kubectl get pods -n monitoring -o json | jq -r .ite
 Install the autoscaler, ensure it is running OK, and then install an updated version of the state machine operator.
 
 ```bash
-kubectl apply -f ./crd/cluster-autoscaler-test.yaml 
+kubectl apply -f ./crd/cluster-autoscaler.yaml 
 kubectl get pods -n kube-system
-kubectl logs -n kube-system cluster-autoscaler-xxx-xxx
+# kubectl logs -n kube-system cluster-autoscaler-xxx-xxx
 ```
 
 Install the state machine operator:
@@ -87,29 +78,38 @@ make test-deploy-recreate
 At this point we should have what we need for the experiment. The node test should autoscale the cluster to have one node of each type (so the first pod is pending). Run the experiment!
 
 ```bash
-kubectl apply -f crd/cpu-mummi-test.yaml
+kubectl apply -f crd/cpu-mummi.yaml
 ```
 
-I want to test this with spot too. Delete.
+To save output:
+I found the easiest thing to do was expose the headless service, and then oras pull to my local machine.
 
 ```bash
-eksctl delete cluster --config-file eks-config-cpu-autoscaling-test.yaml --wait
+# In another terminal
+kubectl port-forward registry-0 5000:5000
+oras repo ls localhost:5000
+
+mkdir -p ./monitor/$environ/data
+cd ./monitor/$environ/data
+oras repo ls localhost:5000 > repos.txt
+# Download artifacts organized by structure (repo) and step (tag)
+registry=localhost:5000
+root=$(pwd)
+for repo in $(oras repo list --plain-http $registry) 
+  do 
+    for tag in $(oras repo tags --plain-http $registry/$repo)
+      do 
+        mkdir -p $root/$repo/$tag
+        cd $root/$repo/$tag
+        oras pull --plain-http $registry/$repo:$tag
+    done
+done
+cd $root
 ```
 
-Test with spot!
+And delete.
 
 ```bash
-eksctl create cluster --config-file eks-config-cpu-autoscaling-spot-test.yaml
-aws eks update-kubeconfig --region us-east-2 --name mini-mummi
+eksctl delete cluster --config-file ../crd/eks-config-cpu.yaml
 ```
-
-
-## Original Notes
-
-- Figuring out which resource type is best would be a second idea/goal.
-- Idea would be to run each step on different nodes, and choose minimum time.
-- But for this study we assume each stage has an assigned node type.
-- Compare potpourri cluster with homogeneous cluster (time and cost)
-- At the beginning, create N of node type. As the composition of the cluster changes, the autoscaler needs to kick in to provision the node needed!
-
-If time, think of ways to have state machine operator act as node selector (this study!)
+ 
