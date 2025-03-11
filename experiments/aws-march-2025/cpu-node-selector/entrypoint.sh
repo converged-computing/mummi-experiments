@@ -12,7 +12,7 @@ outpath=/tmp/out
 MUMMI_APP=/opt/clones/mummi-ras MUMMI_ROOT=$MUMMI_APP
 MUMMI_RESOURCES=/opt/clones/mummi_resources
 export MUMMI_ROOT MUMMI_APP MUMMI_RESOURCES
-export OMP_NUM_THREADS=6
+export OMP_NUM_THREADS=$(nproc)
 locpath=/tmp/workdir
 mkdir -p ${outpath}; cd ${locpath}
 mummi_createsim \
