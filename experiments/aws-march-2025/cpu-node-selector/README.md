@@ -55,7 +55,7 @@ Install the monitor on the single node that is persistent.
 ```bash
 kubectl create namespace monitoring
 kubectl apply -f ../../../event-monitor
-environ=cpu-autoscale
+environ=cpu-autoscale-0
 mkdir -p ./monitor/$environ
 kubectl logs -n monitoring $(kubectl get pods -n monitoring -o json | jq -r .items[0].metadata.name) -f |& tee ./monitor/${environ}/events-$(date +%s).json
 ```

@@ -103,7 +103,7 @@ def main():
 
     # Specific cpu and gpu results
     cpu_indir = os.path.join(indir, "cpu-static-1")
-    gpu_indir = os.path.join(indir, "gpu-static-1")
+    gpu_indir = os.path.join(indir, "gpu-static-0")
 
     # Parse times for pulling containers
     gpu_pulling_files = find_inputs(gpu_indir, "events-")
