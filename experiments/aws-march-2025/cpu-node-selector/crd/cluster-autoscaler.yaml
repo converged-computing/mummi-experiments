@@ -145,6 +145,8 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       serviceAccountName: cluster-autoscaler
+      nodeSelector:
+        node.kubernetes.io/instance-type: m6a.4xlarge
       containers:
         - image: registry.k8s.io/autoscaling/cluster-autoscaler:v1.26.2
           name: cluster-autoscaler

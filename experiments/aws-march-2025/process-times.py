@@ -530,9 +530,6 @@ def plot_pulling_times(df, outdir):
         plot_type="box",
         xlabel="Container",
         ylabel="Pull Time (seconds)",
-        # do_log=True,
-        # With log, no ylimit
-        # ylim=None,
     )
 
     # Now let's look at time for each job

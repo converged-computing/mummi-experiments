@@ -1,0 +1,68 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: mini-mummi-gpu
+  region: us-east-1
+  version: "1.27"
+
+iam:
+  withOIDC: true
+  serviceAccounts:
+  - metadata:
+      name: cluster-autoscaler
+      namespace: kube-system
+    attachPolicy:
+      Version: "2012-10-17"
+      Statement:
+      - Effect: Allow
+        Action:
+        - "autoscaling:DescribeAutoScalingGroups"
+        - "autoscaling:DescribeAutoScalingInstances"
+        - "autoscaling:DescribeLaunchConfigurations"
+        - "ec2:DescribeImages"
+        - "ec2:DescribeInstanceTypes"
+        - "ec2:DescribeLaunchTemplateVersions"
+        - "ec2:GetInstanceTypesFromInstanceRequirements"
+        - "autoscaling:DescribeTags"
+        - "autoscaling:SetDesiredCapacity"
+        - "autoscaling:TerminateInstanceInAutoScalingGroup"
+        - "eks:DescribeNodegroup"        
+        Resource: '*'
+
+# aws ec2 describe-instance-type-offerings --location-type availability-zone --filters="Name=instance-type,Values=p3.2xlarge" --region us-east-1 --output table
+# Note available from a-f
+availabilityZones: ["us-east-1b", "us-east-1c"]
+managedNodeGroups:
+  - name: workers-control-plane
+    availabilityZones: ["us-east-1b"]
+    instanceType: c7a.4xlarge
+    desiredCapacity: 1
+    minSize: 1
+    maxSize: 1
+
+  - name: workers
+    availabilityZones: ["us-east-1b"]
+    instanceType: p3.2xlarge
+    # Defaults to 80, this in GB. 80 is too small to support installing EFA
+    volumeSize: 150
+    # This will default to gp3 and you'll wait 30+ minutes and it will fail
+    volumeType: gp2
+    minSize: 3
+    maxSize: 6
+    # Start at max size
+    desiredCapacity: 6
+    placement:
+      groupName: performance-study
+    tags:
+      kubernetes.io/cluster/mini-mummi-gpu: "owned"
+      k8s.io/cluster-autoscaler/enabled: "true"
+      k8s.io/cluster-autoscaler/scaling-study-efa: "owned"
+      Name: 'mini-mummi-gpu'
+      k8s.io/cluster-autoscaler/node-template/label/k8s.amazonaws.com/accelerator: nvidia-tesla-v100
+    labels:
+      k8s.amazonaws.com/accelerator: nvidia-tesla-v100
+    propagateASGTags: true
+    ssh:
+      allow: true
+      publicKeyPath: ~/.ssh/id_eks.pub
