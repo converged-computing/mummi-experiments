@@ -1,0 +1,11 @@
+FROM ghcr.io/converged-computing/mummi-experiments:cpu-node-selector-arm
+RUN rm $(which oras) && \
+    VERSION="1.1.0" && \
+    curl -LO https://github.com/oras-project/oras/releases/download/v1.1.0/oras_1.1.0_linux_arm64.tar.gz && \
+    mkdir -p oras-install/ && \
+    tar -zxf oras_${VERSION}_*.tar.gz -C oras-install/ && \
+    chmod +x oras-install/oras && \
+    cp oras-install/oras /usr/local/bin/oras && \
+    cp oras-install/oras /usr/bin/oras && \
+    rm -rf oras_${VERSION}_*.tar.gz oras-install/
+RUN cp /usr/bin/oras /usr/local/bin/oras

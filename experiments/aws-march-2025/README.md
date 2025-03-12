@@ -30,6 +30,7 @@ cd ./mummi-experiments/experiments/aws-march-2025
 
 Note that the State Machine Operator setup requires the mlrunner container, which is deployed from the [mummi-operator](https://github.com/converged-computing/mummi-operator). 
 
+
 ## Metrics to Collect
 
  - Timing for events (Kubernetes and via the manager)
@@ -222,4 +223,12 @@ This has events that aren't comparable, except for two (with different names)...
 And then we can compare to see the start differences in total workflow running time.
 
 ![results/img/workflow_total_time.png](results/img/workflow_total_time.png)
+
+```console
+             experiment                   event     duration             global       operator environment
+1             mummi-cpu  wfmanager_run_workflow  6347.938754  workflow_complete          mummi         cpu
+1701          mummi-gpu  wfmanager_run_workflow  5630.112581  workflow_complete          mummi         gpu
+0     state-machine-cpu          workflow_start  3101.351853  workflow_complete  state-machine         cpu
+21    state-machine-gpu          workflow_start  3327.152879  workflow_complete  state-machine         gpu
+```
 
