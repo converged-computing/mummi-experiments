@@ -231,4 +231,10 @@ And then we can compare to see the start differences in total workflow running t
 0     state-machine-cpu          workflow_start  3101.351853  workflow_complete  state-machine         cpu
 21    state-machine-gpu          workflow_start  3327.152879  workflow_complete  state-machine         gpu
 ```
+### Costs
+
+This is the difference in cost between traditional MuMMI in Kubernetes vs. the State Machine Operator orchestration. The design decisions make a big difference. These are hpc6a (cpu) and p3 (gpu).  There are also fewer completions (only 6) so you can't compare to the cost plot for the autoscaling experiments, where we had 10 completions required.
+
+![results/img/workflow_total_cost.png](results/img/workflow_total_cost.png)
+
 

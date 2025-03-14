@@ -4,11 +4,7 @@ import argparse
 import json
 import os
 import re
-import sys
 import tarfile
-import io
-
-from datetime import datetime
 
 import matplotlib.ticker as mticker
 import matplotlib.pylab as plt
@@ -170,6 +166,17 @@ def job_timings(samples, outdir):
             ]
             idx += 1
 
+    spot = ["spot" if "spot" in x else "on-demand" for x in df.iteration.tolist()]
+    df["spot"] = spot
+    new_instance_names = []
+    for i, instance_name in enumerate(df.instance.tolist()):
+        if spot[i] == "spot":
+            instance_name = f"{instance_name}-spot"
+            print(instance_name)
+        new_instance_names.append(instance_name)
+
+    df["instance"] = new_instance_names
+
     # Add in costs for each instance type
     lookup = {
         "hpc7g-16xlarge": 1.683,
@@ -180,7 +187,13 @@ def job_timings(samples, outdir):
         "r7iz-8xlarge": 2.976,
         "m6a-16xlarge": 2.765,
         "hpc6a-48xlarge": 2.88,
+        # We got spot instances for these
+        "c7a-12xlarge-spot": 0.6458,
+        "c7g-16xlarge-spot": 0.5415,
+        "m6g-16xlarge-spot": 0.6519,
+        "c6in-12xlarge-spot": 0.8272,
     }
+
     costs = [lookup[x] for x in df.instance.tolist()]
     df["hourly_cost"] = costs
 
@@ -195,15 +208,23 @@ def job_timings(samples, outdir):
     # Let's just look at total running time
     subset = df[df.event == "createsim_runtime"]
 
+    # These were used for testing, randomly take 3 samples (the times are all the same so it doesn't matter)
+    # c7a-12xlarge 12 runs, spot of the same is 7
+    filtered = subset[~subset.instance.isin(["c7a-12xlarge", "c7a-12xlarge-spot"])]
+    c7a_df = subset[subset.instance.isin(["c7a-12xlarge"])]
+    c7a_spot_df = subset[subset.instance.isin(["c7a-12xlarge-spot"])]
+    c7a_df = c7a_df.sample(n=3)
+    c7a_spot_df = c7a_spot_df.sample(n=3)
+    subset = pandas.concat([filtered, c7a_df, c7a_spot_df])
+
     # Normalize costs
     # subset["normalized_cost"] = subset["cost"] = subset["cost"].mean()
-
-    y = "duration"
-    x = "cost"
-    xlabel = "Cost ($)"
-    ylabel = "Running Time (seconds)"
     order = [
+        "c7g-16xlarge-spot",
+        "c7a-12xlarge-spot",
+        "m6g-16xlarge-spot",
         "hpc7g-16xlarge",
+        "c6in-12xlarge-spot",
         "c7g-16xlarge",
         "c7a-12xlarge",
         "m6g-16xlarge",
@@ -233,14 +254,13 @@ def job_timings(samples, outdir):
         outdir=img_outdir,
         ext="png",
         plotname="createsims_cost_by_instance",
-        hue="instance",
+        hue="spot",
         plot_type="box",
         xlabel="Instance Type",
         ylabel="Cost ($)",
         order=order,
         width=7,
         height=4,
-        rotation=45,
     )
     df.to_csv(os.path.join(outdir, "createsim-timings.csv"))
     subset.to_csv(os.path.join(outdir, "createsim-total-times.csv"))
@@ -269,65 +289,29 @@ def make_plot(
     """
     Helper function to make common plots.
     """
-    plotfunc = sns.lineplot
-    if plot_type == "violin":
-        plotfunc = sns.violinplot
-    elif plot_type == "box":
-        plotfunc = sns.boxplot
-    elif plot_type == "bar":
-        plotfunc = sns.barplot
+    plotfunc = sns.boxplot
+    plotfunc = sns.stripplot
 
     ext = ext.strip(".")
     plt.figure(figsize=(width, height))
     sns.set_style("dark")
-    if plot_type == "violin":
-        ax = plotfunc(
-            x=xdimension,
-            y=ydimension,
-            hue=hue,
-            data=df,
-            linewidth=0.8,
-            palette=palette,
-            marker="o",
-        )
-    elif plot_type == "bar":
-        ax = plotfunc(
-            x=xdimension, y=ydimension, hue=hue, data=df, linewidth=0.8, palette=palette
-        )
-    elif plot_type == "box":
-        ax = plotfunc(
-            x=xdimension,
-            y=ydimension,
-            hue=hue,
-            data=df,
-            linewidth=1.8,
-            palette=palette,
-            whis=[5, 95],
-            dodge=True,
-            order=order,
-            widths=0.3,
-        )
-    else:
-        ax = plotfunc(
-            x=xdimension,
-            y=ydimension,
-            hue=hue,
-            data=df,
-            linewidth=1.8,
-            palette=palette,
-        )
-        # This range is specifically for pulling times -
-        # so the ranges are equivalent
-        if ylim is not None:
-            ax.set(ylim=ylim)
-
+    ax = plotfunc(
+        x=xdimension,
+        y=ydimension,
+        hue=hue,
+        order=order,
+        data=df,
+        linewidth=1,
+        palette=palette,
+    )
+    ax.legend_.set_title(None)
     if do_log:
         plt.yscale("log")
     plt.title(title)
     ax.set_xlabel(xlabel, fontsize=10)
     ax.set_ylabel(ylabel, fontsize=10)
-    ax.set_xticklabels(ax.get_xmajorticklabels(), fontsize=14)
-    ax.set_yticklabels(ax.get_yticks(), fontsize=14)
+    ax.set_xticklabels(ax.get_xmajorticklabels(), fontsize=10)
+    ax.set_yticklabels(ax.get_yticks(), fontsize=10)
     # sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
     plt.xticks(rotation=rotation)
     ax.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.2f"))

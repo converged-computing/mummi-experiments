@@ -4,9 +4,7 @@ import argparse
 import json
 import os
 import re
-import sys
 import tarfile
-import io
 
 from datetime import datetime
 
@@ -101,10 +99,7 @@ def main():
     sm_indir = os.path.join(indir, "state-machine-operator", "results")
     indirs = [mummi_indir, sm_indir]
     times_df = parse_pulling_times(indirs)
-    summary_df = plot_pulling_times(times_df, outdir)
-
-    #  workflow-individual-times.csv
-    # img/			       workflow-summed-times.csv
+    plot_pulling_times(times_df, outdir)
 
     # Now let's count outputs (total and excess)
     count_outputs(indirs, outdir, completions=args.completions)
@@ -113,9 +108,8 @@ def main():
     job_timings(indirs, outdir)
 
     # Now look at times for the workflow manager
-    workflow_manager(indirs, outdir)
-
-    # TODO calculate costs, likely when we add autoscaling
+    workflow_times = workflow_manager(indirs, outdir)
+    calculate_costs(workflow_times, outdir)
 
 
 def workflow_manager(indirs, outdir):
@@ -160,7 +154,7 @@ def workflow_manager(indirs, outdir):
         plot_type="bar",
         xlabel="Environment",
         ylabel="Running Time (seconds)",
-        rotation=360,        
+        rotation=360,
         height=3,
     )
 
@@ -168,6 +162,7 @@ def workflow_manager(indirs, outdir):
     print("See workflow running time to get 6 samples")
     print(workflow_times.groupby(["experiment", "global"]).duration.mean())
     print(total_time)
+    return workflow_times
 
 
 def combine_data_frames(indirs, filename):
@@ -194,7 +189,6 @@ def job_timings(indirs, outdir):
     Find output files for job timings.
     """
     function_times = combine_data_frames(indirs, "function-individual-times.csv")
-    summed_times = combine_data_frames(indirs, "function-summed-times.csv")
     make_plot(
         function_times,
         title="Total Accumulated Function Times",
@@ -452,55 +446,38 @@ def parse_pulling_times(indirs):
     return df
 
 
-def calculate_timings(summary_df, outdir):
+def calculate_costs(workflow_times, outdir):
     """
     Calculate experiment costs based on timings.
-    TODO need to take costs into account
     """
-    # Add the cost for the total cluster being up
-    # This is multiplied by 6 for total nodes count
-    summary_df.loc[idx, :] = ["gpu", "cluster-uptime", gpu_up_seconds * 6]
-    idx += 1
-    # summary_df.loc[idx, :] = ["cpu-manual", "cluster-uptime", cpu_up_seconds * 6]
-    # idx += 1
-    # summary_df.loc[idx, :] = ["gpu-manual", "cluster-uptime", gpu_manual_up_seconds * 6]
-    # print(gpu_manual_up_seconds - gpu_up_seconds)
-
-    summary_df.to_csv(os.path.join(outdir, "summary-times.csv"))
+    times = workflow_times[
+        workflow_times["global"].isin(["workflow_complete", "wfmanager_run_workflow"])
+    ]
+    times["global"] = "workflow_complete"
+    times["environment"] = [x.replace("-static", "") for x in times["environment"]]
+    # Add in hpc6a and p3dn costs
+    cost_per_hour = [2.88 if "cpu" in x else 3.06 for x in times.experiment]
+    times["cost_per_hour"] = cost_per_hour
+    times["cost"] = times["cost_per_hour"] * (times["duration"] * 6 / 60 / 60)
     make_plot(
-        summary_df,
-        title="Accumulated Times of Events Per Experiment",
-        ydimension="duration",
-        xdimension="event",
-        outdir=img_outdir,
+        times,
+        title="Total Cost to Run Workflow",
+        ydimension="cost",
+        xdimension="environment",
+        outdir=os.path.join(outdir, "img"),
         ext="png",
-        plotname="total_times_by_experiment",
-        hue="experiment",
-        palette=palette,
+        plotname="workflow_total_cost",
+        hue="operator",
         plot_type="bar",
-        xlabel="Event",
-        ylabel="Total Time (seconds)",
-        # do_log=True,
-        # With log, no ylimit
-        # ylim=None,
+        xlabel="Environment",
+        ylabel="Cost ($)",
+        rotation=360,
     )
 
-    costs = {}
-
-    # here is calculating the total experiment costs
-    # this is from eksctl logs - when we see "node-x" ready
-    # This was gpu run 2
-    start_time = datetime.strptime("22:11:17", "%H:%M:%S")
-    end_time = datetime.strptime("23:31:46", "%H:%M:%S")
-    gpu_up_seconds = (end_time - start_time).seconds
-    costs["gpu"] = 3.06 * (gpu_up_seconds / 60 / 60) * 6
-
-    # This was cpu run 1
-    # start_time = datetime.strptime("20:00:34", "%H:%M:%S")
-    # end_time = datetime.strptime("22:22:45", "%H:%M:%S")
-    # cpu_up_seconds = (end_time - start_time).seconds
-    # costs["cpu-manual"] = 2.88 * (cpu_up_seconds / 60 / 60) * 6
-    print(costs)
+    # The only meaningful comparison is the workflow running time to get 6 samples
+    print("See workflow running time to get 6 samples")
+    print(workflow_times.groupby(["experiment", "global"]).duration.mean())
+    return workflow_times
 
 
 def plot_pulling_times(df, outdir):
@@ -553,9 +530,6 @@ def plot_pulling_times(df, outdir):
         plot_type="box",
         xlabel="Job",
         ylabel="Running Time (seconds)",
-        # do_log=True,
-        # With log, no ylimit
-        # ylim=None,
     )
 
     # Let's do summary of job times

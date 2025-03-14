@@ -73,8 +73,31 @@ kubectl apply -f crd/cpu-mummi-amd64.yaml
 kubectl apply -f crd/cpu-mummi-hpc6a.yaml
 ```
 
-To save output:
-I found the easiest thing to do was expose the headless service, and then oras pull to my local machine.
+For spot, get the spot instance scores so we can compare to our ability to get instances.
+
+```bash
+mkdir -p spot-scores
+cd spot-scores
+for instance in "c6in.12xlarge" "c7a.12xlarge" "c7g.12xlarge" "hpc7g.16xlarge" "m6a.16xlarge" "m6g.16xlarge" "r7iz.8xlarge"
+do
+  aws ec2 get-spot-placement-scores --instance-types $instance --region us-east-2 --target-capacity=3 > spot-scores-$instance.json
+done
+instance="hpc6a.48xlarge"
+aws ec2 get-spot-placement-scores --instance-types $instance --region us-east-1 --target-capacity=3 > spot-scores-$instance.json
+```
+
+From this I derived the following scores:
+
+- c6in-12xlarge: 3
+- c7a-12xlarge: 3
+- c7g-16xlarge 3     
+- hpc6a-48xlarge (seems like not available, will try to confirm)
+- hpc7g-16xlarge  ditto
+- m6a-16xlarge: 3
+- m6g-16xlarge: 3
+- r7iz-8xlarge : 3
+
+To save output I found the easiest thing to do was expose the headless service, and then oras pull to my local machine.
 
 ```bash
 # In another terminal
@@ -108,10 +131,19 @@ kubectl logs -n kube-system cluster-autoscaler-797bf7c9bc-mtcls > cluster-autosc
 And delete.
 
 ```bash
-eksctl delete cluster --config-file ../crd/eks-config-cpu.yaml
-eksctl delete cluster --config-file crd/eks-config-hpc6a.yaml 
+eksctl delete cluster --config-file ./crd/eks-config-cpu.yaml --wait
+eksctl delete cluster --config-file ./crd/eks-config-cpu-spot.yaml --wait
+eksctl delete cluster --config-file ./crd/eks-config-hpc6a.yaml --wait
 ```
- 
+
+## Notes:
+
+- For spot instances:
+  - We could not get hpc7g. I waited a full 15 minutes.
+  - For m6g we only got one instance, and all three jobs ran sequentially on it.
+  - c6in we got and it always timed out, all times
+  - m6a were allocated and taken back, and I didn't get them again.
+  
 ## Analysis
 
 Here we can see that the hpc7g is the greatest bang for the buck, at least for the instances tested here.
