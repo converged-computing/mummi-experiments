@@ -23,27 +23,7 @@ docker push ghcr.io/converged-computing/mummi-experiments:cpu-node-selector
 
 ## Instance Types
 
-We are going to test CPU, for both ARM and X86. Our one limit is choosing instance types in the same region, which is reasonable (us-east-1). For testing (arm isn't ready yet)
-
-- c7a.4xlarge:
-  - 16 vCPU, 32 GiB Memory
-  - $0.8211/hour
-- m6g.4xlarge
-  - 16 vCPU, 32 GiB
-  - $0.6160/hour
-
-And for the experiment. Note that some of these are multi-threaded. The difference in specs is OK - my goal was to get an hourly cost close to $3. We would want to see how it performs regardless, they don't have to be totally equal because we care about time/cost.
-
-- c7g.16xlarge (Graviton3/ARM64)
-- hpc7g.16xlarge
-- c6in.16xlarge (Intel enhanced networking):
-  - Note that has enhanced intel networking, unlikely to help
-- r7iz.8xlarge
-   - Note has Intel high memory and frequency
-- m6g.16xlarge
-- m6a.16xlarge
-
-See the [configuration YAML files](crd) for the final instances.
+We are going to test CPU, for both ARM and X86. Our one limit is choosing instance types in the same region, which is reasonable (us-east-1) and we will do a one-off run to test hpc6a. See the [configuration YAML files](crd) for the final instances and [notes](notes.md).
 
 ## Experiment
 
@@ -51,6 +31,7 @@ Create the cluster. The strategy we use is to have an autoscaling group for each
 
 ```bash
 eksctl create cluster --config-file ./crd/eks-config-cpu.yaml
+eksctl create cluster --config-file ./crd/eks-config-cpu-spot.yaml
 aws eks update-kubeconfig --region us-east-1 --name mini-mummi
 
 # This is for hpc6a (in a different zone)
@@ -58,12 +39,13 @@ eksctl create cluster --config-file ./crd/eks-config-hpc6a.yaml
 aws eks update-kubeconfig --region us-east-2 --name mini-mummi
 ```
 
-Install the monitor on the single node that is persistent.
+Install the monitor on the single node that is persistent
 
 ```bash
 kubectl create namespace monitoring
-kubectl apply -f ../../../event-monitor
-environ=cpu-autoscale-3
+kubectl apply -f ./event-monitor-cpu
+# environ=cpu-autoscale-3
+environ=cpu-spot
 mkdir -p ./monitor/$environ
 kubectl logs -n monitoring $(kubectl get pods -n monitoring -o json | jq -r .items[0].metadata.name) -f |& tee ./monitor/${environ}/events-$(date +%s).json
 ```
@@ -76,17 +58,17 @@ kubectl get pods -n kube-system
 # kubectl logs -n kube-system cluster-autoscaler-xxx-xxx
 ```
 
-Install the state machine operator:
+Install the state machine operator (commit from March 13, 2025):
 
 ```bash
-cd ./state-machine-operator
-make test-deploy-recreate
+kubectl apply -f crd/state-machine-operator-cpu.yaml 
 ```
 
 At this point we should have what we need for the experiment. The node test should autoscale the cluster to have one node of each type (so the first pod is pending). Run the experiment!
 
 ```bash
 # Run separately for each of arm and amd to be conservative
+kubectl apply -f crd/cpu-mummi-arm64.yaml
 kubectl apply -f crd/cpu-mummi-amd64.yaml
 kubectl apply -f crd/cpu-mummi-hpc6a.yaml
 ```
@@ -134,7 +116,6 @@ eksctl delete cluster --config-file crd/eks-config-hpc6a.yaml
 
 Here we can see that the hpc7g is the greatest bang for the buck, at least for the instances tested here.
 
-![results/img/createsims_cost_by_instance.png](results/img/createsims_cost_by_instance.png)
 ![results/img/createsims_runtimes_by_instance.png](results/img/createsims_cost_by_instance.png)
 
 ```console

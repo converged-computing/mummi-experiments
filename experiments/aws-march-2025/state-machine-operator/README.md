@@ -151,10 +151,6 @@ Note that we have an extra job here (as compared to mummi-operator) because the 
 
 ![results/img/job_times_by_experiment.png](results/img/job_times_by_experiment.png)
 
-Here are times in a format easier to parse - these are the total summed times across jobs (so much longer than total experiment).
-
-```console
-```
 
 ### Pull Times
 
@@ -274,4 +270,3 @@ gpu-static  cganalysis_success    11681.761824
 
 ![results/img/function_times_by_experiment.png](results/img/function_times_by_experiment.png)
 
-I haven't done autoscaling yet - going to do the single node experiments first.
