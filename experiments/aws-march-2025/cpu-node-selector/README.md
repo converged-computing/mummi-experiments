@@ -152,42 +152,58 @@ Here we can see that the hpc7g is the greatest bang for the buck, at least for t
 
 ```console
 instance
-c6in-12xlarge     1154.191626
-c7a-12xlarge       560.955119
-c7g-16xlarge        479.53508
-hpc6a-48xlarge    1234.329169
-hpc7g-16xlarge     479.034933
-m6a-16xlarge      1615.040867
-m6g-16xlarge       636.083563
-r7iz-8xlarge      1399.340623
+c6in-12xlarge         1154.191626
+c6in-12xlarge-spot    1159.269386
+c7a-12xlarge           555.239334
+c7a-12xlarge-spot      631.954323
+c7g-16xlarge            479.53508
+c7g-16xlarge-spot      484.950671
+hpc6a-48xlarge        1234.329169
+hpc7g-16xlarge         479.034933
+m6a-16xlarge          1615.040867
+m6g-16xlarge           636.083563
+m6g-16xlarge-spot      622.248273
+r7iz-8xlarge          1399.340623
+Name: duration, dtype: object
 ```
 
 But does the hpc7g take longer?
 
 ```console
-c6in-12xlarge     1154.191626
-c7a-12xlarge       560.955119
-c7g-16xlarge        479.53508
-hpc7g-16xlarge     479.034933
-m6a-16xlarge      1615.040867
-m6g-16xlarge       636.083563
-r7iz-8xlarge      1399.340623
+instance
+c6in-12xlarge         0.872697
+c6in-12xlarge-spot    0.266374
+c7a-12xlarge          0.379876
+c7a-12xlarge-spot     0.113366
+c7g-16xlarge          0.309034
+c7g-16xlarge-spot     0.072945
+hpc6a-48xlarge        0.987463
+hpc7g-16xlarge        0.223949
+m6a-16xlarge          1.240441
+m6g-16xlarge          0.435364
+m6g-16xlarge-spot     0.112679
+r7iz-8xlarge          1.156788
+Name: cost, dtype: object
 ```
 
 For runs with only 2 samples, one of the runtimes went over and the job was cancelled. The c7a-12xlarge
 I used for testing and saved the extra data. The times are really consistent so it seems OK to include and not throw off the distribution, but if we want, we can randomly select 3 (or choose the last 3).
 
 ```console
-Name: duration, dtype: object
-instance
-c6in-12xlarge     0.872697
-c7a-12xlarge      0.383787
-c7g-16xlarge      0.309034
-hpc6a-48xlarge    0.987463
-hpc7g-16xlarge    0.223949
-m6a-16xlarge      1.240441
-m6g-16xlarge      0.435364
-r7iz-8xlarge      1.156788
+                    iteration  event  duration  global  spot  hourly_cost  hours  cost
+instance                                                                              
+c6in-12xlarge               2      2         2       2     2            2      2     2
+c6in-12xlarge-spot          1      1         1       1     1            1      1     1
+c7a-12xlarge                3      3         3       3     3            3      3     3
+c7a-12xlarge-spot           3      3         3       3     3            3      3     3
+c7g-16xlarge                3      3         3       3     3            3      3     3
+c7g-16xlarge-spot           3      3         3       3     3            3      3     3
+hpc6a-48xlarge              3      3         3       3     3            3      3     3
+hpc7g-16xlarge              3      3         3       3     3            3      3     3
+m6a-16xlarge                3      3         3       3     3            3      3     3
+m6g-16xlarge                3      3         3       3     3            3      3     3
+m6g-16xlarge-spot           3      3         3       3     3            3      3     3
+r7iz-8xlarge                2      2         2       2     2            2      2     2
 ```
 ```console
                 iteration  event  duration  global  hourly_cost  hours  cost
