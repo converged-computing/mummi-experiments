@@ -113,6 +113,7 @@ def main():
         event_files += find_inputs(dirname, "events-")
     times, nodes = parse_events(outdir, event_files)
     times_df = parse_pulling_times(times)
+    plot_pulling_times(times_df, outdir)
 
     # Now let's count outputs (total and excess)
     count_outputs(indirs, outdir, completions=args.completions)
@@ -900,6 +901,7 @@ def make_plot(
     # sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
     plt.xticks(rotation=rotation)
     plt.tight_layout()
+    plt.savefig(os.path.join(outdir, f"{plotname}.svg"))
     plt.savefig(os.path.join(outdir, f"{plotname}.png"))
     plt.clf()
     return ax

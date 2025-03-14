@@ -1,0 +1,69 @@
+apiVersion: state-machine.converged-computing.org/v1alpha1
+kind: StateMachine
+metadata:
+  name: mummi-arm
+spec:
+  registry:
+    nodeSelector: m6a.4xlarge
+  manager:
+    pullPolicy: "Always"
+    nodeSelector: m6a.4xlarge
+  workflow:
+    completed: 3
+    prefix: "structure_"
+
+  # Allow one full group (of one type) to run at once
+  cluster:
+    maxSize: 3
+  
+  # These are also default 1 thread per core
+  jobs:
+
+  # 1.683/hour - waited 15 minutes, didn't get one node
+  #- name: createsim-hpc7g-16xlarge
+  #  arch: arm64
+  #  properties:
+  #    node-selector: '{"nodegroup": "hpc7g-16xlarge"}'
+  #    always-succeed: "1"
+  #  config:
+  #    nodes: 1
+  #    walltime: '0:45:00'
+  #    coresPerTask: 62
+  #    pullPolicy: Always
+  #  image: ghcr.io/converged-computing/mummi-experiments:cpu-node-selector-arm64
+  #  registry:
+  #    push: createsim-hpc7g-16xlarge
+  #  script: /bin/bash /entrypoint.sh
+
+    # 2.320 / hour
+  - name: createsim-c7g-16xlarge
+    arch: arm64
+    properties:
+      node-selector: '{"nodegroup": "c7g-16xlarge"}'
+      always-succeed: "1"
+    config:
+      nodes: 1
+      walltime: '0:45:00'
+      coresPerTask: 62
+      pullPolicy: Always
+    image: ghcr.io/converged-computing/mummi-experiments:cpu-node-selector-arm64
+    registry:
+      push: createsim-c7g-16xlarge
+    script: /bin/bash /entrypoint.sh
+
+   # 2.464 / hour
+   # We only got one instance and all 3 jobs ran sequentially on it
+  - name: createsim-m6g-16xlarge
+    arch: arm64
+    properties:
+      node-selector: '{"nodegroup": "m6g-16xlarge"}'
+      always-succeed: "1"
+    config:
+      nodes: 1
+      walltime: '0:45:00'
+      coresPerTask: 62
+      pullPolicy: Always
+    image: ghcr.io/converged-computing/mummi-experiments:cpu-node-selector-arm64
+    registry:
+      push: createsim-m6g-16xlarge
+    script: /bin/bash /entrypoint.sh
