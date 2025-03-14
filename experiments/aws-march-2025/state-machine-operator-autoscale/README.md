@@ -9,11 +9,18 @@ cd ./mummi-experiments/experiments/aws-march-2025/state-machine-operator
 
 Note that feedback files were generated and used, but not added here (there are a lot of files). Final results (all run on March 13, 2025)
 
+## Output
+
+### CPU (ARM)
+
  - cpu-arm-autoscale (March 13, 2025)
  - cpu-arm-no-autoscaling (March 13, 2025)
  - cpu-arm-no-autoscaling-0 (March 14, 2025)
- - gpu-autoscale (March 13, 2025)
- - gpu-no-autoscaling (March 13, 2025) 
+ - cpu-arm-no-autoscaling-1 (March 14, 2025)
+
+### GPU
+
+ - gpu-no-autoscaling (March 14, 2025) 
  
 ## Experiments
 
@@ -32,25 +39,26 @@ aws eks update-kubeconfig --region us-east-1 --name mini-mummi
 ```bash
 # This makes the monitor a sticky node
 kubectl create namespace monitoring
-# kubectl apply -f ./event-monitor-gpu
-kubectl apply -f ./event-monitor-arm
+kubectl apply -f ./event-monitor-gpu
+# kubectl apply -f ./event-monitor-arm
 
 # In a different terminal, this will save nodes and collect events.
 # environ=cpu-arm-autoscale
-environ=cpu-arm-no-autoscaling-1
-region=us-east-1
-instance=hpc7g.16xlarge
-
-# environ=gpu-autoscale
+# environ=cpu-arm-no-autoscaling-1
 # region=us-east-1
-# instance=p3.2xlarge
+# instance=hpc7g.16xlarge
+
+environ=gpu-no-autoscaling
+# environ=gpu-autoscale
+region=us-east-1
+instance=p3.2xlarge
 
 mkdir -p ./monitor/${environ}
 kubectl get nodes -o json > ./monitor/${environ}/nodes-$(date +%s).json
 
 # Topology API (only for hpc instance types)
 # Note that I was running an a la carte gpu instance in this region, needs to be filtered out
-aws ec2 describe-instance-topology --region ${region} --filters Name=instance-type,Values=${instance} > ./monitor/${environ}/topology.json
+# aws ec2 describe-instance-topology --region ${region} --filters Name=instance-type,Values=${instance} > ./monitor/${environ}/topology.json
 aws ec2 describe-instances --filters "Name=instance-type,Values=${instance}" --region ${region}  > ./monitor/${environ}/instances.json
 kubectl logs -n monitoring $(kubectl get pods -n monitoring -o json | jq -r .items[0].metadata.name) -f |& tee ./monitor/${environ}/events-$(date +%s).json
 ```
@@ -90,9 +98,9 @@ When the workflow is complete, we can save the state, etc. First, get output for
 
 ```bash
 # In a different terminal, this will save nodes and collect events.
-environ=cpu-arm-no-autoscaling-1
+# environ=cpu-arm-no-autoscaling-1
 # environ=cpu-arm-autoscale
-# environ=gpu-no-autoscaling
+environ=gpu-no-autoscaling
 # environ=gpu-no-autoscale
 
 #kubectl logs <container>  > ./monitor/${environ}/<container>.out

@@ -68,6 +68,7 @@ spec:
       nodes: 1
       gpus: 1
       walltime: '0:15:00'
+      # This is used for scheduling
       coresPerTask: 7
 
     image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-gpu
@@ -79,8 +80,7 @@ spec:
       MUMMI_APP=/opt/clones/mummi-ras MUMMI_ROOT=$MUMMI_APP
       MUMMI_RESOURCES=/opt/clones/mummi_resources
       export MUMMI_ROOT MUMMI_APP MUMMI_RESOURCES
-      # Each GPU job only has 7 threads to match mummi-operator runs
-      export OMP_NUM_THREADS=7
+      export OMP_NUM_THREADS=$(nproc)
       splitup=(${jobid//_/ })
       simdir=$(echo ${splitup[1]})
       simname=${jobid}
@@ -118,7 +118,7 @@ spec:
       MUMMI_RESOURCES=/opt/clones/mummi_resources
       export MUMMI_ROOT MUMMI_APP MUMMI_RESOURCES
       export OMPI_COMM_WORLD_RANK=1
-      export OMP_NUM_THREADS=7
+      export OMP_NUM_THREADS=$(nproc)
       simname=${jobid}
       locpath=/tmp/workdir
       mv /tmp/out ${locpath}
