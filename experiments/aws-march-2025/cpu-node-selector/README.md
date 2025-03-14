@@ -111,7 +111,13 @@ And delete.
 eksctl delete cluster --config-file ../crd/eks-config-cpu.yaml
 eksctl delete cluster --config-file crd/eks-config-hpc6a.yaml 
 ```
- 
+
+## Notes:
+
+- For spot instances:
+  - We could not get hpc7g. I waited a full 15 minutes.
+  - For m6g we only got one instance, and all three jobs ran sequentially on it.
+
 ## Analysis
 
 Here we can see that the hpc7g is the greatest bang for the buck, at least for the instances tested here.
