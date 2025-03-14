@@ -9,10 +9,11 @@ cd ./mummi-experiments/experiments/aws-march-2025/state-machine-operator
 
 Note that feedback files were generated and used, but not added here (there are a lot of files). Final results (all run on March 13, 2025)
 
- - cpu-arm-autoscale 
- - cpu-arm-no-autoscaling
- - gpu-autoscale
- - gpu-no-autoscaling
+ - cpu-arm-autoscale (March 13, 2025)
+ - cpu-arm-no-autoscaling (March 13, 2025)
+ - cpu-arm-no-autoscaling-0 (March 14, 2025)
+ - gpu-autoscale (March 13, 2025)
+ - gpu-no-autoscaling (March 13, 2025) 
  
 ## Experiments
 
@@ -36,7 +37,7 @@ kubectl apply -f ./event-monitor-arm
 
 # In a different terminal, this will save nodes and collect events.
 # environ=cpu-arm-autoscale
-environ=cpu-arm-no-autoscaling-0
+environ=cpu-arm-no-autoscaling-1
 region=us-east-1
 instance=hpc7g.16xlarge
 
@@ -89,10 +90,10 @@ When the workflow is complete, we can save the state, etc. First, get output for
 
 ```bash
 # In a different terminal, this will save nodes and collect events.
-# environ=cpu-arm-no-autoscaling
+environ=cpu-arm-no-autoscaling-1
 # environ=cpu-arm-autoscale
 # environ=gpu-no-autoscaling
-environ=gpu-no-autoscale
+# environ=gpu-no-autoscale
 
 #kubectl logs <container>  > ./monitor/${environ}/<container>.out
 kubectl get pods -o wide > ./monitor/${environ}/final-pods-state.txt
