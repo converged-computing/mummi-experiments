@@ -101,10 +101,10 @@ def main():
         os.makedirs(outdir)
 
     # Specific cpu and gpu results
-    cpu_static_indirs = ["cpu-arm-no-autoscaling", "cpu-arm-no-autoscaling-0"]
-    cpu_as_indir = ["cpu-arm-autoscale"]
-    gpu_static_indir = ["gpu-no-autoscaling"]
-    gpu_as_indir = ["gpu-autoscale"]
+    cpu_static_indirs = ["cpu-arm-no-autoscaling", "cpu-arm-no-autoscaling-0", "cpu-arm-no-autoscaling-1"]
+    cpu_as_indir = ["cpu-arm-autoscale", "cpu-arm-autoscale-0"]
+    gpu_static_indir = ["gpu-no-autoscaling", "gpu-no-autoscaling-0", "gpu-no-autoscaling-1"]
+    gpu_as_indir = [] #["gpu-autoscale"]
     indirs = []
     for indir_set in cpu_static_indirs, cpu_as_indir, gpu_static_indir, gpu_as_indir:
         for indir_name in indir_set:
@@ -174,6 +174,18 @@ def calculate_costs(
                     not in compute_nodes
                 ):
                     continue
+                # While the experiment design doesn't elicit this, we need to check for the
+                # case that a node went away and came up during the experiment. This might
+                # happen with an aggressive autoscaling policy.
+                first_event = nodemeta["conditions"][0]['last_transition_time']
+                
+                # By default we know the node is up at the start of the workfow
+                # Check that the first event was before the cluster was created
+                node_start_time = workflow_starts[experiment][iteration]
+                if first_event > workflow_start_time:
+                    print(f"Found node {node_name} that came up during experiment")
+                    node_start_time = first_event
+
                 # If the last event posted had the node not ready, it was removed at some point.
                 if not nodemeta["is_ready"]:
                     last_event = nodemeta["conditions"][-1]
@@ -181,14 +193,13 @@ def calculate_costs(
                         last_event["type"] == "Ready" and last_event["status"] is False
                     )
                     node_uptime = (
-                        last_event["last_transition_time"]
-                        - workflow_starts[experiment][iteration]
+                        last_event["last_transition_time"] - node_start_time
                     )
                     total_times[experiment][iteration].append(node_uptime)
                 # If the node remained ready, it was up the duration of the experiment
                 else:
                     total_times[experiment][iteration].append(
-                        workflow_times[experiment][iteration]
+                        workflow_ends[experiment][iteration] - node_start_time
                     )
 
     # Sanity check!
@@ -522,6 +533,17 @@ def parse_createsim_times(df, samples, experiment, idx=0, iteration=0):
             idx += 1
     return df, idx
 
+def parse_timestamp(timestamp):
+    """
+    We either get an eventTime (considered atomic)
+    or firstTimestamp (considered continuous). In practice
+    I'm not sure the distinction makes sense, but the formats
+    are slightly different.
+    """
+    if "." in timestamp:
+        return datetime.strptime(timestamp, node_timestamp_format)
+    return datetime.strptime(timestamp, timestamp_format)
+
 
 def parse_cganalysis_times(df, samples, experiment, idx=0, iteration=0):
     """
@@ -763,15 +785,7 @@ def parse_pulling_times(times):
                 # nodenotschedulable
                 for event_name, node_event in item["events"].items():
                     timestamp = node_event["timestamp"]
-                    print(timestamp)
-                    if "." in timestamp:
-                        parsed_timestamp = datetime.strptime(
-                            timestamp, node_timestamp_format
-                        )
-                    else:
-                        parsed_timestamp = datetime.strptime(
-                            timestamp, timestamp_format
-                        )
+                    parsed_timestamp = parse_timestamp(timestamp)
                     df.loc[idx, :] = [
                         uid,
                         kind,
@@ -797,7 +811,7 @@ def parse_pulling_times(times):
                 # For these, calculate a difference.
                 previous_event = {"created": "pulled", "started": "created"}
                 timestamp = item["events"][event_name]["timestamp"]
-                parsed_timestamp = datetime.strptime(timestamp, timestamp_format)
+                parsed_timestamp = parse_timestamp(timestamp)
                 df.loc[idx, :] = [
                     uid,
                     kind,
@@ -1095,6 +1109,9 @@ def parse_events(outdir, files):
             reason = section["reason"].lower()
 
             # Use event time and fall back to first time
+            # eventTime is of atomic event, firstTimestamp The first timestamp of a continuous one
+            # In practice, I don't see eventTime for events I'd consider atomic.
+            # Note they have different formats...
             timestamp = section.get("eventTime") or section["firstTimestamp"]
 
             # Get the container URI from pulling

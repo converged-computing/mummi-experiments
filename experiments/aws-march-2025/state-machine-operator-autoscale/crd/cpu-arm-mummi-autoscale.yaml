@@ -20,6 +20,10 @@ spec:
 
   jobs:
   - name: mlrunner
+    # This is an arm image, and we don't want it to hit the x86 node
+    # The other steps won't because they request more cpu
+    properties:
+      node-selector: '{"node.kubernetes.io/instance-type": "hpc7g.16xlarge"}'
     config:
       nodes: 1
       command: "/root/.cargo/bin/pixi run --manifest-path /pixi-env/pixi.toml bash /workdir/entrypoint.sh"
@@ -71,7 +75,7 @@ spec:
       nodes: 1
       # Most createsims finish by 21 minutes in this setup.
       walltime: '0:45:00'
-      # This actually goes into the pod resource spec, so we ask for 94/96
+      # This actually goes into the pod resource spec, so we ask for 62/64
       coresPerTask: 62
 
     image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-arm

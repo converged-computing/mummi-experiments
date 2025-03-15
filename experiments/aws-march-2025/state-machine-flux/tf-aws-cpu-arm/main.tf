@@ -20,9 +20,9 @@ locals {
   volume_size = 130
 
   # Set autoscaling to consistent size so we don't scale for now
-  min_size     = 2
-  max_size     = 2
-  desired_size = 2
+  min_size     = 6
+  max_size     = 6
+  desired_size = 6
 
   # We might want to delete a
   cidr_block_a = "10.0.1.0/24"

@@ -174,5 +174,5 @@ sudo chmod oug+w /dev/infiniband/rdma_cm
 
 sudo chown -R $USER /home/ubuntu
 cd /home/ubuntu
-sudo mkdir -p /mnt/efs
-sudo mount -t efs ${efs_name} /mnt/efs
+sudo mkdir -p /home/ubuntu/workdir
+sudo mount -t efs ${efs_name} /home/ubuntu/workdir
