@@ -151,7 +151,7 @@ he was there N-gone!
 ```bash
 # GPU
 kubectl delete -f crd/gpu-mummi-autoscale.yaml
-eksctl delete cluster --config-file ./crd/eks-config-gpu-autoscaling.yaml
+eksctl delete cluster --config-file ./crd/eks-config-gpu-autoscaling.yaml --wait
 
 # CPU
 kubectl delete -f crd/cpu-mummi-autoscale.yaml --wait
