@@ -31,14 +31,9 @@ aws autoscaling delete-auto-scaling-group --force-delete --auto-scaling-group-na
 We need to clone and install the state machine operator.
 
 ```bash
-# a88dfe2f98c46896f499a52754eb906fef67eb43 March 5, 2025
+# a30e92ca345fca6575a99b0e4f3ad74a07d92766 March 14, 2025
 git clone https://github.com/converged-computing/state-machine-operator
 cd state-machine-operator
-```
-
-Install to python:
-
-```bash
 sudo python3 -m pip install -e ./python/
 ```
 
@@ -69,7 +64,7 @@ cp -R ../mummi-experiments/aws-march-2025/state-machine-flux/gpu /home/ubuntu/wo
 Start the manager to start the workflow. We assume flux is running and we are launching jobs to the system instance.
 
 ```bash
-state-machine-manager start ./local/cpu/state-machine-workflow.yaml --config-dir=./local/cpu --scheduler flux --filesystem --workdir /home/ubuntu/workdir
+state-machine-manager start ./local/state-machine-workflow.yaml --config-dir=./local --scheduler flux --filesystem --workdir /home/ubuntu/workdir
 ```
 
 Note that we will need to unmount the efs filesystem before destroy:
