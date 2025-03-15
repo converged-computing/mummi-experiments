@@ -172,7 +172,8 @@ sudo sysctl net.ipv4.conf.all.accept_local=1
 sudo mknod /dev/infiniband/rdma_cm c 231 255
 sudo chmod oug+w /dev/infiniband/rdma_cm
 
-sudo chown -R $USER /home/ubuntu
 cd /home/ubuntu
 sudo mkdir -p /home/ubuntu/workdir
 sudo mount -t efs ${efs_name} /home/ubuntu/workdir
+sudo chown -R ubuntu /home/ubuntu
+
