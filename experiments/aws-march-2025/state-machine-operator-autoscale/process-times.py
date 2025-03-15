@@ -182,7 +182,9 @@ def calculate_costs(
                 # By default we know the node is up at the start of the workfow
                 # Check that the first event was before the cluster was created
                 node_start_time = workflow_starts[experiment][iteration]
-                if first_event > workflow_start_time:
+                
+                # Did the node report ready the first time after the experiment started?
+                if first_event > node_start_time:
                     print(f"Found node {node_name} that came up during experiment")
                     node_start_time = first_event
 
