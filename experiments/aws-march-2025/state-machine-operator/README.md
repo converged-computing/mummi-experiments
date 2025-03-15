@@ -2,6 +2,8 @@
 
 > This paradigm is part of the Mummi experiments. Here we are testing using the State Machine Operator, which uses a state machine and removes some of the persistent services in favor of Kubernetes events. This experiment is for a static setup with 6 nodes and 6 required completions.
 
+Note that we didn't ultimately use this data because we decided to run on hpc7g (best cost/performance) and using 10 samples. The data is left for completeness.
+
 ```bash
 git clone https://github.com/converged-computing/mummi-experiments
 cd ./mummi-experiments/experiments/aws-march-2025/state-machine-operator

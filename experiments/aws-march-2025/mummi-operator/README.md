@@ -2,7 +2,7 @@
 
 > This paradigm is part of the Mummi experiments. Here we are testing using the Mummi Operator, which uses the mlserver and rabbitmq for work.
 
-We won't run autoscaling with the Mummi Operator, the reason being that it doesn't make a difference. Traditional mummi has no understanding of when it is done, so jobs continue to be submitted, so autoscaling would not kick in to downscale the cluster. Note that to get the exact digests for containers used, see the final-pods-state.json files in the monitor sub-directories here.
+We won't run autoscaling with the Mummi Operator, the reason being that it doesn't make a difference. Traditional mummi has no understanding of when it is done, so jobs continue to be submitted, so autoscaling would not kick in to downscale the cluster. Note that to get the exact digests for containers used, see the final-pods-state.json files in the monitor sub-directories here. If we run 10 samples completed here (no autoscaling) using the hpc7g we can compare to the other experiments, e.g., the static case of the state machine operator. Note that the first set of runs is under [monitor/6-completions-hpc6a](monitor/6-completions-hpc6a).
 
 ```bash
 git clone https://github.com/converged-computing/mummi-experiments
@@ -10,12 +10,11 @@ cd ./mummi-experiments/experiments/aws-march-2025/mummi-operator
 ```
 Final results:
 
- - cpu-static-1 is final for CPU
- - gpu-static-0 is final for GPU
+ - 
 
 ## Experiments
 
-There will be two experiments - one for GPU and one for CPU.
+There will be two experiments, - one for GPU and one for CPU.
 
 ```bash
 # GPU
@@ -23,8 +22,8 @@ eksctl create cluster --config-file ../eks-config-gpu-static.yaml
 aws eks update-kubeconfig --region us-east-1 --name mini-mummi-gpu
 
 # CPU
-eksctl create cluster --config-file ../eks-config-cpu-static.yaml 
-aws eks update-kubeconfig --region us-east-2 --name mini-mummi
+eksctl create cluster --config-file ./eks-config-cpu.yaml 
+aws eks update-kubeconfig --region us-east-1 --name mini-mummi
 ```
 
 ```bash
@@ -32,13 +31,13 @@ kubectl create namespace monitoring
 kubectl apply -f ../../../event-monitor
 
 # In a different terminal, this will save nodes and collect events.
-# environ=cpu-static-1
-# region=us-east-2
-# instance=hpc6a.48xlarge
-
-environ=gpu-static-0
+environ=cpu-static-0
 region=us-east-1
-instance=p3.2xlarge
+instance=hpc7g.16xlarge
+
+# environ=gpu-static-0
+# region=us-east-1
+# instance=p3.2xlarge
 
 mkdir -p ./monitor/${environ}
 kubectl get nodes -o json > ./monitor/${environ}/nodes-$(date +%s).json

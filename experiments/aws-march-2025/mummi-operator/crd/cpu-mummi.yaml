@@ -4,14 +4,14 @@ metadata:
   name: mummi-sample
 spec:
   mlserver:
-    image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlserver
+    image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlserver-arm
 
   rabbitmq:
-    image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:rabbitmq
+    image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:rabbitmq-arm
 
   # Defaults to 6 mummi nnodes, interactive mode is for debugging
   manager:
-    image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:wfmanager
+    image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:wfmanager-arm
     numberMaxSelectedPatchBuffer: 2
     numberMaxPatchesSelectionsPerIteration: 2
     nodes: 6
@@ -20,13 +20,13 @@ spec:
   # Right now we use defaults for most things (bundle size, nodes, etc)
   jobs:
     cganalysis:
-      image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis
+      image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-arm
       config:
-        coresPerTask: 94
+        coresPerTask: 62
         nproc: 1
     createsim:
-      image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims
+      image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-arm
       config:
-        coresPerTask: 94
+        coresPerTask: 62
         nproc: 1
         walltime: '0:45:00'

@@ -9,10 +9,20 @@ cd ./mummi-experiments/experiments/aws-march-2025/state-machine-operator
 
 Note that feedback files were generated and used, but not added here (there are a lot of files). Final results (all run on March 13, 2025)
 
- - cpu-arm-autoscale 
- - cpu-arm-no-autoscaling
- - gpu-autoscale
- - gpu-no-autoscaling
+## Output
+
+### CPU (ARM)
+
+ - cpu-arm-autoscale (March 13, 2025)
+ - cpu-arm-no-autoscaling (March 13, 2025)
+ - cpu-arm-no-autoscaling-0 (March 14, 2025)
+ - cpu-arm-no-autoscaling-1 (March 14, 2025)
+
+### GPU
+
+ - gpu-no-autoscaling (March 14, 2025) 
+ - gpu-no-autoscaling-0 (March 14, 2025) 
+ - gpu-no-autoscaling-1 (March 14-15, 2025) 
  
 ## Experiments
 
@@ -36,11 +46,12 @@ kubectl apply -f ./event-monitor-gpu
 
 # In a different terminal, this will save nodes and collect events.
 # environ=cpu-arm-autoscale
-# environ=cpu-arm-no-autoscaling
+# environ=cpu-arm-no-autoscaling-1
 # region=us-east-1
 # instance=hpc7g.16xlarge
 
-environ=gpu-autoscale
+environ=gpu-no-autoscaling-1
+# environ=gpu-autoscale
 region=us-east-1
 instance=p3.2xlarge
 
@@ -61,9 +72,9 @@ Install the operator. Note this requires pushing to a development registry, and 
 ```bash
 # autoscaling: ad29dab058184607a9a734e43293486d82c4e388 March 13, 2025.
 # One cpu run used the previous commit (no recorded_at time, which we don't use)
-git clone https://github.com/converged-computing/state-machine-operator
-cd state-machine-operator
-make test-deploy-recreate
+# These have sticky nodes
+kubectl apply -f crd/state-machine-operator-cpu.yaml
+kubectl apply -f crd/state-machine-operator-gpu.yaml
 ```
 
 Run the Experiment. Note that since the resources here are going directly to Kubernetes, we ask for exactly what we want each job to have.
@@ -89,10 +100,10 @@ When the workflow is complete, we can save the state, etc. First, get output for
 
 ```bash
 # In a different terminal, this will save nodes and collect events.
-# environ=cpu-arm-no-autoscaling
+# environ=cpu-arm-no-autoscaling-1
 # environ=cpu-arm-autoscale
-# environ=gpu-no-autoscaling
-environ=gpu-no-autoscale
+environ=gpu-no-autoscaling
+# environ=gpu-no-autoscale
 
 #kubectl logs <container>  > ./monitor/${environ}/<container>.out
 kubectl get pods -o wide > ./monitor/${environ}/final-pods-state.txt
@@ -136,10 +147,11 @@ cd $root
 
 what did the jail officer tell his supervisor about the escaping shape.
 he was there N-gone!
+
 ```bash
 # GPU
 kubectl delete -f crd/gpu-mummi-autoscale.yaml
-eksctl delete cluster --config-file ./crd/eks-config-gpu-autoscaling.yaml
+eksctl delete cluster --config-file ./crd/eks-config-gpu-autoscaling.yaml --wait
 
 # CPU
 kubectl delete -f crd/cpu-mummi-autoscale.yaml --wait

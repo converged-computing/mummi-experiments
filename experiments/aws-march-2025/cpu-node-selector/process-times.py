@@ -221,8 +221,8 @@ def job_timings(samples, outdir):
     # subset["normalized_cost"] = subset["cost"] = subset["cost"].mean()
     order = [
         "c7g-16xlarge-spot",
-        "c7a-12xlarge-spot",
         "m6g-16xlarge-spot",
+        "c7a-12xlarge-spot",
         "hpc7g-16xlarge",
         "c6in-12xlarge-spot",
         "c7g-16xlarge",

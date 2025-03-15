@@ -101,11 +101,14 @@ def main():
         os.makedirs(outdir)
 
     # Specific cpu and gpu results
-    cpu_static_indir = os.path.join(indir, "cpu-arm-no-autoscaling")
-    cpu_as_indir = os.path.join(indir, "cpu-arm-autoscale")
-    gpu_static_indir = os.path.join(indir, "gpu-no-autoscaling")
-    gpu_as_indir = os.path.join(indir, "gpu-autoscale")
-    indirs = [cpu_static_indir, cpu_as_indir, gpu_static_indir, gpu_as_indir]
+    cpu_static_indirs = ["cpu-arm-no-autoscaling", "cpu-arm-no-autoscaling-0"]
+    cpu_as_indir = ["cpu-arm-autoscale"]
+    gpu_static_indir = ["gpu-no-autoscaling"]
+    gpu_as_indir = ["gpu-autoscale"]
+    indirs = []
+    for indir_set in cpu_static_indirs, cpu_as_indir, gpu_static_indir, gpu_as_indir:
+        for indir_name in indir_set:
+            indirs.append(os.path.join(indir, indir_name))
 
     # Parse times for pulling containers
     event_files = []
@@ -135,63 +138,91 @@ def calculate_costs(
     # Make a data frame of just nodes
     workflow_times = {}
     for experiment in manager_df.experiment.unique():
-        # For one experiment, this is just one value
-        workflow_times[experiment] = manager_df[
-            (manager_df.experiment == experiment)
-            & (manager_df["global"] == "workflow_complete")
-        ].duration.mean()
+        if experiment not in workflow_times:
+            workflow_times[experiment] = {}
+        subset = manager_df[manager_df.experiment == experiment]
+        for iteration in subset.iteration.unique():
+            # For one experiment, this is just one value
+            workflow_times[experiment][iteration] = subset[
+                (subset.iteration == iteration)
+                & (manager_df["global"] == "workflow_complete")
+            ].duration.mean()
 
     # Read in cluster nodes events
     cluster_nodes = {}
     for indir in indirs:
         experiment = get_experiment_name(indir)
-        cluster_nodes[experiment] = read_json(os.path.join(indir, "cluster-nodes.json"))
+        if experiment not in cluster_nodes:
+            cluster_nodes[experiment] = {}
+        iteration = get_experiment_iteration(indir)
+        cluster_nodes[experiment][iteration] = read_json(
+            os.path.join(indir, "cluster-nodes.json")
+        )
 
     # Now use cluster nodes metadata to determine when nodes were up vs. note
     total_times = {}
     compute_nodes = ["hpc7g.16xlarge", "p3.2xlarge"]
-    for experiment, nodeset in cluster_nodes.items():
+    for experiment, iterset in cluster_nodes.items():
         if experiment not in total_times:
-            total_times[experiment] = []
-        for node_name, nodemeta in nodeset.items():
-            # Filter nodes to just include those that are for compute (not sticky)
-            if (
-                nodemeta["labels"]["node.kubernetes.io/instance-type"]
-                not in compute_nodes
-            ):
-                continue
-            # If the last event posted had the node not ready, it was removed at some point.
-            if not nodemeta["is_ready"]:
-                last_event = nodemeta["conditions"][-1]
-                assert last_event["type"] == "Ready" and last_event["status"] is False
-                node_uptime = (
-                    last_event["last_transition_time"] - workflow_starts[experiment]
-                )
-                total_times[experiment].append(node_uptime)
-            # If the node remained ready, it was up the duration of the experiment
-            else:
-                total_times[experiment].append(workflow_times[experiment])
+            total_times[experiment] = {}
+        for iteration, nodeset in iterset.items():
+            total_times[experiment][iteration] = []
+            for node_name, nodemeta in nodeset.items():
+                # Filter nodes to just include those that are for compute (not sticky)
+                if (
+                    nodemeta["labels"]["node.kubernetes.io/instance-type"]
+                    not in compute_nodes
+                ):
+                    continue
+                # If the last event posted had the node not ready, it was removed at some point.
+                if not nodemeta["is_ready"]:
+                    last_event = nodemeta["conditions"][-1]
+                    assert (
+                        last_event["type"] == "Ready" and last_event["status"] is False
+                    )
+                    node_uptime = (
+                        last_event["last_transition_time"]
+                        - workflow_starts[experiment][iteration]
+                    )
+                    total_times[experiment][iteration].append(node_uptime)
+                # If the node remained ready, it was up the duration of the experiment
+                else:
+                    total_times[experiment][iteration].append(
+                        workflow_times[experiment][iteration]
+                    )
 
     # Sanity check!
     print(json.dumps(total_times, indent=4))
 
     # Now add up each to get the total experiment cost
     total_costs = {}
-    for experiment, uptimes in total_times.items():
-        if "cpu" in experiment:
-            total_costs[experiment] = (sum(uptimes) / 60 / 60) * 1.683
-        else:
-            total_costs[experiment] = (sum(uptimes) / 60 / 60) * 3.06
+    for experiment, iterations in total_times.items():
+        if experiment not in total_costs:
+            total_costs[experiment] = {}
+        for iteration, uptimes in iterations.items():
+            total_costs[experiment][iteration] = {}
+            if "cpu" in experiment:
+                total_costs[experiment][iteration] = (sum(uptimes) / 60 / 60) * 1.683
+            else:
+                total_costs[experiment][iteration] = (sum(uptimes) / 60 / 60) * 3.06
 
     print(json.dumps(total_costs, indent=4))
-    cost_df = pandas.DataFrame(columns=["experiment", "cost", "environment"])
+    cost_df = pandas.DataFrame(
+        columns=["experiment", "cost", "environment", "iteration"]
+    )
     idx = 0
-    for experiment, cost in total_costs.items():
-        environ = "autoscale"
-        if "static" in experiment:
-            environ = "static"
-        cost_df.loc[idx, :] = [experiment.replace("-", " "), cost, environ]
-        idx += 1
+    for experiment, iterations in total_costs.items():
+        for iteration, cost in iterations.items():
+            environ = "autoscale"
+            if "static" in experiment:
+                environ = "static"
+            cost_df.loc[idx, :] = [
+                experiment.replace("-", " "),
+                cost,
+                environ,
+                iteration,
+            ]
+            idx += 1
 
     cost_df.to_csv(os.path.join(outdir, "total-costs.csv"))
     make_plot(
@@ -203,11 +234,10 @@ def calculate_costs(
         ext="png",
         plotname="workflow_total_cost",
         hue="environment",
-        plot_type="bar",
+        plot_type="box",
         xlabel="Environment",
         ylabel="Cost ($)",
         rotation=360,
-        #        height=3,
     )
 
 
@@ -218,18 +248,33 @@ def workflow_manager(indirs, outdir):
     # Keep a lookup for the exact workflow start timestamps
     workflow_starts = {}
     workflow_ends = {}
-    df = pandas.DataFrame(columns=["experiment", "event", "duration", "global"])
+    df = pandas.DataFrame(
+        columns=["experiment", "event", "duration", "global", "iteration"]
+    )
     idx = 0
     for _indir in indirs:
         experiment = get_experiment_name(_indir)
+        iteration = get_experiment_iteration(_indir)
         times = read_json(os.path.join(_indir, "workflow-times.json"))
+        if experiment not in workflow_starts:
+            workflow_starts[experiment] = {}
+            workflow_ends[experiment] = {}
+        if iteration not in workflow_starts[experiment]:
+            workflow_starts[experiment][iteration] = {}
+            workflow_ends[experiment][iteration] = {}
         for name, timestamp in times["timestamps"].items():
             if "workflow_start" in name:
-                workflow_starts[experiment] = timestamp
+                workflow_starts[experiment][iteration] = timestamp
                 workflow_end = times["timestamps"]["workflow_complete"]
-                workflow_ends[experiment] = workflow_end
+                workflow_ends[experiment][iteration] = workflow_end
                 duration = workflow_end - timestamp
-                df.loc[idx, :] = [experiment, name, duration, "workflow_complete"]
+                df.loc[idx, :] = [
+                    experiment,
+                    name,
+                    duration,
+                    "workflow_complete",
+                    iteration,
+                ]
                 idx += 1
                 continue
 
@@ -246,12 +291,24 @@ def workflow_manager(indirs, outdir):
             failure_ts = f"{event}_failed"
             if success_ts in times["timestamps"]:
                 duration = times["timestamps"][success_ts] - timestamp
-                df.loc[idx, :] = [experiment, jobtype, duration, f"{jobtype}_success"]
+                df.loc[idx, :] = [
+                    experiment,
+                    jobtype,
+                    duration,
+                    f"{jobtype}_success",
+                    iteration,
+                ]
                 idx += 1
 
             elif failure_ts in times["timestamps"]:
                 duration = times["timestamps"][failure_ts] - timestamp
-                df.loc[idx, :] = [experiment, jobtype, duration, f"{jobtype}_failure"]
+                df.loc[idx, :] = [
+                    experiment,
+                    jobtype,
+                    duration,
+                    f"{jobtype}_failure",
+                    iteration,
+                ]
                 idx += 1
 
             else:
@@ -261,15 +318,17 @@ def workflow_manager(indirs, outdir):
 
     # Calculate sum totals for events. E.g., some functions are run multiple times
     # Note that this is across samples
-    function_times = df.groupby(["experiment", "global"])["duration"].sum()
+    function_times = df.groupby(["experiment", "global", "iteration"])["duration"].sum()
     print(function_times)
     function_times = function_times.to_frame()
 
     # Make a more parseable data frame
-    func_df = pandas.DataFrame(columns=["experiment", "function", "duration"])
+    func_df = pandas.DataFrame(
+        columns=["experiment", "function", "duration", "iteration"]
+    )
     idx = 0
     for row in function_times.iterrows():
-        func_df.loc[idx, :] = [row[0][0], row[0][1], row[1].duration]
+        func_df.loc[idx, :] = [row[0][0], row[0][1], row[1].duration, row[0][2]]
         idx += 1
     func_df.to_csv(os.path.join(outdir, "workflow-summed-times.csv"))
 
@@ -326,11 +385,20 @@ def job_timings(indirs, outdir):
     """
     # global is the function in absence of an iteration identifier
     df = pandas.DataFrame(
-        columns=["experiment", "job", "sample", "event", "duration", "global"]
+        columns=[
+            "experiment",
+            "job",
+            "sample",
+            "event",
+            "duration",
+            "global",
+            "iteration",
+        ]
     )
     idx = 0
     for _indir in indirs:
         experiment = get_experiment_name(_indir)
+        iteration = get_experiment_iteration(_indir)
         data_dir = os.path.join(_indir, "data")
 
         # This is the total number of samples that were pushed from mlserver
@@ -341,26 +409,36 @@ def job_timings(indirs, outdir):
         ]
 
         # Now we read in results via tarfile
-        df, idx = parse_createsim_times(df, samples, experiment, idx)
+        df, idx = parse_createsim_times(df, samples, experiment, idx, iteration)
 
         samples = [
             x
             for x in find_inputs(data_dir, "cganalysis-times.json")
             if "/cganalysis/" in x
         ]
-        df, idx = parse_cganalysis_times(df, samples, experiment, idx)
+        df, idx = parse_cganalysis_times(df, samples, experiment, idx, iteration)
 
     # Calculate sum totals for events. E.g., some functions are run multiple times
-    # Note that this is across samples
-    function_times = df.groupby(["experiment", "global", "job"])["duration"].sum()
+    # Note that this is across samples and iterations within an experiment type
+    function_times = df.groupby(["experiment", "global", "job", "iteration"])[
+        "duration"
+    ].sum()
     print(function_times)
     function_times = function_times.to_frame()
 
     # Make a more parseable data frame
-    func_df = pandas.DataFrame(columns=["experiment", "function", "job", "duration"])
+    func_df = pandas.DataFrame(
+        columns=["experiment", "function", "job", "duration", "iteration"]
+    )
     idx = 0
     for row in function_times.iterrows():
-        func_df.loc[idx, :] = [row[0][0], row[0][1], row[0][2], row[1].duration]
+        func_df.loc[idx, :] = [
+            row[0][0],
+            row[0][1],
+            row[0][2],
+            row[1].duration,
+            row[0][3],
+        ]
         idx += 1
     func_df.to_csv(os.path.join(outdir, "function-summed-times.csv"))
 
@@ -384,7 +462,7 @@ def job_timings(indirs, outdir):
     )
 
 
-def parse_createsim_times(df, samples, experiment, idx=0):
+def parse_createsim_times(df, samples, experiment, idx=0, iteration=0):
     """
     Parse timing output from createsims
     """
@@ -412,6 +490,7 @@ def parse_createsim_times(df, samples, experiment, idx=0):
                 name,
                 duration,
                 name,
+                iteration,
             ]
             idx += 1
 
@@ -438,12 +517,13 @@ def parse_createsim_times(df, samples, experiment, idx=0):
                 event,
                 duration,
                 global_event,
+                iteration,
             ]
             idx += 1
     return df, idx
 
 
-def parse_cganalysis_times(df, samples, experiment, idx=0):
+def parse_cganalysis_times(df, samples, experiment, idx=0, iteration=0):
     """
     Parse timing output from cganalysis
     """
@@ -460,6 +540,7 @@ def parse_cganalysis_times(df, samples, experiment, idx=0):
                 name,
                 duration,
                 name,
+                iteration,
             ]
             idx += 1
 
@@ -481,9 +562,24 @@ def parse_cganalysis_times(df, samples, experiment, idx=0):
                 event,
                 duration,
                 event,
+                iteration,
             ]
             idx += 1
     return df, idx
+
+
+def get_experiment_iteration(indir):
+    """
+    The experiment iteration is the numerical suffix.
+    """
+    dirname = os.path.basename(indir)
+    try:
+        # We also start counting at 0
+        iteration = int(dirname.split("-")[-1])
+        iteration += 1
+    except:
+        iteration = 0
+    return iteration
 
 
 def count_outputs(indirs, outdir, completions=10):
@@ -492,30 +588,46 @@ def count_outputs(indirs, outdir, completions=10):
     """
     # Note that excess here only includes completions, we don't account for
     # jobs that started running and didn't save output (partial run or otherwise)
-    df = pandas.DataFrame(columns=["experiment", "job", "count"])
-    excess = pandas.DataFrame(columns=["experiment", "job", "count"])
+    df = pandas.DataFrame(columns=["experiment", "job", "count", "iteration"])
+    excess = pandas.DataFrame(columns=["experiment", "job", "count", "iteration"])
     idx = 0
     for _indir in indirs:
         experiment = get_experiment_name(_indir)
+        iteration = get_experiment_iteration(_indir)
         data_dir = os.path.join(_indir, "data")
         # This is the total number of samples that were pushed from mlserver
         # This tag is now automatically generated by the state machine operator, not latest
         samples = [x for x in find_inputs(data_dir, "[.]gro") if "mlrunner" in x]
         # Let's use mlsamples to represent mlserver or mlrunner
-        df.loc[idx, :] = [experiment, "mlsample", len(samples)]
-        excess.loc[idx, :] = [experiment, "mlsample", len(samples) - completions]
+        df.loc[idx, :] = [experiment, "mlsample", len(samples), iteration]
+        excess.loc[idx, :] = [
+            experiment,
+            "mlsample",
+            len(samples) - completions,
+            iteration,
+        ]
         idx += 1
         createsims = [
             x for x in find_inputs(data_dir, "createsims.tar.gz") if "/createsim/" in x
         ]
-        df.loc[idx, :] = [experiment, "createsim", len(createsims)]
-        excess.loc[idx, :] = [experiment, "createsim", len(createsims) - completions]
+        df.loc[idx, :] = [experiment, "createsim", len(createsims), iteration]
+        excess.loc[idx, :] = [
+            experiment,
+            "createsim",
+            len(createsims) - completions,
+            iteration,
+        ]
         idx += 1
         cganalysis = [
             x for x in find_inputs(data_dir, "cganalysis") if "/cganalysis/" in x
         ]
-        df.loc[idx, :] = [experiment, "cganalysis", len(cganalysis)]
-        excess.loc[idx, :] = [experiment, "cganalysis", len(cganalysis) - completions]
+        df.loc[idx, :] = [experiment, "cganalysis", len(cganalysis), iteration]
+        excess.loc[idx, :] = [
+            experiment,
+            "cganalysis",
+            len(cganalysis) - completions,
+            iteration,
+        ]
         idx += 1
 
     print("Experiment Job Counts (completed with results)")
