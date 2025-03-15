@@ -22,6 +22,7 @@ Note that feedback files were generated and used, but not added here (there are 
 
  - gpu-no-autoscaling (March 14, 2025) 
  - gpu-no-autoscaling-0 (March 14, 2025) 
+ - gpu-no-autoscaling-1 (March 14-15, 2025) 
  
 ## Experiments
 
@@ -49,7 +50,7 @@ kubectl apply -f ./event-monitor-gpu
 # region=us-east-1
 # instance=hpc7g.16xlarge
 
-environ=gpu-no-autoscaling
+environ=gpu-no-autoscaling-1
 # environ=gpu-autoscale
 region=us-east-1
 instance=p3.2xlarge
