@@ -3,6 +3,7 @@ name: createsim
 config:
   nodes: 1
   exclusive: true
+  walltime: "0:45:00"
   command: /usr/local/bin/singularity exec --bind /mnt/efs /home/ubuntu/containers/mini-mummi_createsims-arm.sif bash ./entrypoint.sh
 script: |
   MUMMI_APP=/opt/clones/mummi-ras
@@ -11,6 +12,7 @@ script: |
   export MUMMI_ROOT=$(dirname $(dirname $outpath))
   locpath=$(dirname $outpath)
   echo "Outpath is $outpath, Local path is $locpath" 
+  rm -rf $locpath/tmp
   mkdir -p $locpath/tmp
   cd ${locpath}
   export OMP_NUM_THREADS=$(nproc)

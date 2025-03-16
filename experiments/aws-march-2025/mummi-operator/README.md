@@ -22,7 +22,7 @@ eksctl create cluster --config-file ../eks-config-gpu-static.yaml
 aws eks update-kubeconfig --region us-east-1 --name mini-mummi-gpu
 
 # CPU
-eksctl create cluster --config-file ./eks-config-cpu.yaml 
+eksctl create cluster --config-file ./crd/eks-config-cpu.yaml 
 aws eks update-kubeconfig --region us-east-1 --name mini-mummi
 ```
 
