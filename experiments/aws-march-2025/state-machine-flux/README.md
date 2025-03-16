@@ -14,13 +14,9 @@ make
 ```
 
 Then get the lead instance IP and shell in. 
-And note to delete, I had trouble with make destroy and the autoscaling group. I needed to delete both the storage and autoscaling group manually.
+And note to delete, I had trouble with make destroy and the autoscaling group. I needed to delete both the storage and autoscaling group manually. For EFS use the UI, and for autoscaling you can also do:
 
 ```console
-# Storage
-aws delete-file-system --file-system-id mummi-gpu-efs --region us-east-1
-aws delete-file-system --file-system-id mummi-cpu-efs --region us-east-2
-
 # Autoscaling
 aws autoscaling delete-auto-scaling-group --force-delete --auto-scaling-group-name flux-autoscaling-group --region us-east-1
 aws autoscaling delete-auto-scaling-group --force-delete --auto-scaling-group-name flux-autoscaling-group --region us-east-2
@@ -29,8 +25,6 @@ aws autoscaling delete-auto-scaling-group --force-delete --auto-scaling-group-na
 ### Setup
 
 We need to clone and install the state machine operator.
-
-- cpu runs started at 3:30pm March 15, 2025
 
 ```bash
 # a30e92ca345fca6575a99b0e4f3ad74a07d92766 March 14, 2025
@@ -60,21 +54,24 @@ cp -R ../mummi-experiments/aws-march-2025/state-machine-flux/gpu /home/ubuntu/wo
 ```
 In practice I found the efs filesystem failed mounting, so I looked at /var/log/cloud-init-output.out to get the name, then did:
 
-```
-sudo mount -t efs fs-05c3a94e6db80a87a.efs.us-east-1.amazonaws.com /home/ubuntu/workdir
-flux exec -r all -x 0 sudo mount -t efs fs-05c3a94e6db80a87a.efs.us-east-1.amazonaws.com /home/ubuntu/workdir
-```
-
-Then touched a filed and tested:
-
 ```bash
-touch /mnt/efs/file.txt
 flux exec -r all sudo mkdir -p /mnt/efs
-flux exec -r all sudo mount -t efs fs-05c3a94e6db80a87a.efs.us-east-1.amazonaws.com /mnt/efs
+# Get the identifier from /var/log/cloud-init-output.log
+flux exec -r all sudo mount -t efs fs-0e0083fb904f24d6e.efs.us-east-1.amazonaws.com /mnt/efs
 flux exec -r all sudo chown -R ubuntu /mnt/efs
+touch /mnt/efs/file.txt
+# You should see N copies of file.txt (the same file)
 flux exec -r all ls /mnt/efs/
 mkdir -p /mnt/efs/iter-1
 cd /mnt/efs/iter-1
+```
+
+For the GPU instances, if we need in the start script:
+
+```
+flux module unload sched-simple
+flux module load /usr/lib/flux/modules/sched-fluxion-resource.so 
+flux module load /usr/lib/flux/modules/sched-fluxion-qmanager.so 
 ```
 
 Start the manager to start the workflow. We assume flux is running and we are launching jobs to the system instance.
@@ -85,6 +82,7 @@ Start the manager to start the workflow. We assume flux is running and we are la
 export PYTHONPATH=/usr/lib/python3.10/site-packages
 state-machine-manager start ../local/state-machine-workflow.yaml --config-dir=../local --scheduler flux --filesystem --workdir /mnt/efs/iter-1
 ```
+
 
 We do the above for three iterations - it's nice that we can run three experiments on the same cluster (since we don't need to account for pulling). After, we need to save the iteration data with artifacts. Here is what I did on one node:
 

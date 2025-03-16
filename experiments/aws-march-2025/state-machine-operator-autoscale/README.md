@@ -55,7 +55,7 @@ kubectl apply -f ./event-monitor-gpu
 # instance=hpc7g.16xlarge
 
 # environ=gpu-no-autoscaling-1
-environ=gpu-autoscale-0
+environ=gpu-autoscale-1
 region=us-east-1
 instance=p3.2xlarge
 
@@ -106,7 +106,7 @@ When the workflow is complete, we can save the state, etc. First, get output for
 # environ=cpu-arm-no-autoscaling-1
 # environ=cpu-arm-autoscale-1
 # environ=gpu-no-autoscaling
-environ=gpu-autoscale-0
+environ=gpu-autoscale-1
 
 #kubectl logs <container>  > ./monitor/${environ}/<container>.out
 kubectl get pods -o wide > ./monitor/${environ}/final-pods-state.txt

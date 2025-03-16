@@ -174,6 +174,10 @@ sudo chmod oug+w /dev/infiniband/rdma_cm
 
 cd /home/ubuntu
 sudo mkdir -p /home/ubuntu/workdir
-sudo mount -t efs ${efs_name} /home/ubuntu/workdir
-sudo chown -R ubuntu /home/ubuntu
-
+sleep 10
+# Note that this usually doesn't resolve when the instance is coming up and needs to be done
+# after with flux exec, see the readme
+sudo mkdir -p /mnt/efs
+echo "sudo mount -t efs ${efs_name} /mnt/efs"
+sudo mount -t efs ${efs_name} /mnt/efs
+sudo chown -R ubuntu /mnt/efs
