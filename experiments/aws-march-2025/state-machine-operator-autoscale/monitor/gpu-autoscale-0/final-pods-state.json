@@ -1,0 +1,4392 @@
+{
+    "apiVersion": "v1",
+    "items": [
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2025-03-16T00:38:08Z",
+                "generateName": "cganalysis-structure-012772673-",
+                "labels": {
+                    "app": "cganalysis",
+                    "batch.kubernetes.io/controller-uid": "6ccd3b86-6959-45c4-92dd-f9819bac65ab",
+                    "batch.kubernetes.io/job-name": "cganalysis-structure-012772673",
+                    "controller-uid": "6ccd3b86-6959-45c4-92dd-f9819bac65ab",
+                    "job-name": "cganalysis-structure-012772673",
+                    "jobid": "structure_012772673"
+                },
+                "name": "cganalysis-structure-012772673-m2v5f",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "batch/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Job",
+                        "name": "cganalysis-structure-012772673",
+                        "uid": "6ccd3b86-6959-45c4-92dd-f9819bac65ab"
+                    }
+                ],
+                "resourceVersion": "28603",
+                "uid": "6db7ec6f-c55d-4ecb-8db7-dbb2527e3694"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "args": [
+                            "/workdir/entrypoint.sh"
+                        ],
+                        "command": [
+                            "/bin/bash"
+                        ],
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-gpu",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "step",
+                        "resources": {
+                            "limits": {
+                                "cpu": "7",
+                                "nvidia.com/gpu": "1"
+                            },
+                            "requests": {
+                                "cpu": "7",
+                                "nvidia.com/gpu": "1"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/workdir",
+                                "name": "entrypoint-mount"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-vq2zb",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "ip-192-168-14-157.ec2.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Never",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "r",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "nvidia.com/gpu",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "items": [
+                                {
+                                    "key": "entrypoint",
+                                    "path": "entrypoint.sh"
+                                },
+                                {
+                                    "key": "config",
+                                    "path": "config.json"
+                                },
+                                {
+                                    "key": "app-config",
+                                    "path": "app-config"
+                                }
+                            ],
+                            "name": "structure-012772673"
+                        },
+                        "name": "entrypoint-mount"
+                    },
+                    {
+                        "name": "kube-api-access-vq2zb",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:38:08Z",
+                        "reason": "PodCompleted",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T01:07:54Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T01:07:54Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:38:08Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "containerd://6330d310c445c9278f52e30e4a1ef92548022b0ff4a970601a45f09e719c05ca",
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-gpu",
+                        "imageID": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi@sha256:73a8b8303fc4debae57e27ae301de7a5dfc2b395dbb46cc252990ece1f23b0aa",
+                        "lastState": {},
+                        "name": "step",
+                        "ready": false,
+                        "restartCount": 0,
+                        "started": false,
+                        "state": {
+                            "terminated": {
+                                "containerID": "containerd://6330d310c445c9278f52e30e4a1ef92548022b0ff4a970601a45f09e719c05ca",
+                                "exitCode": 0,
+                                "finishedAt": "2025-03-16T01:07:54Z",
+                                "reason": "Completed",
+                                "startedAt": "2025-03-16T00:38:08Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.168.14.157",
+                "phase": "Succeeded",
+                "podIP": "192.168.18.142",
+                "podIPs": [
+                    {
+                        "ip": "192.168.18.142"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2025-03-16T00:38:08Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2025-03-16T00:37:53Z",
+                "generateName": "cganalysis-structure-069768916-",
+                "labels": {
+                    "app": "cganalysis",
+                    "batch.kubernetes.io/controller-uid": "db8deeb7-b713-4047-9e5e-226cdb2b8b2c",
+                    "batch.kubernetes.io/job-name": "cganalysis-structure-069768916",
+                    "controller-uid": "db8deeb7-b713-4047-9e5e-226cdb2b8b2c",
+                    "job-name": "cganalysis-structure-069768916",
+                    "jobid": "structure_069768916"
+                },
+                "name": "cganalysis-structure-069768916-xdb2g",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "batch/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Job",
+                        "name": "cganalysis-structure-069768916",
+                        "uid": "db8deeb7-b713-4047-9e5e-226cdb2b8b2c"
+                    }
+                ],
+                "resourceVersion": "28541",
+                "uid": "de0f09bb-49f1-4e91-aaa9-84cd2daa3da0"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "args": [
+                            "/workdir/entrypoint.sh"
+                        ],
+                        "command": [
+                            "/bin/bash"
+                        ],
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-gpu",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "step",
+                        "resources": {
+                            "limits": {
+                                "cpu": "7",
+                                "nvidia.com/gpu": "1"
+                            },
+                            "requests": {
+                                "cpu": "7",
+                                "nvidia.com/gpu": "1"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/workdir",
+                                "name": "entrypoint-mount"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-6vkhc",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "ip-192-168-3-158.ec2.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Never",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "r",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "nvidia.com/gpu",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "items": [
+                                {
+                                    "key": "entrypoint",
+                                    "path": "entrypoint.sh"
+                                },
+                                {
+                                    "key": "config",
+                                    "path": "config.json"
+                                },
+                                {
+                                    "key": "app-config",
+                                    "path": "app-config"
+                                }
+                            ],
+                            "name": "structure-069768916"
+                        },
+                        "name": "entrypoint-mount"
+                    },
+                    {
+                        "name": "kube-api-access-6vkhc",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:37:53Z",
+                        "reason": "PodCompleted",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T01:07:40Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T01:07:40Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:37:53Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "containerd://c1d0b364c56559ea5649decf15bdaeb52ad005b3214aa86b60768248b123d282",
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-gpu",
+                        "imageID": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi@sha256:73a8b8303fc4debae57e27ae301de7a5dfc2b395dbb46cc252990ece1f23b0aa",
+                        "lastState": {},
+                        "name": "step",
+                        "ready": false,
+                        "restartCount": 0,
+                        "started": false,
+                        "state": {
+                            "terminated": {
+                                "containerID": "containerd://c1d0b364c56559ea5649decf15bdaeb52ad005b3214aa86b60768248b123d282",
+                                "exitCode": 0,
+                                "finishedAt": "2025-03-16T01:07:40Z",
+                                "reason": "Completed",
+                                "startedAt": "2025-03-16T00:37:54Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.168.3.158",
+                "phase": "Succeeded",
+                "podIP": "192.168.30.36",
+                "podIPs": [
+                    {
+                        "ip": "192.168.30.36"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2025-03-16T00:37:53Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2025-03-16T00:37:27Z",
+                "generateName": "cganalysis-structure-075765917-",
+                "labels": {
+                    "app": "cganalysis",
+                    "batch.kubernetes.io/controller-uid": "684f623a-9ad6-4165-b12b-781a0af3cedb",
+                    "batch.kubernetes.io/job-name": "cganalysis-structure-075765917",
+                    "controller-uid": "684f623a-9ad6-4165-b12b-781a0af3cedb",
+                    "job-name": "cganalysis-structure-075765917",
+                    "jobid": "structure_075765917"
+                },
+                "name": "cganalysis-structure-075765917-tz8qn",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "batch/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Job",
+                        "name": "cganalysis-structure-075765917",
+                        "uid": "684f623a-9ad6-4165-b12b-781a0af3cedb"
+                    }
+                ],
+                "resourceVersion": "28427",
+                "uid": "28adcb23-0930-47f5-8848-dcab9738122c"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "args": [
+                            "/workdir/entrypoint.sh"
+                        ],
+                        "command": [
+                            "/bin/bash"
+                        ],
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-gpu",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "step",
+                        "resources": {
+                            "limits": {
+                                "cpu": "7",
+                                "nvidia.com/gpu": "1"
+                            },
+                            "requests": {
+                                "cpu": "7",
+                                "nvidia.com/gpu": "1"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/workdir",
+                                "name": "entrypoint-mount"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-fdhfm",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "ip-192-168-9-35.ec2.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Never",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "r",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "nvidia.com/gpu",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "items": [
+                                {
+                                    "key": "entrypoint",
+                                    "path": "entrypoint.sh"
+                                },
+                                {
+                                    "key": "config",
+                                    "path": "config.json"
+                                },
+                                {
+                                    "key": "app-config",
+                                    "path": "app-config"
+                                }
+                            ],
+                            "name": "structure-075765917"
+                        },
+                        "name": "entrypoint-mount"
+                    },
+                    {
+                        "name": "kube-api-access-fdhfm",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:37:27Z",
+                        "reason": "PodCompleted",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T01:07:15Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T01:07:15Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:37:27Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "containerd://d20ce75307619013c9996bf82f74027a6372777764b41839968504ebaf9a8fe0",
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-gpu",
+                        "imageID": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi@sha256:73a8b8303fc4debae57e27ae301de7a5dfc2b395dbb46cc252990ece1f23b0aa",
+                        "lastState": {},
+                        "name": "step",
+                        "ready": false,
+                        "restartCount": 0,
+                        "started": false,
+                        "state": {
+                            "terminated": {
+                                "containerID": "containerd://d20ce75307619013c9996bf82f74027a6372777764b41839968504ebaf9a8fe0",
+                                "exitCode": 0,
+                                "finishedAt": "2025-03-16T01:07:14Z",
+                                "reason": "Completed",
+                                "startedAt": "2025-03-16T00:37:28Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.168.9.35",
+                "phase": "Succeeded",
+                "podIP": "192.168.17.39",
+                "podIPs": [
+                    {
+                        "ip": "192.168.17.39"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2025-03-16T00:37:27Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2025-03-15T23:51:05Z",
+                "generateName": "cganalysis-structure-086420414-",
+                "labels": {
+                    "app": "cganalysis",
+                    "batch.kubernetes.io/controller-uid": "de7fe844-38b9-4345-8921-ea30a9fab906",
+                    "batch.kubernetes.io/job-name": "cganalysis-structure-086420414",
+                    "controller-uid": "de7fe844-38b9-4345-8921-ea30a9fab906",
+                    "job-name": "cganalysis-structure-086420414",
+                    "jobid": "structure_086420414"
+                },
+                "name": "cganalysis-structure-086420414-cpqwd",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "batch/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Job",
+                        "name": "cganalysis-structure-086420414",
+                        "uid": "de7fe844-38b9-4345-8921-ea30a9fab906"
+                    }
+                ],
+                "resourceVersion": "17339",
+                "uid": "33f01b70-412b-41eb-a3bb-99d81021ac90"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "args": [
+                            "/workdir/entrypoint.sh"
+                        ],
+                        "command": [
+                            "/bin/bash"
+                        ],
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-gpu",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "step",
+                        "resources": {
+                            "limits": {
+                                "cpu": "7",
+                                "nvidia.com/gpu": "1"
+                            },
+                            "requests": {
+                                "cpu": "7",
+                                "nvidia.com/gpu": "1"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/workdir",
+                                "name": "entrypoint-mount"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-wlf56",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "ip-192-168-3-158.ec2.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Never",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "r",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "nvidia.com/gpu",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "items": [
+                                {
+                                    "key": "entrypoint",
+                                    "path": "entrypoint.sh"
+                                },
+                                {
+                                    "key": "config",
+                                    "path": "config.json"
+                                },
+                                {
+                                    "key": "app-config",
+                                    "path": "app-config"
+                                }
+                            ],
+                            "name": "structure-086420414"
+                        },
+                        "name": "entrypoint-mount"
+                    },
+                    {
+                        "name": "kube-api-access-wlf56",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:51:05Z",
+                        "reason": "PodCompleted",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:23:39Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:23:39Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:51:05Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "containerd://066600d88594a3cedaa184419136c5cbffbbac78fecc2b0d18e0a532da0f1aa5",
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-gpu",
+                        "imageID": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi@sha256:73a8b8303fc4debae57e27ae301de7a5dfc2b395dbb46cc252990ece1f23b0aa",
+                        "lastState": {},
+                        "name": "step",
+                        "ready": false,
+                        "restartCount": 0,
+                        "started": false,
+                        "state": {
+                            "terminated": {
+                                "containerID": "containerd://066600d88594a3cedaa184419136c5cbffbbac78fecc2b0d18e0a532da0f1aa5",
+                                "exitCode": 0,
+                                "finishedAt": "2025-03-16T00:23:39Z",
+                                "reason": "Completed",
+                                "startedAt": "2025-03-15T23:53:53Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.168.3.158",
+                "phase": "Succeeded",
+                "podIP": "192.168.19.203",
+                "podIPs": [
+                    {
+                        "ip": "192.168.19.203"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2025-03-15T23:51:05Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2025-03-15T23:51:34Z",
+                "generateName": "cganalysis-structure-090132908-",
+                "labels": {
+                    "app": "cganalysis",
+                    "batch.kubernetes.io/controller-uid": "0ace7972-b6fc-4d4c-85e1-a1e41c2ecb4d",
+                    "batch.kubernetes.io/job-name": "cganalysis-structure-090132908",
+                    "controller-uid": "0ace7972-b6fc-4d4c-85e1-a1e41c2ecb4d",
+                    "job-name": "cganalysis-structure-090132908",
+                    "jobid": "structure_090132908"
+                },
+                "name": "cganalysis-structure-090132908-m5ch5",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "batch/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Job",
+                        "name": "cganalysis-structure-090132908",
+                        "uid": "0ace7972-b6fc-4d4c-85e1-a1e41c2ecb4d"
+                    }
+                ],
+                "resourceVersion": "17418",
+                "uid": "91f3e58b-6fc4-4d67-b90e-22bf677a6170"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "args": [
+                            "/workdir/entrypoint.sh"
+                        ],
+                        "command": [
+                            "/bin/bash"
+                        ],
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-gpu",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "step",
+                        "resources": {
+                            "limits": {
+                                "cpu": "7",
+                                "nvidia.com/gpu": "1"
+                            },
+                            "requests": {
+                                "cpu": "7",
+                                "nvidia.com/gpu": "1"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/workdir",
+                                "name": "entrypoint-mount"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-ptnfz",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "ip-192-168-14-157.ec2.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Never",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "r",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "nvidia.com/gpu",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "items": [
+                                {
+                                    "key": "entrypoint",
+                                    "path": "entrypoint.sh"
+                                },
+                                {
+                                    "key": "config",
+                                    "path": "config.json"
+                                },
+                                {
+                                    "key": "app-config",
+                                    "path": "app-config"
+                                }
+                            ],
+                            "name": "structure-090132908"
+                        },
+                        "name": "entrypoint-mount"
+                    },
+                    {
+                        "name": "kube-api-access-ptnfz",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:51:34Z",
+                        "reason": "PodCompleted",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:23:53Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:23:53Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:51:34Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "containerd://b7c617d66e53821d6d9b8844cc163195d0073ebd9b847922e5f45e16deef168c",
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-gpu",
+                        "imageID": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi@sha256:73a8b8303fc4debae57e27ae301de7a5dfc2b395dbb46cc252990ece1f23b0aa",
+                        "lastState": {},
+                        "name": "step",
+                        "ready": false,
+                        "restartCount": 0,
+                        "started": false,
+                        "state": {
+                            "terminated": {
+                                "containerID": "containerd://b7c617d66e53821d6d9b8844cc163195d0073ebd9b847922e5f45e16deef168c",
+                                "exitCode": 0,
+                                "finishedAt": "2025-03-16T00:23:52Z",
+                                "reason": "Completed",
+                                "startedAt": "2025-03-15T23:54:06Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.168.14.157",
+                "phase": "Succeeded",
+                "podIP": "192.168.26.187",
+                "podIPs": [
+                    {
+                        "ip": "192.168.26.187"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2025-03-15T23:51:34Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2025-03-15T23:51:10Z",
+                "generateName": "cganalysis-structure-092040891-",
+                "labels": {
+                    "app": "cganalysis",
+                    "batch.kubernetes.io/controller-uid": "d7653f83-f4dc-498b-b0f4-6678bbd1b08e",
+                    "batch.kubernetes.io/job-name": "cganalysis-structure-092040891",
+                    "controller-uid": "d7653f83-f4dc-498b-b0f4-6678bbd1b08e",
+                    "job-name": "cganalysis-structure-092040891",
+                    "jobid": "structure_092040891"
+                },
+                "name": "cganalysis-structure-092040891-mmddb",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "batch/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Job",
+                        "name": "cganalysis-structure-092040891",
+                        "uid": "d7653f83-f4dc-498b-b0f4-6678bbd1b08e"
+                    }
+                ],
+                "resourceVersion": "17276",
+                "uid": "81c2bd53-fb59-4132-8bc0-2679be10fa34"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "args": [
+                            "/workdir/entrypoint.sh"
+                        ],
+                        "command": [
+                            "/bin/bash"
+                        ],
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-gpu",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "step",
+                        "resources": {
+                            "limits": {
+                                "cpu": "7",
+                                "nvidia.com/gpu": "1"
+                            },
+                            "requests": {
+                                "cpu": "7",
+                                "nvidia.com/gpu": "1"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/workdir",
+                                "name": "entrypoint-mount"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-bjpt6",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "ip-192-168-9-35.ec2.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Never",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "r",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "nvidia.com/gpu",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "items": [
+                                {
+                                    "key": "entrypoint",
+                                    "path": "entrypoint.sh"
+                                },
+                                {
+                                    "key": "config",
+                                    "path": "config.json"
+                                },
+                                {
+                                    "key": "app-config",
+                                    "path": "app-config"
+                                }
+                            ],
+                            "name": "structure-092040891"
+                        },
+                        "name": "entrypoint-mount"
+                    },
+                    {
+                        "name": "kube-api-access-bjpt6",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:51:10Z",
+                        "reason": "PodCompleted",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:23:30Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:23:30Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:51:10Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "containerd://a26f177931c66a2fc9997d51eef490f7b579427f812373c3c05ac05400db3a2d",
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-gpu",
+                        "imageID": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi@sha256:73a8b8303fc4debae57e27ae301de7a5dfc2b395dbb46cc252990ece1f23b0aa",
+                        "lastState": {},
+                        "name": "step",
+                        "ready": false,
+                        "restartCount": 0,
+                        "started": false,
+                        "state": {
+                            "terminated": {
+                                "containerID": "containerd://a26f177931c66a2fc9997d51eef490f7b579427f812373c3c05ac05400db3a2d",
+                                "exitCode": 0,
+                                "finishedAt": "2025-03-16T00:23:29Z",
+                                "reason": "Completed",
+                                "startedAt": "2025-03-15T23:53:43Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.168.9.35",
+                "phase": "Succeeded",
+                "podIP": "192.168.23.168",
+                "podIPs": [
+                    {
+                        "ip": "192.168.23.168"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2025-03-15T23:51:10Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2025-03-16T00:24:42Z",
+                "generateName": "createsim-structure-012772673-",
+                "labels": {
+                    "app": "createsim",
+                    "batch.kubernetes.io/controller-uid": "cd4cc5a0-79ef-4c4b-ac0a-9aa7deb15010",
+                    "batch.kubernetes.io/job-name": "createsim-structure-012772673",
+                    "controller-uid": "cd4cc5a0-79ef-4c4b-ac0a-9aa7deb15010",
+                    "job-name": "createsim-structure-012772673",
+                    "jobid": "structure_012772673"
+                },
+                "name": "createsim-structure-012772673-2k84l",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "batch/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Job",
+                        "name": "createsim-structure-012772673",
+                        "uid": "cd4cc5a0-79ef-4c4b-ac0a-9aa7deb15010"
+                    }
+                ],
+                "resourceVersion": "21198",
+                "uid": "f69397c4-0922-46e4-8879-92c35c3148ef"
+            },
+            "spec": {
+                "activeDeadlineSeconds": 1560,
+                "containers": [
+                    {
+                        "args": [
+                            "/workdir/entrypoint.sh"
+                        ],
+                        "command": [
+                            "/bin/bash"
+                        ],
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-gpu",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "step",
+                        "resources": {
+                            "limits": {
+                                "cpu": "7",
+                                "nvidia.com/gpu": "1"
+                            },
+                            "requests": {
+                                "cpu": "7",
+                                "nvidia.com/gpu": "1"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/workdir",
+                                "name": "entrypoint-mount"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-sfm77",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "ip-192-168-14-157.ec2.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Never",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "r",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "nvidia.com/gpu",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "items": [
+                                {
+                                    "key": "entrypoint",
+                                    "path": "entrypoint.sh"
+                                },
+                                {
+                                    "key": "config",
+                                    "path": "config.json"
+                                },
+                                {
+                                    "key": "app-config",
+                                    "path": "app-config"
+                                }
+                            ],
+                            "name": "structure-012772673"
+                        },
+                        "name": "entrypoint-mount"
+                    },
+                    {
+                        "name": "kube-api-access-sfm77",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:24:42Z",
+                        "reason": "PodCompleted",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:38:05Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:38:05Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:24:42Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "containerd://c053cd4c616ce964f0f925e356df09cf972276f4b5eb2cdf791be0680f6e5d08",
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-gpu",
+                        "imageID": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi@sha256:b6aabb1ef8cb020b6da6d9b21641884427c612bc59d6c8a946472afa06314aa9",
+                        "lastState": {},
+                        "name": "step",
+                        "ready": false,
+                        "restartCount": 0,
+                        "started": false,
+                        "state": {
+                            "terminated": {
+                                "containerID": "containerd://c053cd4c616ce964f0f925e356df09cf972276f4b5eb2cdf791be0680f6e5d08",
+                                "exitCode": 0,
+                                "finishedAt": "2025-03-16T00:38:05Z",
+                                "reason": "Completed",
+                                "startedAt": "2025-03-16T00:24:43Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.168.14.157",
+                "phase": "Succeeded",
+                "podIP": "192.168.5.105",
+                "podIPs": [
+                    {
+                        "ip": "192.168.5.105"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2025-03-16T00:24:42Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2025-03-16T00:24:29Z",
+                "generateName": "createsim-structure-069768916-",
+                "labels": {
+                    "app": "createsim",
+                    "batch.kubernetes.io/controller-uid": "fa57b39d-b1e9-45f3-8643-345316b68685",
+                    "batch.kubernetes.io/job-name": "createsim-structure-069768916",
+                    "controller-uid": "fa57b39d-b1e9-45f3-8643-345316b68685",
+                    "job-name": "createsim-structure-069768916",
+                    "jobid": "structure_069768916"
+                },
+                "name": "createsim-structure-069768916-gzb9s",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "batch/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Job",
+                        "name": "createsim-structure-069768916",
+                        "uid": "fa57b39d-b1e9-45f3-8643-345316b68685"
+                    }
+                ],
+                "resourceVersion": "21120",
+                "uid": "6c89bc01-22aa-4282-af2d-c35a4a4cf1f8"
+            },
+            "spec": {
+                "activeDeadlineSeconds": 1560,
+                "containers": [
+                    {
+                        "args": [
+                            "/workdir/entrypoint.sh"
+                        ],
+                        "command": [
+                            "/bin/bash"
+                        ],
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-gpu",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "step",
+                        "resources": {
+                            "limits": {
+                                "cpu": "7",
+                                "nvidia.com/gpu": "1"
+                            },
+                            "requests": {
+                                "cpu": "7",
+                                "nvidia.com/gpu": "1"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/workdir",
+                                "name": "entrypoint-mount"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-h49cp",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "ip-192-168-3-158.ec2.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Never",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "r",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "nvidia.com/gpu",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "items": [
+                                {
+                                    "key": "entrypoint",
+                                    "path": "entrypoint.sh"
+                                },
+                                {
+                                    "key": "config",
+                                    "path": "config.json"
+                                },
+                                {
+                                    "key": "app-config",
+                                    "path": "app-config"
+                                }
+                            ],
+                            "name": "structure-069768916"
+                        },
+                        "name": "entrypoint-mount"
+                    },
+                    {
+                        "name": "kube-api-access-h49cp",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:24:29Z",
+                        "reason": "PodCompleted",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:37:51Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:37:51Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:24:29Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "containerd://09184bf744937215fce16c9bc437d3f83c5dc7fa82990399a9e19369e1930569",
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-gpu",
+                        "imageID": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi@sha256:b6aabb1ef8cb020b6da6d9b21641884427c612bc59d6c8a946472afa06314aa9",
+                        "lastState": {},
+                        "name": "step",
+                        "ready": false,
+                        "restartCount": 0,
+                        "started": false,
+                        "state": {
+                            "terminated": {
+                                "containerID": "containerd://09184bf744937215fce16c9bc437d3f83c5dc7fa82990399a9e19369e1930569",
+                                "exitCode": 0,
+                                "finishedAt": "2025-03-16T00:37:51Z",
+                                "reason": "Completed",
+                                "startedAt": "2025-03-16T00:24:29Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.168.3.158",
+                "phase": "Succeeded",
+                "podIP": "192.168.28.46",
+                "podIPs": [
+                    {
+                        "ip": "192.168.28.46"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2025-03-16T00:24:29Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2025-03-16T00:24:20Z",
+                "generateName": "createsim-structure-075765917-",
+                "labels": {
+                    "app": "createsim",
+                    "batch.kubernetes.io/controller-uid": "88434396-1184-4ff4-a234-641e22ceb837",
+                    "batch.kubernetes.io/job-name": "createsim-structure-075765917",
+                    "controller-uid": "88434396-1184-4ff4-a234-641e22ceb837",
+                    "job-name": "createsim-structure-075765917",
+                    "jobid": "structure_075765917"
+                },
+                "name": "createsim-structure-075765917-mnxxq",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "batch/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Job",
+                        "name": "createsim-structure-075765917",
+                        "uid": "88434396-1184-4ff4-a234-641e22ceb837"
+                    }
+                ],
+                "resourceVersion": "20986",
+                "uid": "1829e883-8f17-413d-8c90-c0e2f5321981"
+            },
+            "spec": {
+                "activeDeadlineSeconds": 1560,
+                "containers": [
+                    {
+                        "args": [
+                            "/workdir/entrypoint.sh"
+                        ],
+                        "command": [
+                            "/bin/bash"
+                        ],
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-gpu",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "step",
+                        "resources": {
+                            "limits": {
+                                "cpu": "7",
+                                "nvidia.com/gpu": "1"
+                            },
+                            "requests": {
+                                "cpu": "7",
+                                "nvidia.com/gpu": "1"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/workdir",
+                                "name": "entrypoint-mount"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-bcqhm",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "ip-192-168-9-35.ec2.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Never",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "r",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "nvidia.com/gpu",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "items": [
+                                {
+                                    "key": "entrypoint",
+                                    "path": "entrypoint.sh"
+                                },
+                                {
+                                    "key": "config",
+                                    "path": "config.json"
+                                },
+                                {
+                                    "key": "app-config",
+                                    "path": "app-config"
+                                }
+                            ],
+                            "name": "structure-075765917"
+                        },
+                        "name": "entrypoint-mount"
+                    },
+                    {
+                        "name": "kube-api-access-bcqhm",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:24:20Z",
+                        "reason": "PodCompleted",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:37:25Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:37:25Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:24:20Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "containerd://964fd55ecf011a8627a29c76331390ffe4a144a97348170803d701b001b0b674",
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-gpu",
+                        "imageID": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi@sha256:b6aabb1ef8cb020b6da6d9b21641884427c612bc59d6c8a946472afa06314aa9",
+                        "lastState": {},
+                        "name": "step",
+                        "ready": false,
+                        "restartCount": 0,
+                        "started": false,
+                        "state": {
+                            "terminated": {
+                                "containerID": "containerd://964fd55ecf011a8627a29c76331390ffe4a144a97348170803d701b001b0b674",
+                                "exitCode": 0,
+                                "finishedAt": "2025-03-16T00:37:25Z",
+                                "reason": "Completed",
+                                "startedAt": "2025-03-16T00:24:20Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.168.9.35",
+                "phase": "Succeeded",
+                "podIP": "192.168.27.82",
+                "podIPs": [
+                    {
+                        "ip": "192.168.27.82"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2025-03-16T00:24:20Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2025-03-15T23:35:20Z",
+                "generateName": "createsim-structure-086420414-",
+                "labels": {
+                    "app": "createsim",
+                    "batch.kubernetes.io/controller-uid": "f8043140-2f4c-4a7b-b83a-50db0ea725a6",
+                    "batch.kubernetes.io/job-name": "createsim-structure-086420414",
+                    "controller-uid": "f8043140-2f4c-4a7b-b83a-50db0ea725a6",
+                    "job-name": "createsim-structure-086420414",
+                    "jobid": "structure_086420414"
+                },
+                "name": "createsim-structure-086420414-8jv67",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "batch/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Job",
+                        "name": "createsim-structure-086420414",
+                        "uid": "f8043140-2f4c-4a7b-b83a-50db0ea725a6"
+                    }
+                ],
+                "resourceVersion": "8790",
+                "uid": "576e0f34-1c54-4692-aac5-bdc5238475c2"
+            },
+            "spec": {
+                "activeDeadlineSeconds": 1560,
+                "containers": [
+                    {
+                        "args": [
+                            "/workdir/entrypoint.sh"
+                        ],
+                        "command": [
+                            "/bin/bash"
+                        ],
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-gpu",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "step",
+                        "resources": {
+                            "limits": {
+                                "cpu": "7",
+                                "nvidia.com/gpu": "1"
+                            },
+                            "requests": {
+                                "cpu": "7",
+                                "nvidia.com/gpu": "1"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/workdir",
+                                "name": "entrypoint-mount"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-p4vv9",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "ip-192-168-3-158.ec2.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Never",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "r",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "nvidia.com/gpu",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "items": [
+                                {
+                                    "key": "entrypoint",
+                                    "path": "entrypoint.sh"
+                                },
+                                {
+                                    "key": "config",
+                                    "path": "config.json"
+                                },
+                                {
+                                    "key": "app-config",
+                                    "path": "app-config"
+                                }
+                            ],
+                            "name": "structure-086420414"
+                        },
+                        "name": "entrypoint-mount"
+                    },
+                    {
+                        "name": "kube-api-access-p4vv9",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:35:20Z",
+                        "reason": "PodCompleted",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:51:02Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:51:02Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:35:20Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "containerd://cf68d78e40c8d9c309d796c98723712d20267113aff8d0ca288186ca530016e8",
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-gpu",
+                        "imageID": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi@sha256:b6aabb1ef8cb020b6da6d9b21641884427c612bc59d6c8a946472afa06314aa9",
+                        "lastState": {},
+                        "name": "step",
+                        "ready": false,
+                        "restartCount": 0,
+                        "started": false,
+                        "state": {
+                            "terminated": {
+                                "containerID": "containerd://cf68d78e40c8d9c309d796c98723712d20267113aff8d0ca288186ca530016e8",
+                                "exitCode": 0,
+                                "finishedAt": "2025-03-15T23:51:02Z",
+                                "reason": "Completed",
+                                "startedAt": "2025-03-15T23:37:37Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.168.3.158",
+                "phase": "Succeeded",
+                "podIP": "192.168.30.36",
+                "podIPs": [
+                    {
+                        "ip": "192.168.30.36"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2025-03-15T23:35:20Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2025-03-15T23:35:17Z",
+                "generateName": "createsim-structure-090132908-",
+                "labels": {
+                    "app": "createsim",
+                    "batch.kubernetes.io/controller-uid": "b44f9bdf-7d01-4772-86d1-b7dbe799ed0b",
+                    "batch.kubernetes.io/job-name": "createsim-structure-090132908",
+                    "controller-uid": "b44f9bdf-7d01-4772-86d1-b7dbe799ed0b",
+                    "job-name": "createsim-structure-090132908",
+                    "jobid": "structure_090132908"
+                },
+                "name": "createsim-structure-090132908-qkb2p",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "batch/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Job",
+                        "name": "createsim-structure-090132908",
+                        "uid": "b44f9bdf-7d01-4772-86d1-b7dbe799ed0b"
+                    }
+                ],
+                "resourceVersion": "8946",
+                "uid": "9630a6d3-3ce4-422f-856d-0d089b30905f"
+            },
+            "spec": {
+                "activeDeadlineSeconds": 1560,
+                "containers": [
+                    {
+                        "args": [
+                            "/workdir/entrypoint.sh"
+                        ],
+                        "command": [
+                            "/bin/bash"
+                        ],
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-gpu",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "step",
+                        "resources": {
+                            "limits": {
+                                "cpu": "7",
+                                "nvidia.com/gpu": "1"
+                            },
+                            "requests": {
+                                "cpu": "7",
+                                "nvidia.com/gpu": "1"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/workdir",
+                                "name": "entrypoint-mount"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-t8w66",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "ip-192-168-14-157.ec2.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Never",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "r",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "nvidia.com/gpu",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "items": [
+                                {
+                                    "key": "entrypoint",
+                                    "path": "entrypoint.sh"
+                                },
+                                {
+                                    "key": "config",
+                                    "path": "config.json"
+                                },
+                                {
+                                    "key": "app-config",
+                                    "path": "app-config"
+                                }
+                            ],
+                            "name": "structure-090132908"
+                        },
+                        "name": "entrypoint-mount"
+                    },
+                    {
+                        "name": "kube-api-access-t8w66",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:35:17Z",
+                        "reason": "PodCompleted",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:51:32Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:51:32Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:35:17Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "containerd://24f69829db80dbc154890408ef8aaa1b13fb06e7a45a9759f835b899a096db4d",
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-gpu",
+                        "imageID": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi@sha256:b6aabb1ef8cb020b6da6d9b21641884427c612bc59d6c8a946472afa06314aa9",
+                        "lastState": {},
+                        "name": "step",
+                        "ready": false,
+                        "restartCount": 0,
+                        "started": false,
+                        "state": {
+                            "terminated": {
+                                "containerID": "containerd://24f69829db80dbc154890408ef8aaa1b13fb06e7a45a9759f835b899a096db4d",
+                                "exitCode": 0,
+                                "finishedAt": "2025-03-15T23:51:31Z",
+                                "reason": "Completed",
+                                "startedAt": "2025-03-15T23:37:35Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.168.14.157",
+                "phase": "Succeeded",
+                "podIP": "192.168.20.74",
+                "podIPs": [
+                    {
+                        "ip": "192.168.20.74"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2025-03-15T23:35:17Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2025-03-15T23:35:16Z",
+                "generateName": "createsim-structure-092040891-",
+                "labels": {
+                    "app": "createsim",
+                    "batch.kubernetes.io/controller-uid": "e03bebd2-11b7-4fca-8040-838539617c3c",
+                    "batch.kubernetes.io/job-name": "createsim-structure-092040891",
+                    "controller-uid": "e03bebd2-11b7-4fca-8040-838539617c3c",
+                    "job-name": "createsim-structure-092040891",
+                    "jobid": "structure_092040891"
+                },
+                "name": "createsim-structure-092040891-4nwp7",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "batch/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Job",
+                        "name": "createsim-structure-092040891",
+                        "uid": "e03bebd2-11b7-4fca-8040-838539617c3c"
+                    }
+                ],
+                "resourceVersion": "8831",
+                "uid": "6d6dfcc1-0fda-49e4-883c-5d1dedf46c97"
+            },
+            "spec": {
+                "activeDeadlineSeconds": 1560,
+                "containers": [
+                    {
+                        "args": [
+                            "/workdir/entrypoint.sh"
+                        ],
+                        "command": [
+                            "/bin/bash"
+                        ],
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-gpu",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "step",
+                        "resources": {
+                            "limits": {
+                                "cpu": "7",
+                                "nvidia.com/gpu": "1"
+                            },
+                            "requests": {
+                                "cpu": "7",
+                                "nvidia.com/gpu": "1"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/workdir",
+                                "name": "entrypoint-mount"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-k8q9t",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "ip-192-168-9-35.ec2.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Never",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "r",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "nvidia.com/gpu",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "items": [
+                                {
+                                    "key": "entrypoint",
+                                    "path": "entrypoint.sh"
+                                },
+                                {
+                                    "key": "config",
+                                    "path": "config.json"
+                                },
+                                {
+                                    "key": "app-config",
+                                    "path": "app-config"
+                                }
+                            ],
+                            "name": "structure-092040891"
+                        },
+                        "name": "entrypoint-mount"
+                    },
+                    {
+                        "name": "kube-api-access-k8q9t",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:35:16Z",
+                        "reason": "PodCompleted",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:51:07Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:51:07Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:35:16Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "containerd://e7d482b22f2ad177bcab8647aabff902324b9689e3bef1abbf3c004f07ea0c45",
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-gpu",
+                        "imageID": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi@sha256:b6aabb1ef8cb020b6da6d9b21641884427c612bc59d6c8a946472afa06314aa9",
+                        "lastState": {},
+                        "name": "step",
+                        "ready": false,
+                        "restartCount": 0,
+                        "started": false,
+                        "state": {
+                            "terminated": {
+                                "containerID": "containerd://e7d482b22f2ad177bcab8647aabff902324b9689e3bef1abbf3c004f07ea0c45",
+                                "exitCode": 0,
+                                "finishedAt": "2025-03-15T23:51:06Z",
+                                "reason": "Completed",
+                                "startedAt": "2025-03-15T23:37:42Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.168.9.35",
+                "phase": "Succeeded",
+                "podIP": "192.168.9.69",
+                "podIPs": [
+                    {
+                        "ip": "192.168.9.69"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2025-03-15T23:35:16Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2025-03-16T00:23:55Z",
+                "generateName": "mlrunner-structure-012772673-",
+                "labels": {
+                    "app": "mlrunner",
+                    "batch.kubernetes.io/controller-uid": "dfaa2db1-6b05-4c83-a04c-5e11f92c920b",
+                    "batch.kubernetes.io/job-name": "mlrunner-structure-012772673",
+                    "controller-uid": "dfaa2db1-6b05-4c83-a04c-5e11f92c920b",
+                    "job-name": "mlrunner-structure-012772673",
+                    "jobid": "structure_012772673"
+                },
+                "name": "mlrunner-structure-012772673-lg866",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "batch/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Job",
+                        "name": "mlrunner-structure-012772673",
+                        "uid": "dfaa2db1-6b05-4c83-a04c-5e11f92c920b"
+                    }
+                ],
+                "resourceVersion": "17708",
+                "uid": "2029f702-bcd6-475e-a3c1-7d5b44b519bd"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "args": [
+                            "run",
+                            "--manifest-path",
+                            "/pixi-env/pixi.toml",
+                            "bash",
+                            "/workdir/entrypoint.sh"
+                        ],
+                        "command": [
+                            "/opt/pixi/bin/pixi"
+                        ],
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlrunner-gpu",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "step",
+                        "resources": {
+                            "limits": {
+                                "cpu": "3",
+                                "nvidia.com/gpu": "1"
+                            },
+                            "requests": {
+                                "cpu": "3",
+                                "nvidia.com/gpu": "1"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/workdir",
+                                "name": "entrypoint-mount"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-g6rrd",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "ip-192-168-14-157.ec2.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Never",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "r",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "nvidia.com/gpu",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "items": [
+                                {
+                                    "key": "entrypoint",
+                                    "path": "entrypoint.sh"
+                                },
+                                {
+                                    "key": "config",
+                                    "path": "config.json"
+                                },
+                                {
+                                    "key": "app-config",
+                                    "path": "app-config"
+                                }
+                            ],
+                            "name": "structure-012772673"
+                        },
+                        "name": "entrypoint-mount"
+                    },
+                    {
+                        "name": "kube-api-access-g6rrd",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:23:55Z",
+                        "reason": "PodCompleted",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:24:40Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:24:40Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:23:55Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "containerd://c2b4b30509aec880a7c146f418a767e381d8791601ff1d4b38e12d7f689a7b09",
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlrunner-gpu",
+                        "imageID": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi@sha256:e4ec8fdd8b02a40586baf78a4bef5a02c0aee2c43dd11fd0b90f6d2e15d8317c",
+                        "lastState": {},
+                        "name": "step",
+                        "ready": false,
+                        "restartCount": 0,
+                        "started": false,
+                        "state": {
+                            "terminated": {
+                                "containerID": "containerd://c2b4b30509aec880a7c146f418a767e381d8791601ff1d4b38e12d7f689a7b09",
+                                "exitCode": 0,
+                                "finishedAt": "2025-03-16T00:24:23Z",
+                                "reason": "Completed",
+                                "startedAt": "2025-03-16T00:23:55Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.168.14.157",
+                "phase": "Succeeded",
+                "podIP": "192.168.12.233",
+                "podIPs": [
+                    {
+                        "ip": "192.168.12.233"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2025-03-16T00:23:55Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2025-03-15T23:28:15Z",
+                "generateName": "mlrunner-structure-026625632-",
+                "labels": {
+                    "app": "mlrunner",
+                    "batch.kubernetes.io/controller-uid": "ac46ed10-3274-40ee-b8a6-fddb9c68bf87",
+                    "batch.kubernetes.io/job-name": "mlrunner-structure-026625632",
+                    "controller-uid": "ac46ed10-3274-40ee-b8a6-fddb9c68bf87",
+                    "job-name": "mlrunner-structure-026625632",
+                    "jobid": "structure_026625632"
+                },
+                "name": "mlrunner-structure-026625632-tjldc",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "batch/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Job",
+                        "name": "mlrunner-structure-026625632",
+                        "uid": "ac46ed10-3274-40ee-b8a6-fddb9c68bf87"
+                    }
+                ],
+                "resourceVersion": "5178",
+                "uid": "5057f405-514a-4207-ac13-fac6a60b6adf"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "args": [
+                            "run",
+                            "--manifest-path",
+                            "/pixi-env/pixi.toml",
+                            "bash",
+                            "/workdir/entrypoint.sh"
+                        ],
+                        "command": [
+                            "/opt/pixi/bin/pixi"
+                        ],
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlrunner-gpu",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "step",
+                        "resources": {
+                            "limits": {
+                                "cpu": "3",
+                                "nvidia.com/gpu": "1"
+                            },
+                            "requests": {
+                                "cpu": "3",
+                                "nvidia.com/gpu": "1"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/workdir",
+                                "name": "entrypoint-mount"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-98pmv",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "ip-192-168-14-157.ec2.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Never",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "r",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "nvidia.com/gpu",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "items": [
+                                {
+                                    "key": "entrypoint",
+                                    "path": "entrypoint.sh"
+                                },
+                                {
+                                    "key": "config",
+                                    "path": "config.json"
+                                },
+                                {
+                                    "key": "app-config",
+                                    "path": "app-config"
+                                }
+                            ],
+                            "name": "structure-026625632"
+                        },
+                        "name": "entrypoint-mount"
+                    },
+                    {
+                        "name": "kube-api-access-98pmv",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:28:15Z",
+                        "reason": "PodCompleted",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:35:15Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:35:15Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:28:15Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "containerd://04c3eb9be01c675e004b7ed5fa4c81c6750b166436589c0a1c3faefd7ca47b30",
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlrunner-gpu",
+                        "imageID": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi@sha256:e4ec8fdd8b02a40586baf78a4bef5a02c0aee2c43dd11fd0b90f6d2e15d8317c",
+                        "lastState": {},
+                        "name": "step",
+                        "ready": false,
+                        "restartCount": 0,
+                        "started": false,
+                        "state": {
+                            "terminated": {
+                                "containerID": "containerd://04c3eb9be01c675e004b7ed5fa4c81c6750b166436589c0a1c3faefd7ca47b30",
+                                "exitCode": 0,
+                                "finishedAt": "2025-03-15T23:34:33Z",
+                                "reason": "Completed",
+                                "startedAt": "2025-03-15T23:34:07Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.168.14.157",
+                "phase": "Succeeded",
+                "podIP": "192.168.12.120",
+                "podIPs": [
+                    {
+                        "ip": "192.168.12.120"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2025-03-15T23:28:15Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2025-03-16T00:23:42Z",
+                "generateName": "mlrunner-structure-069768916-",
+                "labels": {
+                    "app": "mlrunner",
+                    "batch.kubernetes.io/controller-uid": "0c7d9441-1c86-42d6-b746-73059b43cb1d",
+                    "batch.kubernetes.io/job-name": "mlrunner-structure-069768916",
+                    "controller-uid": "0c7d9441-1c86-42d6-b746-73059b43cb1d",
+                    "job-name": "mlrunner-structure-069768916",
+                    "jobid": "structure_069768916"
+                },
+                "name": "mlrunner-structure-069768916-gwdb2",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "batch/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Job",
+                        "name": "mlrunner-structure-069768916",
+                        "uid": "0c7d9441-1c86-42d6-b746-73059b43cb1d"
+                    }
+                ],
+                "resourceVersion": "17624",
+                "uid": "ee8b9938-d3b7-44a9-abaa-ab7702bafc30"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "args": [
+                            "run",
+                            "--manifest-path",
+                            "/pixi-env/pixi.toml",
+                            "bash",
+                            "/workdir/entrypoint.sh"
+                        ],
+                        "command": [
+                            "/opt/pixi/bin/pixi"
+                        ],
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlrunner-gpu",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "step",
+                        "resources": {
+                            "limits": {
+                                "cpu": "3",
+                                "nvidia.com/gpu": "1"
+                            },
+                            "requests": {
+                                "cpu": "3",
+                                "nvidia.com/gpu": "1"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/workdir",
+                                "name": "entrypoint-mount"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-4vk8k",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "ip-192-168-3-158.ec2.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Never",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "r",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "nvidia.com/gpu",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "items": [
+                                {
+                                    "key": "entrypoint",
+                                    "path": "entrypoint.sh"
+                                },
+                                {
+                                    "key": "config",
+                                    "path": "config.json"
+                                },
+                                {
+                                    "key": "app-config",
+                                    "path": "app-config"
+                                }
+                            ],
+                            "name": "structure-069768916"
+                        },
+                        "name": "entrypoint-mount"
+                    },
+                    {
+                        "name": "kube-api-access-4vk8k",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:23:42Z",
+                        "reason": "PodCompleted",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:24:26Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:24:26Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:23:42Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "containerd://9f83b548ea4f06be064623294c8eb370c27d5c401babda12d59389246119a934",
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlrunner-gpu",
+                        "imageID": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi@sha256:e4ec8fdd8b02a40586baf78a4bef5a02c0aee2c43dd11fd0b90f6d2e15d8317c",
+                        "lastState": {},
+                        "name": "step",
+                        "ready": false,
+                        "restartCount": 0,
+                        "started": false,
+                        "state": {
+                            "terminated": {
+                                "containerID": "containerd://9f83b548ea4f06be064623294c8eb370c27d5c401babda12d59389246119a934",
+                                "exitCode": 0,
+                                "finishedAt": "2025-03-16T00:24:10Z",
+                                "reason": "Completed",
+                                "startedAt": "2025-03-16T00:23:42Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.168.3.158",
+                "phase": "Succeeded",
+                "podIP": "192.168.27.228",
+                "podIPs": [
+                    {
+                        "ip": "192.168.27.228"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2025-03-16T00:23:42Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2025-03-16T00:23:32Z",
+                "generateName": "mlrunner-structure-075765917-",
+                "labels": {
+                    "app": "mlrunner",
+                    "batch.kubernetes.io/controller-uid": "44cf59e6-bf90-463c-87b6-5d561038b8b9",
+                    "batch.kubernetes.io/job-name": "mlrunner-structure-075765917",
+                    "controller-uid": "44cf59e6-bf90-463c-87b6-5d561038b8b9",
+                    "job-name": "mlrunner-structure-075765917",
+                    "jobid": "structure_075765917"
+                },
+                "name": "mlrunner-structure-075765917-xzbdv",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "batch/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Job",
+                        "name": "mlrunner-structure-075765917",
+                        "uid": "44cf59e6-bf90-463c-87b6-5d561038b8b9"
+                    }
+                ],
+                "resourceVersion": "17567",
+                "uid": "a053dba8-a3b8-47e4-bdc8-0ac590ea14b1"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "args": [
+                            "run",
+                            "--manifest-path",
+                            "/pixi-env/pixi.toml",
+                            "bash",
+                            "/workdir/entrypoint.sh"
+                        ],
+                        "command": [
+                            "/opt/pixi/bin/pixi"
+                        ],
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlrunner-gpu",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "step",
+                        "resources": {
+                            "limits": {
+                                "cpu": "3",
+                                "nvidia.com/gpu": "1"
+                            },
+                            "requests": {
+                                "cpu": "3",
+                                "nvidia.com/gpu": "1"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/workdir",
+                                "name": "entrypoint-mount"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-zbwd6",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "ip-192-168-9-35.ec2.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Never",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "r",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "nvidia.com/gpu",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "items": [
+                                {
+                                    "key": "entrypoint",
+                                    "path": "entrypoint.sh"
+                                },
+                                {
+                                    "key": "config",
+                                    "path": "config.json"
+                                },
+                                {
+                                    "key": "app-config",
+                                    "path": "app-config"
+                                }
+                            ],
+                            "name": "structure-075765917"
+                        },
+                        "name": "entrypoint-mount"
+                    },
+                    {
+                        "name": "kube-api-access-zbwd6",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:23:32Z",
+                        "reason": "PodCompleted",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:24:17Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:24:17Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-16T00:23:32Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "containerd://0e3c9cff8e7cfc1f24e2c112994c6b483ae4d1f107413bfc9b9771fb1167c451",
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlrunner-gpu",
+                        "imageID": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi@sha256:e4ec8fdd8b02a40586baf78a4bef5a02c0aee2c43dd11fd0b90f6d2e15d8317c",
+                        "lastState": {},
+                        "name": "step",
+                        "ready": false,
+                        "restartCount": 0,
+                        "started": false,
+                        "state": {
+                            "terminated": {
+                                "containerID": "containerd://0e3c9cff8e7cfc1f24e2c112994c6b483ae4d1f107413bfc9b9771fb1167c451",
+                                "exitCode": 0,
+                                "finishedAt": "2025-03-16T00:24:00Z",
+                                "reason": "Completed",
+                                "startedAt": "2025-03-16T00:23:33Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.168.9.35",
+                "phase": "Succeeded",
+                "podIP": "192.168.23.198",
+                "podIPs": [
+                    {
+                        "ip": "192.168.23.198"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2025-03-16T00:23:32Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2025-03-15T23:28:15Z",
+                "generateName": "mlrunner-structure-086420414-",
+                "labels": {
+                    "app": "mlrunner",
+                    "batch.kubernetes.io/controller-uid": "3a015e2a-3282-4b01-855a-b188993669e5",
+                    "batch.kubernetes.io/job-name": "mlrunner-structure-086420414",
+                    "controller-uid": "3a015e2a-3282-4b01-855a-b188993669e5",
+                    "job-name": "mlrunner-structure-086420414",
+                    "jobid": "structure_086420414"
+                },
+                "name": "mlrunner-structure-086420414-2xs8d",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "batch/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Job",
+                        "name": "mlrunner-structure-086420414",
+                        "uid": "3a015e2a-3282-4b01-855a-b188993669e5"
+                    }
+                ],
+                "resourceVersion": "5219",
+                "uid": "6ebb8cb1-3b42-4bb2-9eac-c731b4f69777"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "args": [
+                            "run",
+                            "--manifest-path",
+                            "/pixi-env/pixi.toml",
+                            "bash",
+                            "/workdir/entrypoint.sh"
+                        ],
+                        "command": [
+                            "/opt/pixi/bin/pixi"
+                        ],
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlrunner-gpu",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "step",
+                        "resources": {
+                            "limits": {
+                                "cpu": "3",
+                                "nvidia.com/gpu": "1"
+                            },
+                            "requests": {
+                                "cpu": "3",
+                                "nvidia.com/gpu": "1"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/workdir",
+                                "name": "entrypoint-mount"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-crsmh",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "ip-192-168-3-158.ec2.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Never",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "r",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "nvidia.com/gpu",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "items": [
+                                {
+                                    "key": "entrypoint",
+                                    "path": "entrypoint.sh"
+                                },
+                                {
+                                    "key": "config",
+                                    "path": "config.json"
+                                },
+                                {
+                                    "key": "app-config",
+                                    "path": "app-config"
+                                }
+                            ],
+                            "name": "structure-086420414"
+                        },
+                        "name": "entrypoint-mount"
+                    },
+                    {
+                        "name": "kube-api-access-crsmh",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:28:15Z",
+                        "reason": "PodCompleted",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:35:17Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:35:17Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:28:15Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "containerd://2373b1e50ec2c7d4ef9134271822146f7c71cac5f8c9428901b3e8cf017356f1",
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlrunner-gpu",
+                        "imageID": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi@sha256:e4ec8fdd8b02a40586baf78a4bef5a02c0aee2c43dd11fd0b90f6d2e15d8317c",
+                        "lastState": {},
+                        "name": "step",
+                        "ready": false,
+                        "restartCount": 0,
+                        "started": false,
+                        "state": {
+                            "terminated": {
+                                "containerID": "containerd://2373b1e50ec2c7d4ef9134271822146f7c71cac5f8c9428901b3e8cf017356f1",
+                                "exitCode": 0,
+                                "finishedAt": "2025-03-15T23:34:34Z",
+                                "reason": "Completed",
+                                "startedAt": "2025-03-15T23:34:08Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.168.3.158",
+                "phase": "Succeeded",
+                "podIP": "192.168.27.228",
+                "podIPs": [
+                    {
+                        "ip": "192.168.27.228"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2025-03-15T23:28:15Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2025-03-15T23:28:14Z",
+                "generateName": "mlrunner-structure-090132908-",
+                "labels": {
+                    "app": "mlrunner",
+                    "batch.kubernetes.io/controller-uid": "f6226ba1-e7c0-4d03-83f8-6cc96e1612bd",
+                    "batch.kubernetes.io/job-name": "mlrunner-structure-090132908",
+                    "controller-uid": "f6226ba1-e7c0-4d03-83f8-6cc96e1612bd",
+                    "job-name": "mlrunner-structure-090132908",
+                    "jobid": "structure_090132908"
+                },
+                "name": "mlrunner-structure-090132908-wvvll",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "batch/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Job",
+                        "name": "mlrunner-structure-090132908",
+                        "uid": "f6226ba1-e7c0-4d03-83f8-6cc96e1612bd"
+                    }
+                ],
+                "resourceVersion": "5157",
+                "uid": "77064243-03ab-41cb-9dcf-9cd909f3408c"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "args": [
+                            "run",
+                            "--manifest-path",
+                            "/pixi-env/pixi.toml",
+                            "bash",
+                            "/workdir/entrypoint.sh"
+                        ],
+                        "command": [
+                            "/opt/pixi/bin/pixi"
+                        ],
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlrunner-gpu",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "step",
+                        "resources": {
+                            "limits": {
+                                "cpu": "3",
+                                "nvidia.com/gpu": "1"
+                            },
+                            "requests": {
+                                "cpu": "3",
+                                "nvidia.com/gpu": "1"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/workdir",
+                                "name": "entrypoint-mount"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-dgxr7",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "ip-192-168-9-35.ec2.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Never",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "r",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoSchedule",
+                        "key": "nvidia.com/gpu",
+                        "operator": "Exists"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "items": [
+                                {
+                                    "key": "entrypoint",
+                                    "path": "entrypoint.sh"
+                                },
+                                {
+                                    "key": "config",
+                                    "path": "config.json"
+                                },
+                                {
+                                    "key": "app-config",
+                                    "path": "app-config"
+                                }
+                            ],
+                            "name": "structure-090132908"
+                        },
+                        "name": "entrypoint-mount"
+                    },
+                    {
+                        "name": "kube-api-access-dgxr7",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:28:15Z",
+                        "reason": "PodCompleted",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:35:14Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:35:14Z",
+                        "reason": "PodCompleted",
+                        "status": "False",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:28:14Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "containerd://35ee94d3ef71ad1eda722a75a364995bf960ed7f84c347e31f57381585c3b3ed",
+                        "image": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlrunner-gpu",
+                        "imageID": "633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi@sha256:e4ec8fdd8b02a40586baf78a4bef5a02c0aee2c43dd11fd0b90f6d2e15d8317c",
+                        "lastState": {},
+                        "name": "step",
+                        "ready": false,
+                        "restartCount": 0,
+                        "started": false,
+                        "state": {
+                            "terminated": {
+                                "containerID": "containerd://35ee94d3ef71ad1eda722a75a364995bf960ed7f84c347e31f57381585c3b3ed",
+                                "exitCode": 0,
+                                "finishedAt": "2025-03-15T23:34:32Z",
+                                "reason": "Completed",
+                                "startedAt": "2025-03-15T23:34:05Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.168.9.35",
+                "phase": "Succeeded",
+                "podIP": "192.168.1.171",
+                "podIPs": [
+                    {
+                        "ip": "192.168.1.171"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2025-03-15T23:28:15Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2025-03-15T23:28:06Z",
+                "generateName": "mummi-manager-d6f98c7dd-",
+                "labels": {
+                    "app": "mummi",
+                    "component": "state-machine-manager",
+                    "pod-template-hash": "d6f98c7dd"
+                },
+                "name": "mummi-manager-d6f98c7dd-g7fcq",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "mummi-manager-d6f98c7dd",
+                        "uid": "03f3c1e9-bd8b-4dc5-a759-2a80d510b8e1"
+                    }
+                ],
+                "resourceVersion": "3526",
+                "uid": "d8c7be10-4760-419d-a086-ca61611eb63b"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "command": [
+                            "/bin/bash",
+                            "/state_machine_operator/entrypoint.sh"
+                        ],
+                        "image": "ghcr.io/converged-computing/state-machine-operator:manager",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "manager",
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/state_machine_operator/",
+                                "name": "manager-entrypoint"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-sdglw",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "hostname": "manager",
+                "nodeName": "ip-192-168-6-255.ec2.internal",
+                "nodeSelector": {
+                    "node.kubernetes.io/instance-type": "c7a.4xlarge"
+                },
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "mummi",
+                "serviceAccountName": "mummi",
+                "subdomain": "mummi",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "mummi-manager"
+                        },
+                        "name": "manager-entrypoint"
+                    },
+                    {
+                        "name": "kube-api-access-sdglw",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:28:06Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:28:15Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:28:15Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:28:06Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "containerd://5f83c7bfbec00dd5a11ad9ab66de9b624d091596de1316b25a5c6c44ba122da3",
+                        "image": "ghcr.io/converged-computing/state-machine-operator:manager",
+                        "imageID": "ghcr.io/converged-computing/state-machine-operator@sha256:2639c7c5b985c4997570cf7510a90806fe03aebfd51ce1738cff9df8fe0e8c3d",
+                        "lastState": {},
+                        "name": "manager",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2025-03-15T23:28:14Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.168.6.255",
+                "phase": "Running",
+                "podIP": "192.168.19.184",
+                "podIPs": [
+                    {
+                        "ip": "192.168.19.184"
+                    }
+                ],
+                "qosClass": "BestEffort",
+                "startTime": "2025-03-15T23:28:06Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2025-03-15T23:28:06Z",
+                "generateName": "registry-",
+                "labels": {
+                    "app": "mummi",
+                    "controller-revision-hash": "registry-559d98f99c",
+                    "statefulset.kubernetes.io/pod-name": "registry-0"
+                },
+                "name": "registry-0",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "StatefulSet",
+                        "name": "registry",
+                        "uid": "a22d1058-5e1e-47dc-bcf6-771b67c79305"
+                    }
+                ],
+                "resourceVersion": "3437",
+                "uid": "d2677298-076d-4d44-88dd-70578335a15f"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "image": "ghcr.io/oras-project/registry:latest",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "registry",
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-qdlt4",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "hostname": "registry-0",
+                "nodeName": "ip-192-168-6-255.ec2.internal",
+                "nodeSelector": {
+                    "node.kubernetes.io/instance-type": "c7a.4xlarge"
+                },
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "subdomain": "mummi",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "kube-api-access-qdlt4",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:28:06Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:28:08Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:28:08Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2025-03-15T23:28:06Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "containerd://9c59e4da85d55a77be61fc4c290dc6f08452b9350cfa6c49b612fb95b55d7bd1",
+                        "image": "ghcr.io/oras-project/registry:latest",
+                        "imageID": "ghcr.io/oras-project/registry@sha256:321aaa9de1049b3988a8cb7e4ae2043ec13df78bf140b5335b015823e9779da3",
+                        "lastState": {},
+                        "name": "registry",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2025-03-15T23:28:07Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "192.168.6.255",
+                "phase": "Running",
+                "podIP": "192.168.19.168",
+                "podIPs": [
+                    {
+                        "ip": "192.168.19.168"
+                    }
+                ],
+                "qosClass": "BestEffort",
+                "startTime": "2025-03-15T23:28:06Z"
+            }
+        }
+    ],
+    "kind": "List",
+    "metadata": {
+        "resourceVersion": ""
+    }
+}

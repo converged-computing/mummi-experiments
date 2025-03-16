@@ -89,13 +89,42 @@ state-machine-manager start ../local/state-machine-workflow.yaml --config-dir=..
 We do the above for three iterations - it's nice that we can run three experiments on the same cluster (since we don't need to account for pulling). After, we need to save the iteration data with artifacts. Here is what I did on one node:
 
 ```bash
-mkdir -p /home/ubuntu/iter-1 /home/ubuntu/iter-2 /home/ubuntu/iter-3
-cp -R /mnt/efs/iter-1/structure_* /home/ubuntu/iter-1/
-cp -R /mnt/efs/iter-2/structure_* /home/ubuntu/iter-2/
-cp -R /mnt/efs/iter-3/structure_* /home/ubuntu/iter-3/
-oras push ghcr.io/converged-computing/mummi-experiments:cpu-arm-iter-1 /home/ubuntu/iter-1/
-oras push ghcr.io/converged-computing/mummi-experiments:cpu-arm-iter-2 /home/ubuntu/iter-2/
-oras push ghcr.io/converged-computing/mummi-experiments:cpu-arm-iter-3 /home/ubuntu/iter-3/
+iter=1
+mkdir -p /home/ubuntu/iter-$iter
+cp -R /mnt/efs/iter-$iter/structure_* /home/ubuntu/iter-$iter/
+cp /mnt/efs/iter-$iter/workflow-times.json /home/ubuntu/iter-$iter/
+```
+
+For each I also saved complete flux metadata from the queue:
+
+```bash
+# When they are done:
+cd /home/ubuntu/iter-$iter
+mkdir -p ./logs
+output=/home/ubuntu/iter-$iter/logs
+for jobid in $(flux jobs -a --json | jq -r .jobs[].id)
+  do
+    # Get the job name and structure
+    step_name=$(flux job info $jobid jobspec | jq -r ".attributes.user.app")    
+    structure=$(flux job info $jobid jobspec | jq -r ".attributes.user.jobname")    
+    outfile=$output/${structure}-${step_name}-${jobid}.out
+    flux job attach $jobid &> $outfile
+    echo "START OF JOBSPEC" >> $outfile
+    flux job info $jobid jobspec >> $outfile
+    echo "START OF EVENTLOG" >> $outfile
+    flux job info $jobid guest.exec.eventlog >> $outfile
+done
+```
+
+Login to oras then push result.
+
+```bash
+oras login ghcr.io
+```
+
+```
+cd /home/ubuntu/iter-$iter/
+oras push ghcr.io/converged-computing/mummi-experiments:cpu-arm-iter-$iter .
 ```
 
 Note that we will need to unmount the efs filesystem before destroy:
