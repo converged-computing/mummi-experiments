@@ -75,7 +75,7 @@ flux module load /usr/lib/flux/modules/sched-fluxion-qmanager.so
 sudo modprobe nvidia-uvm
 ```
 
-Between iterations we need to clear the Q:
+Between iterations we need to clear the queue and remove the old files.
 
 ```
 flux job purge --age-limit=0 --force
@@ -86,7 +86,7 @@ Start the manager to start the workflow. We assume flux is running and we are la
 # I used screen first, and shelled into the instance from another terminal to look at the queue.
 # screen
 export PYTHONPATH=/usr/lib/python3.10/site-packages
-state-machine-manager start ../local/state-machine-workflow.yaml --config-dir=../local --scheduler flux --filesystem --workdir /mnt/efs/iter-2
+state-machine-manager start ../local/state-machine-workflow.yaml --config-dir=../local --scheduler flux --filesystem --workdir /mnt/efs/iter-3
 ```
 
 We do the above for three iterations - it's nice that we can run three experiments on the same cluster (since we don't need to account for pulling). After, we need to save the iteration data with artifacts. Here is what I did on one node:
