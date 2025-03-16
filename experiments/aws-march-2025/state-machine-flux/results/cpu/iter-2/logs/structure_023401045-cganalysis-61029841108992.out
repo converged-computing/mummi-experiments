@@ -1,0 +1,12 @@
+flux-job: stdin not accepted by job
+START OF JOBSPEC
+{"resources": [{"type": "node", "count": 1, "exclusive": true, "with": [{"type": "slot", "count": 1, "with": [{"type": "core", "count": 1}], "label": "task"}]}], "tasks": [{"command": ["/usr/local/bin/singularity", "exec", "--bind", "/mnt/efs", "/home/ubuntu/containers/mini-mummi_cganalysis-arm.sif", "bash", "./entrypoint.sh"], "slot": "task", "count": {"per_slot": 1}}], "attributes": {"system": {"duration": 0.0, "job": {"name": "cganalysis"}, "cwd": "/mnt/efs/iter-1/structure_023401045/cganalysis"}, "user": {"workflow": "state-machine", "app": "cganalysis", "jobname": "structure_023401045"}}, "version": 1}
+START OF EVENTLOG
+{"timestamp":1742127877.6351244,"name":"init"}
+{"timestamp":1742127877.6358798,"name":"starting"}
+{"timestamp":1742127877.6493542,"name":"shell.init","context":{"service":"1000-shell-fUe9j5AyD","leader-rank":3,"size":1}}
+{"timestamp":1742127877.6523986,"name":"shell.start","context":{"taskmap":{"version":1,"map":[[0,1,1,1]]}}}
+{"timestamp":1742129663.9397018,"name":"shell.task-exit","context":{"localid":0,"rank":0,"state":"Exited","pid":8867,"wait_status":0,"signaled":0,"exitcode":0}}
+{"timestamp":1742129663.9418299,"name":"complete","context":{"status":0}}
+{"timestamp":1742129663.9418595,"name":"done"}
+
