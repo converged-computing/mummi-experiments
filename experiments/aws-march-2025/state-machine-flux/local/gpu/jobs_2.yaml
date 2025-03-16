@@ -3,7 +3,7 @@ config:
   nodes: 1
   exclusive: true
   ngpus: 1
-  command: /usr/local/bin/singularity exec --nv /home/ubuntu/containers/mini-mummi_cganalysis-gpu.sif bash ./entrypoint.sh
+  command: /usr/local/bin/singularity exec --nv --bind /mnt/efs /home/ubuntu/containers/mini-mummi_cganalysis-gpu.sif bash ./entrypoint.sh
 script: |
   MUMMI_APP=/opt/clones/mummi-ras
   MUMMI_RESOURCES=/opt/clones/mummi_resources

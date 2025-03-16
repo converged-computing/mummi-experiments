@@ -2,7 +2,40 @@
 
 The sections below show how to do a run of either a CPU or GPU experiment. 
 
-## AWS Bare Metal
+## Experiments
+
+### Pulling Times
+
+Since we will have the containers pulled to the image to save time, we still need a metric of pulling time
+for containers, because the operator (Kubernetes) experiments all include one pull per container per node. We will do this with our final analysis containers on each respective instance type and save times.
+
+#### p3.2xlarge
+
+Each of these was done on the final AMI used for experiments.
+
+```bash
+# On your host with credentials: (username is AWS)
+# aws ecr get-login-password --region us-east-1
+# export SINGULARITY_DOCKER_USERNAME=AWS
+# export SINGULARITY_DOCKER_PASSWORD=<token>
+
+mkdir /home/ubuntu/containers
+cd /home/ubuntu/containers
+mkdir -p times
+container=docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi
+for iter in $(seq 1 3)
+  do
+  echo "Pulling mlrunner"
+  time singularity pull $container:mlrunner-gpu &>> ./times/mlrunner-pull-time.txt
+  echo "Pulling createsims"
+  time singularity pull $container:createsims-gpu &>> ./times/createsims-pull-time.txt
+  echo "Pulling cganalysis"
+  time singularity pull $container:cganalysis-gpu; &>> ./times/cganalysis-pull-time.txt
+  singularity cache clean --force
+done
+```
+
+### AWS Bare Metal
 
 Deploy the setup.  This will be moved to a different directory (organized with data, etc.) when run.
 
@@ -69,17 +102,20 @@ cd /mnt/efs/iter-1
 For the GPU instances, if we need in the start script:
 
 ```bash
-flux module unload sched-simple
-flux module load /usr/lib/flux/modules/sched-fluxion-resource.so 
-flux module load /usr/lib/flux/modules/sched-fluxion-qmanager.so 
+flux exec -r all flux module unload sched-simple
+flux exec -r all flux module load /usr/lib/flux/modules/sched-fluxion-resource.so 
+flux exec -r all flux module load /usr/lib/flux/modules/sched-fluxion-qmanager.so 
 sudo modprobe nvidia-uvm
 ```
 
+Note this seems to only need to be loaded on the lead broker node.
 Between iterations we need to clear the queue and remove the old files.
 
-```
+```bash
 flux job purge --age-limit=0 --force
+rm -rf /home/ubuntu/iter-2
 ```
+
 Start the manager to start the workflow. We assume flux is running and we are launching jobs to the system instance.
 
 ```bash
@@ -104,6 +140,7 @@ For each I also saved complete flux metadata from the queue:
 # When they are done:
 cd /home/ubuntu/iter-$iter
 mkdir -p ./logs
+flux jobs -a > final-queue-state.txt
 output=/home/ubuntu/iter-$iter/logs
 for jobid in $(flux jobs -a --json | jq -r .jobs[].id)
   do
@@ -125,8 +162,9 @@ Login to oras then push result.
 oras login ghcr.io
 ```
 
-```
+```bash
 cd /home/ubuntu/iter-$iter/
+oras push ghcr.io/converged-computing/mummi-experiments:gpu-arm-iter-$iter .
 oras push ghcr.io/converged-computing/mummi-experiments:cpu-arm-iter-$iter .
 ```
 

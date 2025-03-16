@@ -3,11 +3,18 @@ kind: MiniMummi
 metadata:
   name: mummi-sample
 spec:
+  registry:
+    nodeSelector: m6a.4xlarge
+
   mlserver:
     image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlserver-arm
+    nodeSelector: hpc7g.16xlarge
+    workdir: /pixi-env
+    imagePullPolicy: Always
 
   rabbitmq:
-    image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:rabbitmq-arm
+    image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:rabbitmq
+    nodeSelector: m6a.4xlarge
 
   # Defaults to 6 mummi nnodes, interactive mode is for debugging
   manager:
@@ -15,17 +22,21 @@ spec:
     numberMaxSelectedPatchBuffer: 2
     numberMaxPatchesSelectionsPerIteration: 2
     nodes: 6
+    nodeSelector: hpc7g.16xlarge
+#    interactive: true
     
   # Jobs for the Mummi workflow manager to submit / orchestrate
   # Right now we use defaults for most things (bundle size, nodes, etc)
   jobs:
     cganalysis:
       image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-arm
+      nodeSelector: '{"node.kubernetes.io/instance-type": "hpc7g.16xlarge"}'
       config:
         coresPerTask: 62
         nproc: 1
     createsim:
       image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-arm
+      nodeSelector: '{"node.kubernetes.io/instance-type": "hpc7g.16xlarge"}'
       config:
         coresPerTask: 62
         nproc: 1
