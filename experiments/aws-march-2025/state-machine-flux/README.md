@@ -26,14 +26,16 @@ container=docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi
 for iter in $(seq 1 3)
   do
   echo "Pulling mlrunner"
-  time singularity pull $container:mlrunner-gpu &>> ./times/mlrunner-pull-time.txt
+  { time singularity pull $container:mlrunner-gpu 2> pull.stderr ; } 2> ./times/mlrunner-pull-time-$iter.txt
   echo "Pulling createsims"
-  time singularity pull $container:createsims-gpu &>> ./times/createsims-pull-time.txt
+  { time singularity pull $container:createsims-gpu 2> pull.stderr ; } 2> ./times/createsime-pull-time-$iter.txt
   echo "Pulling cganalysis"
-  time singularity pull $container:cganalysis-gpu; &>> ./times/cganalysis-pull-time.txt
+  { time singularity pull $container:cganalsis-gpu 2> pull.stderr ; } 2> ./times/cganalysis-pull-time-$iter.txt
   singularity cache clean --force
+  rm -rf *.sif
 done
 ```
+
 
 ### AWS Bare Metal
 
