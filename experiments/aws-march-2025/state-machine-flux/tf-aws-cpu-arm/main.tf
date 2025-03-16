@@ -2,10 +2,11 @@
 # VARIABLES # for you to edit!
 
 locals {
-  name      = "flux"
-  pwd       = basename(path.cwd)
-  region    = "us-east-1"
-  ami       = "ami-09b5dcdc9db285dd1"
+  name   = "flux"
+  pwd    = basename(path.cwd)
+  region = "us-east-1"
+  # mummi-cpu-arm-experiment built on March 15, 2025
+  ami       = "ami-094e0f1be75401a6a"
   placement = "eks-efa-testing"
 
   instance_type = "hpc7g.16xlarge"

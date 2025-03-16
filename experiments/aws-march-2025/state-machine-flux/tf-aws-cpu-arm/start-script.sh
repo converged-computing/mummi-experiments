@@ -172,7 +172,12 @@ sudo sysctl net.ipv4.conf.all.accept_local=1
 sudo mknod /dev/infiniband/rdma_cm c 231 255
 sudo chmod oug+w /dev/infiniband/rdma_cm
 
-sudo chown -R $USER /home/ubuntu
 cd /home/ubuntu
 sudo mkdir -p /home/ubuntu/workdir
-sudo mount -t efs ${efs_name} /home/ubuntu/workdir
+sleep 10
+# Note that this usually doesn't resolve when the instance is coming up and needs to be done
+# after with flux exec, see the readme
+sudo mkdir -p /mnt/efs
+echo "sudo mount -t efs ${efs_name} /mnt/efs"
+sudo mount -t efs ${efs_name} /mnt/efs
+sudo chown -R ubuntu /mnt/efs

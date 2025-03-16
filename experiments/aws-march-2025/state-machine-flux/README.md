@@ -14,13 +14,9 @@ make
 ```
 
 Then get the lead instance IP and shell in. 
-And note to delete, I had trouble with make destroy and the autoscaling group. I needed to delete both the storage and autoscaling group manually.
+And note to delete, I had trouble with make destroy and the autoscaling group. I needed to delete both the storage and autoscaling group manually. For EFS use the UI, and for autoscaling you can also do:
 
 ```console
-# Storage
-aws delete-file-system --file-system-id mummi-gpu-efs --region us-east-1
-aws delete-file-system --file-system-id mummi-cpu-efs --region us-east-2
-
 # Autoscaling
 aws autoscaling delete-auto-scaling-group --force-delete --auto-scaling-group-name flux-autoscaling-group --region us-east-1
 aws autoscaling delete-auto-scaling-group --force-delete --auto-scaling-group-name flux-autoscaling-group --region us-east-2
@@ -44,13 +40,9 @@ cd ../
 git clone https://github.com/converged-computing/mummi-experiments
 ```
 
-The containers should already be pulled and data extracted. 
-Create the working directory to run
+The containers should already be pulled and data extracted.  The working directory should be created and mounted across nodes.
 
 ```bash
-flux exec -r all mkdir -p /home/ubuntu/workdir
-cd /home/ubuntu/workdir
-# For some reason flux not on PYTHONPATH
 export PYTHONPATH=/usr/lib/python3.10/site-packages
 ```
 
@@ -60,20 +52,98 @@ Copy the correct set of configs for cpu or gpu
 cp -R ../mummi-experiments/aws-march-2025/state-machine-flux/cpu /home/ubuntu/workdir/local
 cp -R ../mummi-experiments/aws-march-2025/state-machine-flux/gpu /home/ubuntu/workdir/local
 ```
+In practice I found the efs filesystem failed mounting, so I looked at /var/log/cloud-init-output.out to get the name, then did:
 
+```bash
+flux exec -r all sudo mkdir -p /mnt/efs
+# Get the identifier from /var/log/cloud-init-output.log
+flux exec -r all sudo mount -t efs fs-0e0083fb904f24d6e.efs.us-east-1.amazonaws.com /mnt/efs
+flux exec -r all sudo chown -R ubuntu /mnt/efs
+touch /mnt/efs/file.txt
+# You should see N copies of file.txt (the same file)
+flux exec -r all ls /mnt/efs/
+mkdir -p /mnt/efs/iter-1
+cd /mnt/efs/iter-1
+```
+
+For the GPU instances, if we need in the start script:
+
+```bash
+flux module unload sched-simple
+flux module load /usr/lib/flux/modules/sched-fluxion-resource.so 
+flux module load /usr/lib/flux/modules/sched-fluxion-qmanager.so 
+sudo modprobe nvidia-uvm
+```
+
+Between iterations we need to clear the Q:
+
+```
+flux job purge --age-limit=0 --force
+```
 Start the manager to start the workflow. We assume flux is running and we are launching jobs to the system instance.
 
 ```bash
-state-machine-manager start ./local/state-machine-workflow.yaml --config-dir=./local --scheduler flux --filesystem --workdir /home/ubuntu/workdir
+# I used screen first, and shelled into the instance from another terminal to look at the queue.
+# screen
+export PYTHONPATH=/usr/lib/python3.10/site-packages
+state-machine-manager start ../local/state-machine-workflow.yaml --config-dir=../local --scheduler flux --filesystem --workdir /mnt/efs/iter-2
+```
+
+We do the above for three iterations - it's nice that we can run three experiments on the same cluster (since we don't need to account for pulling). After, we need to save the iteration data with artifacts. Here is what I did on one node:
+
+```bash
+iter=1
+mkdir -p /home/ubuntu/iter-$iter
+cp -R /mnt/efs/iter-$iter/structure_* /home/ubuntu/iter-$iter/
+cp /mnt/efs/iter-$iter/workflow-times.json /home/ubuntu/iter-$iter/
+```
+
+For each I also saved complete flux metadata from the queue:
+
+```bash
+# When they are done:
+cd /home/ubuntu/iter-$iter
+mkdir -p ./logs
+output=/home/ubuntu/iter-$iter/logs
+for jobid in $(flux jobs -a --json | jq -r .jobs[].id)
+  do
+    # Get the job name and structure
+    step_name=$(flux job info $jobid jobspec | jq -r ".attributes.user.app")    
+    structure=$(flux job info $jobid jobspec | jq -r ".attributes.user.jobname")    
+    outfile=$output/${structure}-${step_name}-${jobid}.out
+    flux job attach $jobid &> $outfile
+    echo "START OF JOBSPEC" >> $outfile
+    flux job info $jobid jobspec >> $outfile
+    echo "START OF EVENTLOG" >> $outfile
+    flux job info $jobid guest.exec.eventlog >> $outfile
+done
+```
+
+Login to oras then push result.
+
+```bash
+oras login ghcr.io
+```
+
+```
+cd /home/ubuntu/iter-$iter/
+oras push ghcr.io/converged-computing/mummi-experiments:cpu-arm-iter-$iter .
 ```
 
 Note that we will need to unmount the efs filesystem before destroy:
 
 ```bash
-# TODO test mounting to /home/ubuntu/workdir
-sudo umount /mnt/efs
-
-# Haven't tested this yet
 flux exec -r all sudo umount /mnt/efs
 ```
 
+Then exit and:
+
+```bash
+make destroy
+```
+
+If you have trouble (it seems to be spinning on the autoscaling group) delete the efs filesystem and the autoscaling group in the AWS console.
+
+## Analysis
+
+- TODO: Account for saving of output for failed jobs too (a pro and con)!

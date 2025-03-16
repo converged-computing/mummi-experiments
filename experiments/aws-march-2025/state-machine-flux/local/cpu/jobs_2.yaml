@@ -2,7 +2,7 @@ name: cganalysis
 config:
   nodes: 1
   exclusive: true
-  command: /usr/local/bin/singularity exec /home/ubuntu/containers/mini-mummi_cganalysis-arm.sif bash ./entrypoint.sh
+  command: /usr/local/bin/singularity exec --bind /mnt/efs /home/ubuntu/containers/mini-mummi_cganalysis-arm.sif bash ./entrypoint.sh
 script: |
   MUMMI_APP=/opt/clones/mummi-ras
   MUMMI_RESOURCES=/opt/clones/mummi_resources
