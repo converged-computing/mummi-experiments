@@ -1,0 +1,39 @@
+                :-) GROMACS - gmx mdrun, 2024.5-conda_forge (-:
+
+Executable:   /miniconda3/bin.ARM_NEON_ASIMD/gmx
+Data prefix:  /miniconda3
+Working dir:  /mnt/efs/iter-1/structure_001913380/tmp
+Command line:
+  gmx mdrun -ntmpi 1 -ntomp 64 -pin off -c lipids-water-eq1.gro
+
+
+Back Off! I just backed up md.log to ./#md.log.10#
+Compiled SIMD is ARM_NEON_ASIMD, but ARM_SVE might be faster (see log).
+Reading file topol.tpr, VERSION 2024.5-conda_forge (single precision)
+Can not increase nstlist because verlet-buffer-tolerance is not set or used
+Update groups can not be used for this system because an incompatible virtual site type is used
+
+Using 1 MPI thread
+Using 64 OpenMP threads 
+
+
+Back Off! I just backed up ener.edr to ./#ener.edr.10#
+starting mdrun 'lipids-sim'
+50000 steps,     50.0 ps.
+
+-------------------------------------------------------
+Program:     gmx mdrun, version 2024.5-conda_forge
+Source file: src/gromacs/mdlib/sim_util.cpp (line 555)
+Function:    void checkPotentialEnergyValidity(int64_t, const gmx_enerdata_t&, const t_inputrec&)
+
+Internal error (bug):
+Step 0: The total potential energy is 4.34029e+18, which is extremely high.
+The LJ and electrostatic contributions to the energy are 4.34029e+18 and
+-7931.5, respectively. A very high potential energy can be caused by
+overlapping interactions in bonded interactions or very large coordinate
+values. Usually this is caused by a badly- or non-equilibrated initial
+configuration, incorrect interactions or parameters in the topology.
+
+For more information and tips for troubleshooting, please check the GROMACS
+website at https://manual.gromacs.org/current/user-guide/run-time-errors.html
+-------------------------------------------------------

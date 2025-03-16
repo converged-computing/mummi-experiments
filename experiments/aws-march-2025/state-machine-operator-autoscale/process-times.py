@@ -102,9 +102,9 @@ def main():
 
     # Specific cpu and gpu results
     cpu_static_indirs = ["cpu-arm-no-autoscaling", "cpu-arm-no-autoscaling-0", "cpu-arm-no-autoscaling-1"]
-    cpu_as_indir = ["cpu-arm-autoscale", "cpu-arm-autoscale-0"]
+    cpu_as_indir = ["cpu-arm-autoscale", "cpu-arm-autoscale-0", "cpu-arm-autoscale-1"]
     gpu_static_indir = ["gpu-no-autoscaling", "gpu-no-autoscaling-0", "gpu-no-autoscaling-1"]
-    gpu_as_indir = ["gpu-autoscale"]
+    gpu_as_indir = ["gpu-autoscale", "gpu-autoscale-0", "gpu-autoscale-1"]
     indirs = []
     for indir_set in cpu_static_indirs, cpu_as_indir, gpu_static_indir, gpu_as_indir:
         for indir_name in indir_set:
