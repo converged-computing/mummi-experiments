@@ -264,6 +264,14 @@ Excess Completed
 17  gpu-static  cganalysis     0         2
 ```
 
+### Pulling Times
+
+Singularity containers take a lot longer to pull than docker because they require generating the SIF.
+Note that the experiments do NOT include these times, so the face value assessment is not a fair one.
+
+![results/processed/pull_times_by_experiment](results/processed/pull_times_by_experiment)
+
+
 ### Function Times
 
 Like the other results, the CPU ARM outperforms the GPU setup.
