@@ -46,23 +46,23 @@ def main():
 
     # Specific cpu and gpu results
     _indirs = {
-        "cpu-static": [
-            #            "cpu-static-0",
-            #            "cpu-static-1",
-            #            "cpu-static-2",
-        ],
         "gpu-static": [
             "gpu-static-0",
             "gpu-static-1",
             "gpu-static-2",
         ],
+        "cpu-static": [
+            "cpu-static-0",
+            #            "cpu-static-1",
+            #            "cpu-static-2",
+        ],
     }
     indirs, event_files = me.collect_inputs(_indirs, indir)
-    times_df, _ = me.parse_events(outdir, event_files)
-    me.plot_pulling_times(times_df, outdir)
+    times_df, _ = me.parse_events(outdir, event_files) 
+    me.plot_pulling_times(times_df, outdir, include_mlrunner=False)
 
     # Now let's count outputs (total and excess)
-    # the Mummi operator has slightly different ways to save output
+    # the Mummi operator has slightly different ways to save output for GPU (but not CPU containers)
     # We read from tarfile into memory for subsequent analyses
     me.count_outputs(
         indirs,
@@ -87,7 +87,9 @@ def workflow_manager(indirs, outdir):
     """
     workflow_starts = {}
     workflow_ends = {}
-    df = pandas.DataFrame(columns=["experiment", "event", "duration", "global", "iteration"])
+    df = pandas.DataFrame(
+        columns=["experiment", "event", "duration", "global", "iteration"]
+    )
     idx = 0
     for experiment, indirset in indirs.items():
         for _indir in indirset:
@@ -121,7 +123,13 @@ def workflow_manager(indirs, outdir):
                         workflow_starts[experiment][iteration] = timestamp
                         workflow_ends[experiment][iteration] = ending_ts
                         duration = ending_ts - timestamp
-                        df.loc[idx, :] = [experiment, event, duration, global_event, iteration]
+                        df.loc[idx, :] = [
+                            experiment,
+                            event,
+                            duration,
+                            global_event,
+                            iteration,
+                        ]
                         idx += 1
                         continue
 
@@ -138,7 +146,9 @@ def workflow_manager(indirs, outdir):
     function_times = function_times.to_frame()
 
     # Make a more parseable data frame
-    func_df = pandas.DataFrame(columns=["experiment", "function", "duration", "iteration"])
+    func_df = pandas.DataFrame(
+        columns=["experiment", "function", "duration", "iteration"]
+    )
     idx = 0
     for row in function_times.iterrows():
         func_df.loc[idx, :] = [row[0][0], row[0][1], row[1].duration, row[0][2]]
@@ -213,7 +223,7 @@ def job_timings(indirs, outdir):
             samples = [
                 x
                 for x in me.find_inputs(data_dir, "cganalysis-output.tar.gz")
-                if "/cganalysis/" in x
+                if "/cganalysis/" in x or '/cganalysis-fail/' in x
             ]
             df, idx = parse_cganalysis_times(df, samples, experiment, idx, iteration)
 

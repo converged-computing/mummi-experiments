@@ -6,9 +6,6 @@ import json
 import os
 import re
 import tarfile
-
-from datetime import datetime
-
 import sys
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -105,7 +102,7 @@ def main():
     sm_indir = os.path.join(indir, "state-machine-operator-autoscale", "results")
     flux_sm_indir = os.path.join(indir, "state-machine-flux", "results", "processed")
     indirs = [mummi_indir, sm_indir, flux_sm_indir]
-    times_df = parse_pulling_times(indirs)
+    times_df = parse_pulling_times(indirs, outdir)
     me.plot_pulling_times(times_df, outdir)
 
     # Now let's count outputs (total and excess)
@@ -115,7 +112,7 @@ def main():
     workflow_times = workflow_manager(indirs, outdir)
 
     # Now let's look at times for jobs
-    best_df = job_timings(indirs, outdir, workflow_times)
+    best_df = job_timings(indirs, outdir, workflow_times, times_df)
     calculate_costs(indirs, workflow_times, outdir, best_df)
 
 
@@ -252,7 +249,7 @@ def find_mlrunner_times():
     return times
 
 
-def job_timings(indirs, outdir, workflow_times):
+def job_timings(indirs, outdir, workflow_times, pull_df):
     """
     Find output files for job timings.
     """
@@ -308,6 +305,7 @@ def job_timings(indirs, outdir, workflow_times):
         idx += 1
 
     # Calculate the hypothetical bests for each iteration and experiment - if we just ran 10 completions of each job
+    # We also have to include container pulling, to be fair
     best_possible_times = {}
     for experiment in function_times.experiment.unique():
         if experiment not in best_possible_times:
@@ -343,7 +341,21 @@ def job_timings(indirs, outdir, workflow_times):
             best_possible_time = (
                 sum(createsim_best) + sum(cganalysis_best) + sum(mlrunner_best)
             ) / 6
-            best_possible_times[experiment][iteration] = best_possible_time
+
+            # Add the pulling time - we divide by 6 assuming that it is evenly distributed across nodes.
+            # For autoscaling, this is OK because we just downsized. If we size up we would need to account for new pulls
+            experiment_name = experiment
+            if "autoscale" not in experiment:
+                experiment_name = f"{experiment}-static"
+            pull_time = (
+                pull_df[
+                    (pull_df.experiment == experiment_name)
+                    & (pull_df.iteration == iteration)
+                    & (pull_df.event == "pulled")
+                ].duration.sum()
+                / 6
+            )
+            best_possible_times[experiment][iteration] = best_possible_time + pull_time
 
     workflow_complete_times = workflow_times[
         workflow_times["global"].isin(["workflow_complete", "wfmanager_run_workflow"])
@@ -469,198 +481,32 @@ def count_outputs(indirs, outdir, completions=6):
     completed.to_csv(os.path.join(outdir, "jobs-completed.csv"))
 
 
-def parse_pulling_times(indirs):
+def parse_pulling_times(indirs, outdir):
     """
     Read events and turn into data frame with container pull times
     """
-    mummi_pulling_file = os.path.join(indirs[0], "container-pulling-times.json")
-    sm_pulling_file = os.path.join(indirs[1], "container-pulling-times.json")
+    mummi_pulling = pandas.read_csv(
+        os.path.join(indirs[0], "container-pulling-times.csv"), index_col=0
+    )
+    sm_pulling = pandas.read_csv(
+        os.path.join(indirs[1], "container-pulling-times.csv"), index_col=0
+    )
     sm_flux_pulling = pandas.read_csv(
         os.path.join(indirs[2], "container-pull-times.csv"), index_col=0
     )
-    mummi_pulling = read_json(mummi_pulling_file)
-    sm_pulling = read_json(sm_pulling_file)
-
-    # This is for containers
-    df = pandas.DataFrame(
-        columns=[
-            "name",
-            "kind",
-            "job",
-            "event",
-            "duration",
-            "container",
-            "experiment",
-        ]
-    )
-    idx = 0
-
-    # Kubernetes Operators first
-    operator_times = {
-        "mummi": mummi_pulling,
-        "state-machine": sm_pulling,
-    }
-    # STRATEGY:
-    # pod will get us pulling times
-    # job will get us completion times (success or fail)
-    #   jobs that do not complete in some respect are sunk cost
-    #   that will be reflected in the total cluster up/down time
-    for operator, times in operator_times.items():
-        for experiment, items in times.items():
-            # Add the operator name to the experiment
-            experiment = f"{operator}-{experiment}"
-
-            # Remove static to make labels shorter
-            # All these experiments are static (at least for now)
-            experiment = experiment.replace("-static", "")
-            for uid, item in items.items():
-                # Skip non-pod and job events for now
-                kind = item["kind"]
-                if kind not in ["Pod", "Job"]:
-                    continue
-
-                # This is a problem with AWS CNI, usually shows up on deletion I think
-                if "failedcreatepodsandbox" in item["events"]:
-                    continue
-
-                # The only experiment without a stated size is aws eks gpu, size 16
-                container = item.get("container")
-                if not container and "pulled" in item["events"]:
-                    container = (
-                        re.search('["].*["]', item["events"]["pulled"]["message"])
-                        .group()
-                        .strip('"')
-                    )
-
-                # PULLING
-                # We can do our own calculation based on timestamps here
-                # These seem to be better in terms of granularity
-                pulled_seconds = None
-                running_seconds = None
-                job = None
-
-                # We can derive pull plus waiting from the message here
-                # This is better data
-                if "pulled" in item["events"] and pulled_seconds is None:
-                    message = item["events"]["pulled"]["message"]
-                    # If it's already pulled, don't count it
-                    if "already present on machine" in message.lower():
-                        continue
-                    time_pulled = re.search("[(].*[)]", message)
-                    time_pulled = time_pulled.group().split(" ")[0].replace("(", "")
-                    # parse time pulled
-                    pulled_seconds = me.parse_time_pulled(time_pulled)
-
-                elif "pulling" in item["events"] and "pulled" in item["events"]:
-                    start = item["events"]["pulling"]["timestamp"]
-                    end = item["events"]["pulled"]["timestamp"]
-                    parsed_end = datetime.strptime(end, timestamp_format)
-                    parsed_start = datetime.strptime(start, timestamp_format)
-                    elapsed = parsed_end - parsed_start
-                    pulled_seconds = elapsed.seconds
-
-                # We can't use "killing" to derive pod times, they don't show up
-                # until the cluster deletion. Also note that "Completed" can be
-                # success or error - we only know this from result data
-                if kind == "Job":
-                    # This is a sunk cost - a job started that didn't finish
-                    if "completed" not in item["events"]:
-                        continue
-                    job_end = me.parse_timestamp(
-                        item["events"]["completed"]["timestamp"]
-                    )
-                    job_start = me.parse_timestamp(
-                        item["events"]["successfulcreate"]["timestamp"]
-                    )
-                    running_seconds = (job_end - job_start).seconds
-                    job = uid.split("-")[0]
-
-                elif kind == "Pod" and container is not None:
-                    if "cganalysis" in container:
-                        job = "cganalysis"
-                    elif "createsim" in container:
-                        job = "createsim"
-
-                # parse all events for absolute timestamp
-                # For these we want absolute timestamps to compare across
-                # because we need to understand variation between nodes
-                pod_events = ["pulled", "pulling", "scheduled", "created", "started"]
-                job_events = ["successfulcreate", "completed"]
-                for event_name in pod_events + job_events:
-                    if event_name not in item["events"]:
-                        continue
-                    # For these, calculate a difference.
-                    previous_event = {"created": "pulled", "started": "created"}
-                    timestamp = item["events"][event_name]["timestamp"]
-                    parsed_timestamp = me.parse_timestamp(timestamp)
-                    df.loc[idx, :] = [
-                        uid,
-                        kind,
-                        job,
-                        event_name + "-timestamp",
-                        parsed_timestamp.timestamp(),
-                        container,
-                        experiment,
-                    ]
-                    idx += 1
-                    if event_name in previous_event:
-                        previous_timestamp = item["events"][previous_event[event_name]][
-                            "timestamp"
-                        ]
-                        previous_timestamp = datetime.strptime(
-                            previous_timestamp, timestamp_format
-                        )
-                        elapsed = parsed_timestamp - previous_timestamp
-                        event_seconds = elapsed.seconds
-                        df.loc[idx, :] = [
-                            uid,
-                            kind,
-                            job,
-                            event_name,
-                            event_seconds,
-                            container,
-                            experiment,
-                        ]
-                        idx += 1
-                    continue
-
-                if pulled_seconds is not None:
-                    df.loc[idx, :] = [
-                        uid,
-                        kind,
-                        job,
-                        "pulled",
-                        pulled_seconds,
-                        container,
-                        experiment,
-                    ]
-                    idx += 1
-
-                if running_seconds is not None:
-                    df.loc[idx, :] = [
-                        uid,
-                        kind,
-                        job,
-                        "running",
-                        running_seconds,
-                        container,
-                        experiment,
-                    ]
-                    idx += 1
-
-    # Now add singularity
-    for row in sm_flux_pulling.iterrows():
-        df.loc[idx, :] = [
-            # uid is usually associated with a specific job identifier, none here
-            None,
-            "singularity",
-            row[1].job,
-            "pulled",
-            row[1].duration,
-            row[1].container.replace("docker://", ""),
-            f"flux-state-machine-{row[1].experiment}",
-        ]
-        idx += 1
+    # Now add singularity (flux)
+    sm_flux_pulling["name"] = None
+    sm_flux_pulling.loc[:, "experiment"] = [
+        f"state-machine-flux-{x}" for x in sm_flux_pulling.experiment.values
+    ]
+    mummi_pulling.loc[:, "experiment"] = [
+        f"mummi-{x}" for x in mummi_pulling.experiment.values
+    ]
+    sm_pulling.loc[:, "experiment"] = [
+        f"state-machine-{x}" for x in sm_pulling.experiment.values
+    ]
+    df = pandas.concat([mummi_pulling, sm_pulling, sm_flux_pulling])
+    df.to_csv(os.path.join(outdir, "all-container-pull-times.csv"))
     return df
 
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import json
 import argparse
 import os
 import sys
@@ -75,10 +76,38 @@ def main():
     # Note that we add the pulling times here because they were not included in the experiment
     # and need to be.
     manager_df = add_pulling_times(manager_df, times_df, outdir)
+    
+    # Finally, add running times
+    add_job_running_times(times_df, outdir)
     me.calculate_costs_static(
         indirs, manager_df, workflow_starts, workflow_ends, outdir
     )
 
+def add_job_running_times(df, outdir):
+    """
+    Add job running times from flux output files
+    """
+    # Finally, we got the running events from Kubernetes, and need to add them here.
+    idx = df.shape[0] + 1
+    job_times = parse_job_times()
+    me.write_json(job_times, os.path.join(outdir, "job-times.json"))
+    for experiment, job_names in job_times.items():
+        for job_name, iterations in job_names.items():
+            for iteration, timelist in iterations.items():
+                for runtime in timelist:
+                    df.loc[idx, :] = [
+                        None,
+                        job_name,
+                        "running",
+                        runtime,
+                        None,
+                        f"{experiment}-static",
+                        iteration,
+                    ]
+                    idx += 1
+
+    df.to_csv(os.path.join(outdir, "container-pull-times.csv"))
+    
 
 def add_pulling_times(manager_df, times_df, outdir):
     """
@@ -99,7 +128,7 @@ def add_pulling_times(manager_df, times_df, outdir):
             times_df[times_df.experiment == experiment]
             experiment_df = times_df[times_df.experiment == experiment]
             experiment_df = experiment_df[experiment_df.iteration == iteration]
-            # cganalysis, mlrunner, and createsims
+            # One for each of mlrunner, createsim, cganalysis
             assert experiment_df.shape[0] == 3
             additional_time[experiment][iteration] = experiment_df.duration.sum()
 
@@ -122,6 +151,45 @@ def add_pulling_times(manager_df, times_df, outdir):
             idx += 1
     updated.to_csv(os.path.join(outdir, "workflow-individual-times.csv"))
     return updated
+
+
+def parse_job_times():
+    """
+    This is akin to what the Kubernetes event exporter gives us.
+    """
+    times = {"cpu": {}, "gpu": {}}
+    gpu = [
+        x
+        for x in me.find_inputs(os.path.join(here, "results", "gpu"), "out")
+        if "error" not in x
+    ]
+    cpu = [
+        x
+        for x in me.find_inputs(os.path.join(here, "results", "cpu"), "out")
+        if "error" not in x
+    ]
+    for filename in cpu + gpu:
+        if not filename.endswith(".out"):
+            continue
+        content = me.read_file(filename)
+        # Get the two wrapping timestamps
+        run_start = json.loads(
+            [x for x in content.split("\n") if "shell.start" in x][0]
+        )["timestamp"]
+        run_end = json.loads(
+            [x for x in content.split("\n") if "shell.task-exit" in x][0]
+        )["timestamp"]
+        environ = "cpu" if "cpu" in filename else "gpu"
+        job_name = os.path.basename(filename).split("-")[1]
+        if job_name not in times[environ]:
+            times[environ][job_name] = {}
+        iteration = int(
+            [x for x in filename.split(os.sep) if "iter" in x][0].split("-")[-1]
+        )
+        if iteration not in times[environ][job_name]:
+            times[environ][job_name][iteration] = []
+        times[environ][job_name][iteration].append(run_end - run_start)
+    return times
 
 
 def parse_container_pulls(indir, outdir):
@@ -179,6 +247,7 @@ def parse_container_pulls(indir, outdir):
                 iteration,
             ]
             idx += 1
+
     df.to_csv(os.path.join(outdir, "container-pull-times.csv"))
     return df
 
