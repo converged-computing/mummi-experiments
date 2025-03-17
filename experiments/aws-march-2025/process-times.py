@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import random
 import argparse
 import json
 import os
@@ -176,9 +177,6 @@ def combine_data_frames(indirs, filename):
     mummi = pandas.read_csv(os.path.join(indirs[0], filename), index_col=0)
     sm = pandas.read_csv(os.path.join(indirs[1], filename), index_col=0)
     sm_flux = pandas.read_csv(os.path.join(indirs[2], filename), index_col=0)
-    import IPython
-    IPython.embed()
-    sys.exit()
     mummi["operator"] = "mummi"
     sm["operator"] = "state-machine"
     sm_flux["operator"] = "flux-state-machine"
@@ -186,10 +184,35 @@ def combine_data_frames(indirs, filename):
     # Save initial name for later backup
     combined["environment"] = combined["experiment"]
     combined["experiment"] = [
-        x.replace("-static", "") for x in combined["experiment"].tolist()
+        x.replace("-static", "").replace('flux-', '') for x in combined["experiment"].tolist()
     ]
     combined["experiment"] = combined["operator"] + "-" + combined["experiment"]
     return combined
+
+
+def find_mlrunner_times():
+    """
+    We can get the runtimes of the mlrunner on each GPU/CPU instance from the flux logs.
+    """
+    times = {"cpu": [], "gpu": []}
+    mlrunner_gpu = [x for x in find_inputs(os.path.join(root, "state-machine-flux", "results", "gpu"), "out") if "error" not in x and "mlrunner" in x]
+    mlrunner_cpu = [x for x in find_inputs(os.path.join(root, "state-machine-flux", "results", "cpu"), "out") if "error" not in x and "mlrunner" in x]
+    for filename in mlrunner_gpu + mlrunner_cpu:
+       content = read_file(filename)
+       # Already seen is a message that we see when there is an invalid sample (and it runs again)
+       # We only want to get times for one valid sample run
+       if "Already seen" in content:
+           continue
+       # We only count valid samples (exit code 0). Technically the jobs
+       flux_event = json.loads([x for x in content.split('\n') if "complete" in x and "status" in x][0])
+       if flux_event['context']['status'] != 0:
+           continue
+       # Get the two wrapping timestamps
+       run_start = json.loads([x for x in content.split('\n') if "shell.start" in x][0])['timestamp']
+       run_end = json.loads([x for x in content.split('\n') if "shell.task-exit" in x][0])['timestamp']
+       environ = "cpu" if "cpu" in filename else "gpu"
+       times[environ].append(run_end-run_start)
+    return times
 
 
 def job_timings(indirs, outdir, workflow_times):
@@ -214,16 +237,36 @@ def job_timings(indirs, outdir, workflow_times):
     )
 
     # Calculate the theoretical minimum time for experiments
-    # Note that we won't have this for mummi
+    # Note that we won't have this for mummi, so we instead use the mean time of a single mummi run and multiply the runs needed
+    # First find the mlrunner saves we have (from flux) that reflect mummi runs on the corresponding instance types
+    mlrunner_single_times = find_mlrunner_times()
+    
     mlrunner_times = workflow_times[workflow_times['global'] == 'mlrunner_success']
     createsim_times = function_times[function_times['global'] == 'createsim_runtime']
     cganalysis_times = function_times[function_times['global'] == 'cganalysis_run']
 
-    times = {}
+    # For each of gpu and cpu, randomly select three samples for MuMMI, which doesn't have the actual times
+    # because we were running a server
+    idx = mlrunner_times.shape[0] + 1
+    mlrunner_cpu_sample = random.sample(mlrunner_single_times['cpu'], 3)
+    mlrunner_gpu_sample = random.sample(mlrunner_single_times['gpu'], 3)
+    for i in range(3):
+        mlrunner_times.loc[idx, :] = ['mummi-cpu', 'mlrunner_success', mlrunner_cpu_sample[i], 'global', 'mummi', i, 'cpu-static']
+        idx +=1
+        mlrunner_times.loc[idx, :] = ['mummi-gpu', 'mlrunner_success', mlrunner_gpu_sample[i], 'global', 'mummi', i, 'gpu-static']
+        idx +=1
+        
+    # Calculate the hypothetical bests for each iteration and experiment - if we just ran 10 completions of each job
+    best_possible_times = {}
     for experiment in function_times.experiment.unique():
-        if experiment not in times:
-            experiment[times] = {}
-        # We can't consider MuMMI because 
+        if experiment not in best_possible_times:
+            best_possible_times[experiment] = {}
+        subset = function_times[function_times.experiment == experiment]        
+        for iteration in subset.iteration.unique():
+            if experiment not in best_possible_times:
+                best_possible_times[experiment] = {}
+            
+            
 
     import IPython
     IPython.embed()
