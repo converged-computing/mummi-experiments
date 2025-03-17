@@ -9,12 +9,16 @@ import tarfile
 
 from datetime import datetime
 
+import sys
+
+here = os.path.abspath(os.path.dirname(__file__))
+root = os.path.dirname(here)
+sys.path.insert(0, root)
+import mummi_experiments as me
+
 import matplotlib.pylab as plt
 import pandas
 import seaborn as sns
-
-here = os.path.abspath(__file__)
-root = os.path.dirname(here)
 
 timestamp_format = "%Y-%m-%dT%H:%M:%SZ"
 node_timestamp_format = "%Y-%m-%dT%H:%M:%S.%fZ"
@@ -25,12 +29,12 @@ def get_parser():
     parser.add_argument(
         "--out",
         help="directory to save parsed results (with experiment prefix)",
-        default=os.path.join(root, "results"),
+        default=os.path.join(here, "results"),
     )
     parser.add_argument(
         "--completions",
         help="completions expected for experiments",
-        default=6,
+        default=10,
         type=int,
     )
     return parser
@@ -92,7 +96,7 @@ def main():
 
     # Output images and data
     outdir = os.path.abspath(args.out)
-    indir = os.path.abspath(root)
+    indir = os.path.abspath(here)
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 
@@ -102,46 +106,38 @@ def main():
     flux_sm_indir = os.path.join(indir, "state-machine-flux", "results", "processed")
     indirs = [mummi_indir, sm_indir, flux_sm_indir]
     times_df = parse_pulling_times(indirs)
-    plot_pulling_times(times_df, outdir)
+    me.plot_pulling_times(times_df, outdir)
 
     # Now let's count outputs (total and excess)
     count_outputs(indirs, outdir, completions=args.completions)
 
     # Now look at times for the workflow manager
-    workflow_times, workflow_starts, workflow_ends = workflow_manager(indirs, outdir)
+    workflow_times = workflow_manager(indirs, outdir)
 
     # Now let's look at times for jobs
     best_df = job_timings(indirs, outdir, workflow_times)
-    calculate_costs(
-        indirs, times_df, workflow_times, workflow_starts, workflow_ends, outdir
-    )
+    calculate_costs(indirs, workflow_times, outdir, best_df)
+
+
+def get_operators_with_autoscale(total_time):
+    """
+    Add "autoscale" to be part of the operator
+    """
+    operators = []
+    for row in total_time.iterrows():
+        if "autoscale" in row[1].experiment:
+            operators.append(f"{row[1].operator}-autoscale")
+        else:
+            operators.append(row[1].operator)
+    return operators
 
 
 def workflow_manager(indirs, outdir):
     """
     Look at timings for the workflow manager
     """
-    # Keep a lookup for the exact workflow start timestamps
-    workflow_starts = {}
-    workflow_ends = {}
-    for _indir in indirs:
-        experiment = get_experiment_name(_indir)
-        iteration = get_experiment_iteration(_indir)
-        times = read_json(os.path.join(_indir, "workflow-times.json"))
-        if experiment not in workflow_starts:
-            workflow_starts[experiment] = {}
-            workflow_ends[experiment] = {}
-        if iteration not in workflow_starts[experiment]:
-            workflow_starts[experiment][iteration] = {}
-            workflow_ends[experiment][iteration] = {}
-        for name, timestamp in times["timestamps"].items():
-            if "workflow_start" in name:
-                workflow_starts[experiment][iteration] = timestamp
-                workflow_end = times["timestamps"]["workflow_complete"]
-                workflow_ends[experiment][iteration] = workflow_end
-
     workflow_times = combine_data_frames(indirs, "workflow-individual-times.csv")
-    make_plot(
+    me.make_plot(
         workflow_times,
         title="Workflow Manager Accumulated Function Times",
         ydimension="duration",
@@ -163,30 +159,32 @@ def workflow_manager(indirs, outdir):
         workflow_times["global"].isin(["workflow_complete", "wfmanager_run_workflow"])
     ]
     total_time["global"] = "workflow_complete"
-    total_time["environment"] = [
-        x.replace("-static", "") for x in total_time["environment"]
+    operators = get_operators_with_autoscale(total_time)
+    total_time.loc[:, "environment"] = [
+        x.replace("-static", "").replace("-autoscale", "")
+        for x in total_time["environment"]
     ]
-    make_plot(
+    total_time.loc[:, "operator"] = operators
+    me.make_plot(
         total_time,
         title="Total Time to Run Workflow",
         ydimension="duration",
-        xdimension="environment",
+        xdimension="operator",
         outdir=os.path.join(outdir, "img"),
         ext="png",
         plotname="workflow_total_time",
-        hue="operator",
+        hue="environment",
         plot_type="bar",
         xlabel="Environment",
         ylabel="Running Time (seconds)",
-        rotation=360,
-        height=3,
+        rotation=90,
     )
 
     # The only meaningful comparison is the workflow running time to get 6 samples
     print("See workflow running time to get 10 samples")
     print(workflow_times.groupby(["experiment", "global"]).duration.mean())
     print(total_time)
-    return workflow_times, workflow_starts, workflow_ends
+    return workflow_times
 
 
 def combine_data_frames(indirs, filename):
@@ -219,14 +217,14 @@ def find_mlrunner_times():
     mlrunner_gpu = [
         x
         for x in find_inputs(
-            os.path.join(root, "state-machine-flux", "results", "gpu"), "out"
+            os.path.join(here, "state-machine-flux", "results", "gpu"), "out"
         )
         if "error" not in x and "mlrunner" in x
     ]
     mlrunner_cpu = [
         x
         for x in find_inputs(
-            os.path.join(root, "state-machine-flux", "results", "cpu"), "out"
+            os.path.join(here, "state-machine-flux", "results", "cpu"), "out"
         )
         if "error" not in x and "mlrunner" in x
     ]
@@ -259,7 +257,7 @@ def job_timings(indirs, outdir, workflow_times):
     Find output files for job timings.
     """
     function_times = combine_data_frames(indirs, "function-individual-times.csv")
-    make_plot(
+    me.make_plot(
         function_times,
         title="Total Accumulated Function Times",
         ydimension="duration",
@@ -274,10 +272,6 @@ def job_timings(indirs, outdir, workflow_times):
         width=12,
         height=12,
     )
-    # For now fill in MuMMI iteration as 1 - we just have one run
-    workflow_times.loc[workflow_times.operator == "mummi", "iteration"] = 1
-    function_times.loc[function_times.operator == "mummi", "iteration"] = 1
-
     # Compare the actual workflow time with the theoretical minimum
     # Note that we won't have this for mummi, so we instead use the mean time of a single mummi run and multiply the runs needed
     # First find the mlrunner saves we have (from flux) that reflect mummi runs on the corresponding instance types
@@ -423,22 +417,10 @@ def job_timings(indirs, outdir, workflow_times):
     plt.title("Actual Time vs. Theoretical Best Time")
     plt.xticks(rotation=90)
     plt.tight_layout()
-    plt.savefig(os.path.join(outdir, f"actual-time-vs-theoretical.png"))
-    plt.savefig(os.path.join(outdir, f"actual-time-vs-theoretical.svg"))
+    plt.savefig(os.path.join(outdir, "actual-time-vs-theoretical.png"))
+    plt.savefig(os.path.join(outdir, "actual-time-vs-theoretical.svg"))
     plt.close()
     return best_df
-
-
-def parse_timestamp(timestamp):
-    """
-    We either get an eventTime (considered atomic)
-    or firstTimestamp (considered continuous). In practice
-    I'm not sure the distinction makes sense, but the formats
-    are slightly different.
-    """
-    if "." in timestamp:
-        return datetime.strptime(timestamp, node_timestamp_format)
-    return datetime.strptime(timestamp, timestamp_format)
 
 
 def count_outputs(indirs, outdir, completions=6):
@@ -452,7 +434,7 @@ def count_outputs(indirs, outdir, completions=6):
         os.makedirs(img_outdir)
 
     # Plot each
-    make_plot(
+    me.make_plot(
         excess,
         title="Excess Jobs by Experiment",
         ydimension="count",
@@ -468,7 +450,7 @@ def count_outputs(indirs, outdir, completions=6):
         rotation=360,
     )
 
-    make_plot(
+    me.make_plot(
         completed,
         title="Total Completed Jobs by Experiment",
         ydimension="count",
@@ -487,28 +469,15 @@ def count_outputs(indirs, outdir, completions=6):
     completed.to_csv(os.path.join(outdir, "jobs-completed.csv"))
 
 
-def parse_time_pulled(time_pulled):
-    """
-    Parse string timestamp into seconds for pulling.
-    """
-    minutes = 0
-    # First check for milliseconds, if reported in ms there aren't seconds or minutes
-    if "ms" in time_pulled:
-        return float(time_pulled.replace("ms", "", 1)) / 1000
-    if "m" in time_pulled:
-        minutes, rest = time_pulled.split("m", 1)
-        minutes = int(minutes)
-        time_pulled = rest
-    seconds = float(time_pulled.rstrip("s"))
-    return (minutes * 60) + seconds
-
-
 def parse_pulling_times(indirs):
     """
     Read events and turn into data frame with container pull times
     """
-    mummi_pulling_file = find_inputs(indirs[0], "container-pulling-times.json")[0]
-    sm_pulling_file = find_inputs(indirs[1], "container-pulling-times.json")[0]
+    mummi_pulling_file = os.path.join(indirs[0], "container-pulling-times.json")
+    sm_pulling_file = os.path.join(indirs[1], "container-pulling-times.json")
+    sm_flux_pulling = pandas.read_csv(
+        os.path.join(indirs[2], "container-pull-times.csv"), index_col=0
+    )
     mummi_pulling = read_json(mummi_pulling_file)
     sm_pulling = read_json(sm_pulling_file)
 
@@ -526,6 +495,7 @@ def parse_pulling_times(indirs):
     )
     idx = 0
 
+    # Kubernetes Operators first
     operator_times = {
         "mummi": mummi_pulling,
         "state-machine": sm_pulling,
@@ -579,7 +549,7 @@ def parse_pulling_times(indirs):
                     time_pulled = re.search("[(].*[)]", message)
                     time_pulled = time_pulled.group().split(" ")[0].replace("(", "")
                     # parse time pulled
-                    pulled_seconds = parse_time_pulled(time_pulled)
+                    pulled_seconds = me.parse_time_pulled(time_pulled)
 
                 elif "pulling" in item["events"] and "pulled" in item["events"]:
                     start = item["events"]["pulling"]["timestamp"]
@@ -596,8 +566,10 @@ def parse_pulling_times(indirs):
                     # This is a sunk cost - a job started that didn't finish
                     if "completed" not in item["events"]:
                         continue
-                    job_end = parse_timestamp(item["events"]["completed"]["timestamp"])
-                    job_start = parse_timestamp(
+                    job_end = me.parse_timestamp(
+                        item["events"]["completed"]["timestamp"]
+                    )
+                    job_start = me.parse_timestamp(
                         item["events"]["successfulcreate"]["timestamp"]
                     )
                     running_seconds = (job_end - job_start).seconds
@@ -620,7 +592,7 @@ def parse_pulling_times(indirs):
                     # For these, calculate a difference.
                     previous_event = {"created": "pulled", "started": "created"}
                     timestamp = item["events"][event_name]["timestamp"]
-                    parsed_timestamp = parse_timestamp(timestamp)
+                    parsed_timestamp = me.parse_timestamp(timestamp)
                     df.loc[idx, :] = [
                         uid,
                         kind,
@@ -675,79 +647,83 @@ def parse_pulling_times(indirs):
                         experiment,
                     ]
                     idx += 1
+
+    # Now add singularity
+    for row in sm_flux_pulling.iterrows():
+        df.loc[idx, :] = [
+            # uid is usually associated with a specific job identifier, none here
+            None,
+            "singularity",
+            row[1].job,
+            "pulled",
+            row[1].duration,
+            row[1].container.replace("docker://", ""),
+            f"flux-state-machine-{row[1].experiment}",
+        ]
+        idx += 1
     return df
 
 
-def calculate_costs(workflow_times, outdir, best_df):
+def calculate_costs(indirs, workflow_times, outdir, best_df):
     """
     Calculate experiment costs based on timings.
     """
-    # TODO: need to save workflow starts and stops as data somewhere, then load here
+    # We name state-machine-autoscale to be state machine too, make it a key
+    workflow_start_end_times = {
+        "mummi": read_json(os.path.join(indirs[0], "workflow-endpoint-times.json")),
+        "state-machine": read_json(
+            os.path.join(indirs[1], "workflow-endpoint-times.json")
+        ),
+        "state-machine-autoscale": read_json(
+            os.path.join(indirs[1], "workflow-endpoint-times.json")
+        ),
+        "state-machine-flux": read_json(
+            os.path.join(indirs[2], "workflow-endpoint-times.json")
+        ),
+    }
     times = workflow_times[
         workflow_times["global"].isin(["workflow_complete", "wfmanager_run_workflow"])
     ]
-    times["global"] = "workflow_complete"
-    times["environment"] = [x.replace("-static", "") for x in times["environment"]]
+    times.loc[:, "global"] = "workflow_complete"
+    operators = get_operators_with_autoscale(times)
+    times.loc[:, "environment"] = [
+        x.replace("-static", "").replace("-autoscale", "") for x in times["environment"]
+    ]
+    times.loc[:, "operator"] = operators
+
     # Add in hpc6a and p3dn costs
-    cost_per_hour = [2.88 if "cpu" in x else 3.06 for x in times.experiment]
+    cost_per_hour = [2.88 if "cpu" in x else 3.06 for x in times.environment]
     times["cost_per_hour"] = cost_per_hour
-    times["cost"] = times["cost_per_hour"] * (times["duration"] * 6 / 60 / 60)
-    make_plot(
-        times,
-        title="Total Cost to Run Workflow",
-        ydimension="cost",
-        xdimension="environment",
-        outdir=os.path.join(outdir, "img"),
-        ext="png",
-        plotname="workflow_total_cost",
-        hue="operator",
-        plot_type="bar",
-        xlabel="Environment",
-        ylabel="Cost ($)",
-        rotation=360,
-    )
 
-    # The only meaningful comparison is the workflow running time to get 6 samples
-    print("See workflow running time to get 6 samples")
-    print(workflow_times.groupby(["experiment", "global"]).duration.mean())
-    return workflow_times
-
-    # TODO this is new stuff
-    # def calculate_costs(
-    #    indirs, nodes, times_df, manager_df, workflow_starts, workflow_ends, outdir
-    # ):
-
-    # Make a data frame of just nodes
-    workflow_times = {}
-    for experiment in manager_df.experiment.unique():
-        if experiment not in workflow_times:
-            workflow_times[experiment] = {}
-        subset = manager_df[manager_df.experiment == experiment]
-        for iteration in subset.iteration.unique():
-            # For one experiment, this is just one value
-            workflow_times[experiment][iteration] = subset[
-                (subset.iteration == iteration)
-                & (manager_df["global"] == "workflow_complete")
-            ].duration.mean()
-
-    # Read in cluster nodes events
+    # Read in cluster nodes events (we only need this for autoscaling)
     cluster_nodes = {}
-    for indir in indirs:
-        experiment = get_experiment_name(indir)
+    nodes_files = me.find_inputs(os.path.dirname(indirs[1]), "cluster-nodes.json")
+
+    # These were earlier (experiment / testing) studies
+    nodes_files = [
+        x for x in nodes_files if not re.search("(7-threads|timeout|no-autoscaling)", x)
+    ]
+
+    # We only need this calculation for autoscale
+    nodes_files = [x for x in nodes_files if "autoscale" in x]
+    for node_file in nodes_files:
+        environ = "gpu" if "gpu" in node_file else "cpu"
+        experiment = f"state-machine-autoscale-{environ}"
         if experiment not in cluster_nodes:
             cluster_nodes[experiment] = {}
-        iteration = get_experiment_iteration(indir)
-        cluster_nodes[experiment][iteration] = read_json(
-            os.path.join(indir, "cluster-nodes.json")
-        )
+        iteration = me.get_experiment_iteration(os.path.dirname(node_file))
+        cluster_nodes[experiment][iteration] = me.read_json(node_file)
 
-    # Now use cluster nodes metadata to determine when nodes were up vs. note
+    # Now use cluster nodes metadata to determine when nodes were up vs. not
+    # These are for the state machine operator autoscale
     total_times = {}
     compute_nodes = ["hpc7g.16xlarge", "p3.2xlarge"]
     for experiment, iterset in cluster_nodes.items():
         if experiment not in total_times:
             total_times[experiment] = {}
         for iteration, nodeset in iterset.items():
+            # These iterations get read in as strings...
+            iteration = str(iteration)
             total_times[experiment][iteration] = []
             for node_name, nodemeta in nodeset.items():
                 # Filter nodes to just include those that are for compute (not sticky)
@@ -756,19 +732,24 @@ def calculate_costs(workflow_times, outdir, best_df):
                     not in compute_nodes
                 ):
                     continue
+                experiment_name, environ = experiment.rsplit("-", 1)
                 # While the experiment design doesn't elicit this, we need to check for the
                 # case that a node went away and came up during the experiment. This might
                 # happen with an aggressive autoscaling policy.
-                first_event = nodemeta["conditions"][0]["last_transition_time"]
-
-                # By default we know the node is up at the start of the workfow
-                # Check that the first event was before the cluster was created
-                node_start_time = workflow_starts[experiment][iteration]
+                node_start_time = nodemeta["conditions"][0]["last_transition_time"]
+                workflow_start_time = workflow_start_end_times[experiment_name][
+                    "starts"
+                ][f"{environ}-autoscale"][str(iteration)]
+                workflow_end_time = workflow_start_end_times[experiment_name]["ends"][
+                    f"{environ}-autoscale"
+                ][str(iteration)]
 
                 # Did the node report ready the first time after the experiment started?
-                if first_event > node_start_time:
+                # Note from V: I do not see any nodes like this.
+                first_event = workflow_start_time
+                if node_start_time > workflow_start_time:
                     print(f"Found node {node_name} that came up during experiment")
-                    node_start_time = first_event
+                    first_event = node_start_time
 
                 # If the last event posted had the node not ready, it was removed at some point.
                 if not nodemeta["is_ready"]:
@@ -776,13 +757,29 @@ def calculate_costs(workflow_times, outdir, best_df):
                     assert (
                         last_event["type"] == "Ready" and last_event["status"] is False
                     )
-                    node_uptime = last_event["last_transition_time"] - node_start_time
+                    node_uptime = last_event["last_transition_time"] - first_event
                     total_times[experiment][iteration].append(node_uptime)
                 # If the node remained ready, it was up the duration of the experiment
                 else:
                     total_times[experiment][iteration].append(
-                        workflow_ends[experiment][iteration] - node_start_time
+                        workflow_end_time - first_event
                     )
+
+    # Create entries for each iteration in static experiments
+    for experiment in times.experiment.unique():
+        if "autoscale" in experiment:
+            continue
+        subset = times[times.experiment == experiment]
+        if experiment not in total_times:
+            total_times[experiment] = {}
+        for iteration in subset.iteration.unique():
+            iter_df = subset[subset.iteration == iteration]
+            # This needs to be just one row
+            assert iter_df.shape[0] == 1
+            workflow_duration = iter_df.duration.values[0]
+            iteration_cost = [workflow_duration] * 6
+            # The json dump will throw up on us if this isn't a string
+            total_times[experiment][str(iteration)] = iteration_cost
 
     # Sanity check!
     print(json.dumps(total_times, indent=4))
@@ -801,200 +798,45 @@ def calculate_costs(workflow_times, outdir, best_df):
 
     print(json.dumps(total_costs, indent=4))
     cost_df = pandas.DataFrame(
-        columns=["experiment", "cost", "environment", "iteration"]
+        columns=["experiment", "operator", "cost", "environment", "iteration"]
     )
     idx = 0
     for experiment, iterations in total_costs.items():
+        # Derive the operator for nice organization
+        # This gets rid of cpu/gpu
+        operator = experiment.rsplit("-", 1)[0]
+        environ = experiment.rsplit("-", 1)[1]
         for iteration, cost in iterations.items():
-            environ = "autoscale"
-            if "static" in experiment:
-                environ = "static"
             cost_df.loc[idx, :] = [
                 experiment.replace("-", " "),
+                operator,
                 cost,
                 environ,
-                iteration,
+                int(iteration),
             ]
             idx += 1
 
     cost_df.to_csv(os.path.join(outdir, "total-costs.csv"))
-    make_plot(
+    me.make_plot(
         cost_df,
         title="Total Cost to Run Workflow",
         ydimension="cost",
-        xdimension="experiment",
+        xdimension="operator",
         outdir=os.path.join(outdir, "img"),
         ext="png",
         plotname="workflow_total_cost",
         hue="environment",
-        plot_type="box",
+        plot_type="bar",
+        order=[
+            "flux-state-machine",
+            "state-machine-autoscale",
+            "state-machine",
+            "mummi",
+        ],
         xlabel="Environment",
         ylabel="Cost ($)",
-        rotation=360,
+        rotation=90,
     )
-
-
-def plot_pulling_times(df, outdir):
-    """
-    Given an output directory, plot image to show pull times.
-    """
-    # Let's first plot pull times
-    subset = df[df.event == "pulled"]
-    # Don't account for already pulled
-    subset = subset[subset.duration != 0]
-    # Only include analysis containers
-    subset = subset[
-        subset.container.isin([x for x in subset.container.unique() if "mummi" in x])
-    ]
-    img_outdir = os.path.join(outdir, "img")
-    if not os.path.exists(img_outdir):
-        os.makedirs(img_outdir)
-    make_plot(
-        subset,
-        title="State Machine Operator Container Pulling Times",
-        ydimension="duration",
-        xdimension="experiment",
-        outdir=img_outdir,
-        ext="png",
-        plotname="pull_times_by_experiment",
-        hue="experiment",
-        plot_type="box",
-        xlabel="Container",
-        ylabel="Pull Time (seconds)",
-    )
-
-    # Now let's look at time for each job
-    # Let's first plot pull times
-    subset = df[df.event == "running"]
-
-    # IMPORTANT - this was an outlier that will mess up the plot, but it needs to be reported
-    # It never actually finished.
-    # createsim-structure-iter00-000000000001  Job  createsim  running    82583      None  gpu-static
-    subset = subset[subset.duration != subset.duration.max()]
-
-    make_plot(
-        subset,
-        title="State Machine Operator Job Times By Experiment",
-        ydimension="duration",
-        xdimension="job",
-        outdir=img_outdir,
-        ext="png",
-        plotname="job_times_by_experiment",
-        hue="experiment",
-        plot_type="box",
-        xlabel="Job",
-        ylabel="Running Time (seconds)",
-    )
-
-    # Let's do summary of job times
-    by_job = subset.groupby(["job", "experiment"])["duration"].sum()
-    subset = df[df.event == "pulled"]
-    by_pull = subset.groupby(["experiment"])["duration"].sum()
-    print(by_job)
-    print(by_pull)
-
-    # Convert into data frame
-    summary_df = pandas.DataFrame(columns=["experiment", "event", "duration"])
-    idx = 0
-    for entry in by_job.items():
-        summary_df.loc[idx, :] = [entry[0][1], "running-" + entry[0][0], entry[1]]
-        idx += 1
-    for entry in by_pull.items():
-        summary_df.loc[idx, :] = [entry[0], "pulled", entry[1]]
-        idx += 1
-
-    # We will add costs to this based on workflow running time
-    return summary_df
-
-
-def make_plot(
-    df,
-    title,
-    ydimension,
-    xdimension,
-    xlabel,
-    ylabel,
-    palette=None,
-    ext="pdf",
-    plotname="lammps",
-    plot_type="violin",
-    hue=None,
-    outdir="img",
-    do_log=False,
-    ylim=None,
-    rotation=90,
-    width=7,
-    height=6,
-):
-    """
-    Helper function to make common plots.
-    """
-    plotfunc = sns.lineplot
-    if plot_type == "violin":
-        plotfunc = sns.violinplot
-    elif plot_type == "box":
-        plotfunc = sns.boxplot
-    elif plot_type == "bar":
-        plotfunc = sns.barplot
-
-    ext = ext.strip(".")
-    plt.figure(figsize=(width, height))
-    sns.set_style("dark")
-    if plot_type == "violin":
-        ax = plotfunc(
-            x=xdimension,
-            y=ydimension,
-            hue=hue,
-            data=df,
-            linewidth=0.8,
-            palette=palette,
-            marker="o",
-        )
-    elif plot_type == "bar":
-        ax = plotfunc(
-            x=xdimension, y=ydimension, hue=hue, data=df, linewidth=0.8, palette=palette
-        )
-    elif plot_type == "box":
-        ax = plotfunc(
-            x=xdimension,
-            y=ydimension,
-            hue=hue,
-            data=df,
-            linewidth=1.8,
-            palette=palette,
-            whis=[5, 95],
-            dodge=True,
-        )
-    else:
-        ax = plotfunc(
-            x=xdimension,
-            y=ydimension,
-            hue=hue,
-            data=df,
-            linewidth=1.8,
-            palette=palette,
-            # whis=[5, 95],
-            # dodge=True,
-        )
-        # This range is specifically for pulling times -
-        # so the ranges are equivalent
-        if ylim is not None:
-            ax.set(ylim=ylim)
-
-    if do_log:
-        plt.yscale("log")
-    plt.title(title)
-    ax.set_xlabel(xlabel, fontsize=10)
-    ax.set_ylabel(ylabel, fontsize=10)
-    ax.set_xticklabels(ax.get_xmajorticklabels(), fontsize=14)
-    ax.set_yticklabels(ax.get_yticks(), fontsize=14)
-    # sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
-    plt.xticks(rotation=rotation)
-    plt.tight_layout()
-    plt.savefig(os.path.join(outdir, f"{plotname}.png"))
-    plt.savefig(os.path.join(outdir, f"{plotname}.svg"))
-    plt.clf()
-    return ax
 
 
 if __name__ == "__main__":

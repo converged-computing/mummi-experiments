@@ -1,0 +1,1326 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: mummi-operator
+    control-plane: controller-manager
+  name: mummi-operator-system
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.15.0
+  name: minimummis.mummi.converged-computing.org
+spec:
+  group: mummi.converged-computing.org
+  names:
+    kind: MiniMummi
+    listKind: MiniMummiList
+    plural: minimummis
+    singular: minimummi
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: MiniMummi is the Schema for the minimummis API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: MiniMummiSpec defines the desired state of MiniMummi
+            properties:
+              jobs:
+                description: MiniMummi Job interface, each maps to K8s job
+                properties:
+                  cganalysis:
+                    description: CGanalysis holds the cganalysis job
+                    properties:
+                      config:
+                        description: Configuration for the job
+                        properties:
+                          bundleSize:
+                            default: 1
+                            format: int32
+                            type: integer
+                          coresPerTask:
+                            default: 3
+                            description: |-
+                              Cores per task per job
+                              6 frontier / 3 summit / 5 on lassen (vsoch: this used to be 6 default)
+                            format: int32
+                            type: integer
+                          gpus:
+                            description: GPUs per job
+                            format: int32
+                            type: integer
+                          maxActive:
+                            description: |-
+                              Max active jobs (running and in queue)
+                              This should be set by the individual job, only if relevant.
+                              E.g., we might control the max number of createsim, anticipating
+                              each will trigger a cganalysis. Leave unset to allow up to max
+                              cluster size.
+                            format: int32
+                            type: integer
+                          nested:
+                            description: If this job is nested (run inside batch ob)
+                            type: boolean
+                          nodes:
+                            default: 1
+                            description: Number of nodes per job
+                            format: int32
+                            type: integer
+                          nproc:
+                            default: 1
+                            description: Number of processes per job
+                            format: int32
+                            type: integer
+                          retryFailure:
+                            description: |-
+                              If the job fails, try again? Defaults to false
+                              because we assume the initial data is bad.
+                              RetryFailure
+                            type: boolean
+                          walltime:
+                            description: Walltime (in string format) for the job
+                            type: string
+                        type: object
+                      image:
+                        description: |-
+                          Namespace is inherited from MiniMummi Spec
+                          container image for job (createsim or cganalysis)
+                        type: string
+                      imagePullPolicy:
+                        description: Image pull policy (defaults to IfNotPresent)
+                        type: string
+                      interactive:
+                        description: Run in interactive mode for debugging
+                        type: boolean
+                      nodeSelector:
+                        description: selector for the job
+                        type: string
+                    type: object
+                  createsim:
+                    description: CreateSim holds the createsim job
+                    properties:
+                      config:
+                        description: Configuration for the job
+                        properties:
+                          bundleSize:
+                            default: 1
+                            format: int32
+                            type: integer
+                          coresPerTask:
+                            default: 3
+                            description: |-
+                              Cores per task per job
+                              6 frontier / 3 summit / 5 on lassen (vsoch: this used to be 6 default)
+                            format: int32
+                            type: integer
+                          gpus:
+                            description: GPUs per job
+                            format: int32
+                            type: integer
+                          maxActive:
+                            description: |-
+                              Max active jobs (running and in queue)
+                              This should be set by the individual job, only if relevant.
+                              E.g., we might control the max number of createsim, anticipating
+                              each will trigger a cganalysis. Leave unset to allow up to max
+                              cluster size.
+                            format: int32
+                            type: integer
+                          nested:
+                            description: If this job is nested (run inside batch ob)
+                            type: boolean
+                          nodes:
+                            default: 1
+                            description: Number of nodes per job
+                            format: int32
+                            type: integer
+                          nproc:
+                            default: 1
+                            description: Number of processes per job
+                            format: int32
+                            type: integer
+                          retryFailure:
+                            description: |-
+                              If the job fails, try again? Defaults to false
+                              because we assume the initial data is bad.
+                              RetryFailure
+                            type: boolean
+                          walltime:
+                            description: Walltime (in string format) for the job
+                            type: string
+                        type: object
+                      image:
+                        description: |-
+                          Namespace is inherited from MiniMummi Spec
+                          container image for job (createsim or cganalysis)
+                        type: string
+                      imagePullPolicy:
+                        description: Image pull policy (defaults to IfNotPresent)
+                        type: string
+                      interactive:
+                        description: Run in interactive mode for debugging
+                        type: boolean
+                      nodeSelector:
+                        description: selector for the job
+                        type: string
+                    type: object
+                type: object
+              labels:
+                description: Customize how Mummi asks for resources
+                properties:
+                  gpu:
+                    description: |-
+                      How to ask for GPUs
+                      A value of "present" will return true and not the count
+                    type: string
+                type: object
+              manager:
+                description: |-
+                  WorkflowManager manages the workflow
+                  Most (majority) of settings are in the config, I moved all under here for a better YAML UI
+                properties:
+                  coresPerNode:
+                    default: 4
+                    description: Cores per node (deafults to 4) maps to NCORES_PER_NODED
+                    format: int32
+                    type: integer
+                  doMlServer:
+                    default: true
+                    description: wfmanager will contact ML server which should be
+                      running (defaults to true)
+                    type: boolean
+                  doPatchCreation:
+                    description: Should we do patch creation? (defaults to false)
+                    type: boolean
+                  doPatchSelection:
+                    description: Should we do patch selection
+                    type: boolean
+                  doScheduleJobs:
+                    default: true
+                    description: Should we schedule jobs? (defaults to true)
+                    type: boolean
+                  doWorkflow:
+                    default: true
+                    description: Should we run the workflow? (defaults to true)
+                    type: boolean
+                  fbtype:
+                    default: mummi
+                    type: string
+                  feedbackAAHvrThreshold:
+                    default: "0.25"
+                    description: |-
+                      feedback "all atoms" (aa)
+                      cg means "course grained" (group atoms together so goes faster, but less accurate)
+                      fbaa_hvr_th
+                    type: string
+                  feedbackCGDoWeights:
+                    description: |-
+                      Feedback Parameters --------------------------------------------------------------
+                      If true, use weight for cg to macro feedback (defaults to true)
+                      maps to fbcg_do_wts
+                    type: boolean
+                  feedbackCrdThreshold:
+                    default: "0.2"
+                    description: |-
+                      crd == name of protein
+                      fbaa_crd_th:          0.2    # 0.1975  # Suggested range 0.2-0.3
+                    type: string
+                  feedbackFrameIncrement:
+                    default: 25000
+                    description: 'fbaa_frame_increment: 25000  #2000  #50000 -- 2000
+                      is a test value to accelerate fb'
+                    format: int32
+                    type: integer
+                  image:
+                    description: container image for the workflow manager (must be
+                      provided)
+                    type: string
+                  imagePullPolicy:
+                    default: IfNotPresent
+                    description: Image pull policy (e.g., Always, Never, etc.)
+                    type: string
+                  interactive:
+                    description: Run in interactive debug mode (sleep infinity)
+                    type: boolean
+                  iotype:
+                    default: mummi
+                    description: |-
+                      Filesystem and I/O ---------------------------------------------------------------
+                      what type of file system to use (valid values: 'simple' / 'taridx / dbr / mummi')
+                    type: string
+                  logging:
+                    description: Logging configuration and options
+                    properties:
+                      level:
+                        default: 2
+                        description: Logging level
+                        format: int32
+                        type: integer
+                      memoryUsage:
+                        description: 0 indicates deactivating the memory logging (logging
+                          memory is slow)
+                        format: int32
+                        type: integer
+                      path:
+                        description: Logging path, will default to the root workspace
+                        type: string
+                      toFile:
+                        default: -1
+                        description: Log to file (defaults to unset, -1)
+                        type: integer
+                      toStdout:
+                        default: -1
+                        description: Log to stdout (defaults to true)
+                        type: integer
+                    type: object
+                  maxNodes:
+                    description: |-
+                      Maximum nodes to allow cluster to scale to (that jobs add up to)
+                      If unset, will default to Nodes above (N=6)
+                    format: int32
+                    type: integer
+                  mlserverRoundId:
+                    description: The round ID that will serve to create ml/iter{mlserver_round_id}/
+                      to store ML generated patches
+                    format: int32
+                    type: integer
+                  nodeSelector:
+                    description: selector for the workflow manager
+                    type: string
+                  nodes:
+                    default: 6
+                    description: |-
+                      Mummi nodes (maps to MUMMI_NNODES) and defaults to 6
+                      This (I think) is the total number of nodes Mummi thinks it has (a max?)
+                    format: int32
+                    type: integer
+                  numberMaxCgFramesSelectionsPerIteration:
+                    default: 50
+                    description: |-
+                      nMaxCGFramesSelectionsPerIter
+                      #50  # max number of CG frames to be selected per iter
+                    format: int32
+                    type: integer
+                  numberMaxJobsPerIteration:
+                    default: 800
+                    description: |-
+                      nMaxJobsPerIter
+                      800   #7000  #1200  #400, 200  # max number of jobs to schedule per iter (including when restoring checkpoints!)
+                    format: int32
+                    type: integer
+                  numberMaxPatchesSelectionsPerIteration:
+                    default: 200
+                    description: |-
+                      nMaxPatchesSelectionsPerIter (important for ML server)
+                      max number of structures generated by ML server to be selected per iteration of the workflow
+                    format: int32
+                    type: integer
+                  numberMaxSelectedCgFrameBuffer:
+                    default: 400
+                    description: |-
+                      nMaxSelectedCGFrameBuffer
+                      400   # 280  # 500nodes, 100
+                    format: int32
+                    type: integer
+                  numberMaxSelectedPatchBuffer:
+                    default: 5000
+                    description: |-
+                      nMaxSelectedPatchBuffer (important for ML server)
+                      Max number of total structure selected. This is also the max number of creatsims at any given time
+                    format: int32
+                    type: integer
+                  numberReadPatchesPerIteration:
+                    default: 4
+                    description: |-
+                      How much work to do per iteration  -----------------------------------------------
+                      This is patches per GC
+                      Commented out: # 3300    #990  # number of macro patches to be read
+                      nReadPatchesPerIter
+                    format: int32
+                    type: integer
+                  numberSecondsPerCgFeedback:
+                    default: 600
+                    description: nSecPerCGFeedback
+                    format: int32
+                    type: integer
+                  numberSecondsPerCgSelectionUpdate:
+                    default: 30
+                    description: |-
+                      number of seconds per cg selection update (nSecPerCgSelUpdate)
+                      commend: 500 nodes this is ok but should be reduesed for 100 i.e. go to 60
+                    format: int32
+                    type: integer
+                  numberSecondsPerIterPatchCreation:
+                    default: 5
+                    description: |-
+                      Timings --------------------------------------------------------------------------
+                      number of seconds per iteration for Patch Creator (nSecPerIterPC)
+                      set to 30 for: once initial data consumed, try to match output of macro model
+                    format: int32
+                    type: integer
+                  numberSecondsPerIterWorkflow:
+                    default: 15
+                    description: |-
+                      number of seconds per iteration for the general workflow (nSecPerIterWF)
+                      15 was commented out default - number of seconds we wait after each WF iteration
+                      if a loop finished sooner, it will wait to match the frequency
+                    format: int32
+                    type: integer
+                  numberSecondsPerMacroFeedback:
+                    default: 600
+                    description: nSecPerMacroFeedback
+                    format: int32
+                    type: integer
+                  portionCGS:
+                    default: "0.5"
+                    type: string
+                  portionCSim:
+                    default: "0.5"
+                    description: |-
+                      Resource description -------------------------------------------------------------
+                      Portion are expressed as percentages (0 = 0%, 1 = 100%). The original had 0.3 for csim and 0.7 for cgsim
+                      we want to improve upon this with autoscaling, but using portions for now
+                    type: string
+                  replicas:
+                    default: 1
+                    description: Replicas for the deployment
+                    format: int32
+                    type: integer
+                type: object
+              mlserver:
+                description: Core components that run regardless of the job type
+                properties:
+                  config:
+                    description: Config is the MLServer configuration
+                    properties:
+                      gpus:
+                        description: GPUs for the MLServer
+                        format: int32
+                        type: integer
+                      logging:
+                        description: Logging configuration and options
+                        properties:
+                          level:
+                            default: 2
+                            description: Logging level
+                            format: int32
+                            type: integer
+                          memoryUsage:
+                            description: 0 indicates deactivating the memory logging
+                              (logging memory is slow)
+                            format: int32
+                            type: integer
+                          path:
+                            description: Logging path, will default to the root workspace
+                            type: string
+                          toFile:
+                            default: -1
+                            description: Log to file (defaults to unset, -1)
+                            type: integer
+                          toStdout:
+                            default: -1
+                            description: Log to stdout (defaults to true)
+                            type: integer
+                        type: object
+                      nodes:
+                        default: 1
+                        description: Number of nodes (defaults to 1)
+                        format: int32
+                        type: integer
+                      threads:
+                        default: 4
+                        description: OMP_NUM_THREADS (defaults to 4)
+                        format: int32
+                        type: integer
+                    type: object
+                  encoder:
+                    description: |-
+                      The MLServer AutoEncoder
+                      Auto-encoder (ML model) parameters
+                    properties:
+                      model:
+                        default: chonky-model
+                        description: Built into the container via an artifact
+                        type: string
+                      path:
+                        default: /opt/clones/mummi_resources/ml
+                        description: |-
+                          path to mummi resources ml directory
+                          Defaults to one built into container for now
+                        type: string
+                      positions:
+                        default: CG_pos_data_summary_pos_dis_C1_v1.npz
+                        description: CG positions under the encoder path
+                        type: string
+                    type: object
+                  image:
+                    description: |-
+                      Namespace is inherited from MiniMummi Spec
+                      container image for MLServer (should be loaded into cluster)
+                    type: string
+                  imagePullPolicy:
+                    default: IfNotPresent
+                    description: Image pull policy (e.g., Always, Never, etc.)
+                    type: string
+                  interactive:
+                    description: Run in interactive debug mode (sleep infinity)
+                    type: boolean
+                  nodeSelector:
+                    description: selector for the mlserver
+                    type: string
+                  replicas:
+                    default: 1
+                    description: |-
+                      Replicas for the mlserver deployment
+                      Each runs on one node
+                    format: int32
+                    type: integer
+                  sampler:
+                    description: The Sampler for the MLServer
+                    properties:
+                      factorExtraStructures:
+                        default: 1
+                        description: Feedback extra strucutres
+                        format: int32
+                        type: integer
+                      feedback:
+                        description: Feedback
+                        properties:
+                          database:
+                            default: db-feedback-sampling.npz
+                            description: The feedback database used for sampling (createsims
+                              status and validation)
+                            type: string
+                          enabled:
+                            description: Disable feedback for the sampler
+                            type: boolean
+                          frameDatabase:
+                            default: db-feedback-frames.npz
+                            description: The feedback database used for sampling  (feedback
+                              frames from cganalysis)
+                            type: string
+                        type: object
+                      interpolator:
+                        default: ot_feedback
+                        description: Type of sampler used. Can be "naive", "ot" or
+                          "ot_feedback"
+                        type: string
+                      kneighbors:
+                        default: 10
+                        description: Number of neighbors (used to calculate the k
+                          nearest neighbors)
+                        format: int32
+                        type: integer
+                      lambdaLowerbound:
+                        description: Define lower bound for paramter lambda that will
+                          define how far from training data we are sampling
+                        format: int32
+                        type: integer
+                      lambdaUpperbound:
+                        default: 1
+                        description: Define upper bound for parameter lambda
+                        format: int32
+                        type: integer
+                      numberIterationsMax:
+                        default: 1000000
+                        description: Define the number of iterations used by the optimal
+                          transport package
+                        format: int32
+                        type: integer
+                      outpath:
+                        description: Output path defaults to mummi_root / ml
+                        type: string
+                      subSampleFraction:
+                        default: "0.051"
+                        description: |-
+                          This parameter defines the fraction of A and B that will actually be used (0.1 = 10%)
+                          This was 0.3 before, needs to be > 0.5 and less than 1 (original was 1.0)
+                        type: string
+                    type: object
+                  validator:
+                    description: We don't expose the generator or validator paths
+                    properties:
+                      complex:
+                        default: ras-rbdcrd-ref-CG.gro
+                        type: string
+                      noCleanup:
+                        description: Do not remove all the temporary files generated
+                          during validations
+                        type: boolean
+                      noHealing:
+                        description: do not perform healing on the validated structures
+                        type: boolean
+                      resources:
+                        default: martini3-validator
+                        description: |-
+                          Name of the folder in the mummi_resources to pull out
+                          These are for Campaign 1
+                        type: string
+                    type: object
+                  workdir:
+                    description: Custom working directory for server
+                    type: string
+                type: object
+              paths:
+                description: Mummi software paths, root, etc.
+                properties:
+                  certs:
+                    default: /opt/clones/certs
+                    description: Root for certificates
+                    type: string
+                  mummiApp:
+                    default: /opt/clones/mummi-ras
+                    description: Application data
+                    type: string
+                  mummiResources:
+                    default: /opt/clones/mummi_resources
+                    description: Defaults to MummiRoot if not set (eliminate this
+                      if redundant)
+                    type: string
+                  mummiRoot:
+                    default: /opt/clones/mummi-ras
+                    description: Root for all mummi assets clones. Any specific one
+                      can be over-ridden
+                    type: string
+                type: object
+              rabbitmq:
+                properties:
+                  broker:
+                    description: Broker (for example RabbitMQ) parameters
+                    properties:
+                      interface:
+                        default: interface
+                        description: Interface to use (defaults to rabbitmq, unlikely
+                          to change)
+                        type: string
+                      queue:
+                        default: mummi_queue
+                        description: Name of queue to use for mummi (defaults to mummi_queue)
+                        type: string
+                    type: object
+                  consumerTimeout:
+                    default: 10800000
+                    description: |-
+                      Default consumer timeout in ms
+                      If unset, defaults to 3 hours
+                    format: int32
+                    type: integer
+                  image:
+                    description: container image for rabbitmq
+                    type: string
+                  imagePullPolicy:
+                    default: IfNotPresent
+                    description: Image pull policy (e.g., Always, Never, etc.)
+                    type: string
+                  nodeSelector:
+                    description: selector for rabbitmq
+                    type: string
+                  pass:
+                    default: dinosaur
+                    description: Pass (these can be generated secrets if needed for
+                      more production)
+                    type: string
+                  replicas:
+                    default: 1
+                    description: Replicas for the rabbit deployment
+                    format: int32
+                    type: integer
+                  user:
+                    default: dinosaur
+                    description: User (these can be generated secrets if needed for
+                      more production)
+                    type: string
+                  vhost:
+                    default: dinosaur_vhost
+                    description: Default vhost
+                    type: string
+                type: object
+              registry:
+                description: |-
+                  The OCI Registry as Storage configuration
+                  This is how to expect to upload artifacts (output) generated
+                  This is used in the mlserver, wfmanager, and jobs
+                  Registry configuration should go here
+                properties:
+                  TLSVerify:
+                    description: Assume we don't need to verify
+                    type: boolean
+                  host:
+                    description: |-
+                      Note that the host is generated based on the registry name
+                      # E.g., oras push <host>/<uri>:<sample> --plain-http .
+                      If no external registry is used, we use the internal one here
+                      e.g., host is: registry-0.mini-mummi.default.svc.cluster.local:5000
+                    type: string
+                  image:
+                    default: ghcr.io/oras-project/registry:latest
+                    description: Container image
+                    type: string
+                  imagePullPolicy:
+                    default: IfNotPresent
+                    description: Image pull policy (e.g., Always, Never, etc.)
+                    type: string
+                  name:
+                    default: registry
+                    description: Name for the registry (defaults to registry)
+                    type: string
+                  nodeSelector:
+                    description: selector for the registry
+                    type: string
+                  plainHttp:
+                    description: Assume the registry doesn't use plain http
+                    type: boolean
+                  port:
+                    description: Port to use to interact with the registry
+                    format: int32
+                    type: integer
+                  replicas:
+                    default: 1
+                    description: Replicas for the registry deployment
+                    format: int32
+                    type: integer
+                type: object
+            type: object
+          status:
+            description: MiniMummiStatus defines the observed state of MiniMummi
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: mummi-operator
+  name: mummi-operator-controller-manager
+  namespace: mummi-operator-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: mummi-operator
+  name: mummi-operator-leader-election-role
+  namespace: mummi-operator-system
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: mummi-operator-manager-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - jobs/status
+  verbs:
+  - create
+  - delete
+  - exec
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - rolebindings
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - roles
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - statefulsets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - batch
+  resources:
+  - configmaps
+  verbs:
+  - create
+  - delete
+  - exec
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - create
+  - delete
+  - exec
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - batch
+  resources:
+  - jobs/status
+  verbs:
+  - create
+  - delete
+  - exec
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - batch
+  resources:
+  - pods
+  verbs:
+  - create
+  - delete
+  - exec
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - ""
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - batch
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - jobs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - networks
+  verbs:
+  - create
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumeclaims
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumes
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods/exec
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods/log
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - serviceaccounts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - statefulsets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - mummi.converged-computing.org
+  resources:
+  - minimummis
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - mummi.converged-computing.org
+  resources:
+  - minimummis/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - mummi.converged-computing.org
+  resources:
+  - minimummis/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: mummi-operator-metrics-auth-role
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: mummi-operator-metrics-reader
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: mummi-operator
+  name: mummi-operator-minimummi-editor-role
+rules:
+- apiGroups:
+  - mummi.converged-computing.org
+  resources:
+  - minimummis
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - mummi.converged-computing.org
+  resources:
+  - minimummis/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: mummi-operator
+  name: mummi-operator-minimummi-viewer-role
+rules:
+- apiGroups:
+  - mummi.converged-computing.org
+  resources:
+  - minimummis
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - mummi.converged-computing.org
+  resources:
+  - minimummis/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: mummi-operator
+  name: mummi-operator-leader-election-rolebinding
+  namespace: mummi-operator-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: mummi-operator-leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: mummi-operator-controller-manager
+  namespace: mummi-operator-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: mummi-operator
+  name: mummi-operator-manager-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: mummi-operator-manager-role
+subjects:
+- kind: ServiceAccount
+  name: mummi-operator-controller-manager
+  namespace: mummi-operator-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: mummi-operator-metrics-auth-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: mummi-operator-metrics-auth-role
+subjects:
+- kind: ServiceAccount
+  name: mummi-operator-controller-manager
+  namespace: mummi-operator-system
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: mummi-operator
+    control-plane: controller-manager
+  name: mummi-operator-controller-manager-metrics-service
+  namespace: mummi-operator-system
+spec:
+  ports:
+  - name: https
+    port: 8443
+    protocol: TCP
+    targetPort: 8443
+  selector:
+    control-plane: controller-manager
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: mummi-operator
+    control-plane: controller-manager
+  name: mummi-operator-controller-manager
+  namespace: mummi-operator-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+      labels:
+        control-plane: controller-manager
+    spec:
+      nodeSelector:
+        node.kubernetes.io/instance-type: m6a.4xlarge
+      containers:
+      - args:
+        - --metrics-bind-address=:8443
+        - --leader-elect
+        - --health-probe-bind-address=:8081
+        command:
+        - /manager
+        image: ghcr.io/converged-computing/mummi-operator:test
+        imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        name: manager
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 500m
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+      securityContext:
+        runAsNonRoot: true
+      serviceAccountName: mummi-operator-controller-manager
+      terminationGracePeriodSeconds: 10

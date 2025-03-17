@@ -31,13 +31,13 @@ aws eks update-kubeconfig --region us-east-1 --name mini-mummi
 
 ```bash
 # In a different terminal, this will save nodes and collect events.
-# environ=cpu-static-0
-# region=us-east-1
-# instance=hpc7g.16xlarge
-
-environ=gpu-static-2
+environ=cpu-static-0
 region=us-east-1
-instance=p3.2xlarge
+instance=hpc7g.16xlarge
+
+# environ=gpu-static-2
+# region=us-east-1
+# instance=p3.2xlarge
 
 kubectl create namespace monitoring
 kubectl apply -f ../../../event-monitor
@@ -47,7 +47,7 @@ kubectl get nodes -o json > ./monitor/${environ}/nodes-$(date +%s).json
 
 # Topology API (only for hpc instance types)
 # Note that I was running an a la carte gpu instance in this region, needs to be filtered out
-# aws ec2 describe-instance-topology --region ${region} --filters Name=instance-type,Values=${instance} > ./monitor/${environ}/topology.json
+aws ec2 describe-instance-topology --region ${region} --filters Name=instance-type,Values=${instance} > ./monitor/${environ}/topology.json
 aws ec2 describe-instances --filters "Name=instance-type,Values=${instance}" --region ${region}  > ./monitor/${environ}/instances.json
 
 kubectl logs -n monitoring $(kubectl get pods -n monitoring -o json | jq -r .items[0].metadata.name) -f |& tee ./monitor/${environ}/events-$(date +%s).json
@@ -62,6 +62,9 @@ This is private, so we install from a local build.
 git clone https://github.com/converged-computing/mummi-operator
 cd mummi-operator
 make test-deploy-recreate
+
+# For arm, this has a node selector for the m6 node.
+kubectl apply -f crd/mummi-operator-arm.yaml
 ```
 
 Run the Experiment:
@@ -131,7 +134,7 @@ eksctl delete cluster --config-file ../eks-config-gpu-static.yaml --wait
 
 # CPU
 kubectl delete -f crd/cpu-mummi.yaml
-eksctl delete cluster --config-file ../eks-config-cpu-static.yaml --wait
+eksctl delete cluster --config-file ./crd/eks-config-cpu.yaml --wait
 ```
 
 ## Notes
@@ -169,41 +172,59 @@ createsim   cpu-static    11671
 Here are times in a format easier to parse - these are the total summed times across jobs (so much longer than total experiment).
 
 ```console
-cpu-static  cganalysis_load_mdanalysis              cganalysis        2.848357
-            cganalysis_main_analysis                cganalysis    10669.224872
-            cganalysis_run                          cganalysis    10702.452909
-            cganalysis_run_simulation               cganalysis       30.064158
-            cganalysis_simrun                       cganalysis       30.063611
-            createsim_runtime                       createsim     11539.840796
-            createsims_create_cg_patch              createsim         0.008023
-            createsims_generate_velocities          createsim       795.179892
-            createsims_gromacs_energy_minimization  createsim         13.77891
-            createsims_gromacs_make_ndx             createsim         3.853949
-            createsims_mdrun_lipids_water           createsim        62.172606
-            createsims_prime_cg_sim                 createsim         9.299346
-            createsims_pull_molecules               createsim      6723.913401
-            createsims_relax_protein                createsim       524.463825
-            createsims_setup_cg_sim                 createsim     11530.384827
-            createsims_short_equilibration          createsim      3381.785427
-            createsims_trjconv_lipids_water         createsim          3.13095
-gpu-static  cganalysis_load_mdanalysis              cganalysis        4.619786
-            cganalysis_main_analysis                cganalysis    10669.894446
-            cganalysis_run                          cganalysis    10705.094627
-            cganalysis_run_simulation               cganalysis       30.068854
-            cganalysis_simrun                       cganalysis       30.068005
-            createsim_runtime                       createsim      6053.422566
-            createsims_create_cg_patch              createsim         0.011165
-            createsims_generate_velocities          createsim       388.155392
-            createsims_gromacs_energy_minimization  createsim        20.708072
-            createsims_gromacs_make_ndx             createsim         4.132922
-            createsims_mdrun_lipids_water           createsim        41.326086
-            createsims_prime_cg_sim                 createsim         12.80171
-            createsims_pull_molecules               createsim      3497.802479
-            createsims_relax_protein                createsim       290.672864
-            createsims_setup_cg_sim                 createsim      6040.426354
-            createsims_short_equilibration          createsim      1765.208588
-            createsims_trjconv_lipids_water         createsim          4.82514
-Name: duration, dtype: object
+experiment  global                                  job         iteration
+gpu-static  cganalysis_load_mdanalysis              cganalysis  1                8.431115
+                                                                2                8.427434
+                                                                3                8.364358
+            cganalysis_main_analysis                cganalysis  1            19561.218339
+                                                                2            19561.327647
+                                                                3            19561.236997
+            cganalysis_run                          cganalysis  1            19625.696573
+                                                                2            19625.811989
+                                                                3            19625.647382
+            cganalysis_run_simulation               cganalysis  1                55.11518
+                                                                2                55.12998
+                                                                3               55.119656
+            cganalysis_simrun                       cganalysis  1               55.113516
+                                                                2               55.128362
+                                                                3               55.118126
+            createsim_runtime                       createsim   1            15150.351368
+                                                                2            14426.596093
+                                                                3            13931.462085
+            createsims_create_cg_patch              createsim   1                0.024352
+                                                                2                 0.02297
+                                                                3                0.020899
+            createsims_generate_velocities          createsim   1              977.439474
+                                                                2              921.894407
+                                                                3              893.430991
+            createsims_gromacs_energy_minimization  createsim   1               33.362308
+                                                                2               63.584764
+                                                                3               51.335348
+            createsims_gromacs_make_ndx             createsim   1                9.681733
+                                                                2                9.197189
+                                                                3                8.200823
+            createsims_mdrun_lipids_water           createsim   1                77.37339
+                                                                2              127.941104
+                                                                3              103.424371
+            createsims_prime_cg_sim                 createsim   1               30.047769
+                                                                2                28.39332
+                                                                3               25.872878
+            createsims_pull_molecules               createsim   1              8796.25375
+                                                                2             8312.419094
+                                                                3             8058.163145
+            createsims_relax_protein                createsim   1              726.767629
+                                                                2              687.674484
+                                                                3              654.472362
+            createsims_setup_cg_sim                 createsim   1            15119.864793
+                                                                2            14397.791137
+                                                                3            13905.211739
+            createsims_short_equilibration          createsim   1             4432.255942
+                                                                2             4192.582493
+                                                                3             4065.234242
+            createsims_trjconv_lipids_water         createsim   1                7.866728
+                                                                2               14.994044
+                                                                3               11.995622
+
 ```
 
 ![results/img/function_times_by_experiment.png](results/img/function_times_by_experiment.png)
@@ -256,46 +277,34 @@ The mlsample generates quickly enough that we will not have any partial results 
 
 These are running that started but didn't complete. You can look at the final-pod-state.txt in each output directory to see where this comes from. These are in _addition_ to the excess above in terms of time. We could likely calculate the extra cost of these extra completed runs and incompleted partial runs.
 
-- GPU:
-  - createsim: 1 running (11m)
-  - cganalysis: 2 running (17m, 11m)
-- CPU:
-  - createsim: 2 running (4m 21s, 69s)
-  - cganalysis: 3 running (114s, 14m, 22m)
-
-
 ### Workflow Manager Times
 
 We can look at summed times for the workflow manager, and really there are only a few that add up to anything significant.
 
 ```console
-cpu-static  wfmanager_add_cgframes_to_ml             0.011165
-            wfmanager_add_new_patches_mlserver     149.925664
-            wfmanager_add_new_patches_to_ml          0.007669
-            wfmanager_init_mlserver                  0.019922
-            wfmanager_init_scheduling                0.000901
-            wfmanager_run_workflow                6347.938754
-            wfmanager_setup                          0.029337
-            wfmanager_update_jobs                  504.523301
-gpu-static  wfmanager_add_cgframes_to_ml             0.018771
-            wfmanager_add_new_patches_mlserver    1027.528764
-            wfmanager_add_new_patches_to_ml          0.012524
-            wfmanager_init_mlserver                  0.020115
-            wfmanager_init_scheduling                0.001608
-            wfmanager_run_workflow                5630.112581
-            wfmanager_setup                          0.049022
-            wfmanager_update_jobs                  570.567681
-Name: duration, dtype: object
+experiment  global                              iteration
+gpu-static  wfmanager_add_cgframes_to_ml        1               0.012286
+                                                2                 0.0433
+                                                3               0.044235
+            wfmanager_add_new_patches_mlserver  1             223.315779
+                                                2             440.865401
+                                                3             905.166811
+            wfmanager_add_new_patches_to_ml     1               0.012152
+                                                2               0.016006
+                                                3               0.038236
+            wfmanager_init_mlserver             1               0.019449
+                                                2               0.020555
+                                                3               0.019488
+            wfmanager_init_scheduling           1               0.001737
+                                                2               0.001934
+                                                3               0.001754
+            wfmanager_run_workflow              1            8373.337833
+                                                2            8418.256583
+                                                3            8635.900259
+            wfmanager_setup                     1               0.046443
+                                                2               0.053153
+                                                3               0.047636
+            wfmanager_update_jobs               1              808.27233
+                                                2            2185.037902
+                                                3            2125.824929
 ```
-
-Here we see the most relevant is the workflow running time to get 6 samples - we will want to compare this across environments.
-
-```console
-cpu-static  wfmanager_add_new_patches_mlserver       0.353598
-            wfmanager_run_workflow                6347.938754
-            wfmanager_update_jobs                    1.189913
-gpu-static  wfmanager_add_new_patches_mlserver       2.732789
-            wfmanager_run_workflow                5630.112581
-            wfmanager_update_jobs                    1.521514
-```
-
