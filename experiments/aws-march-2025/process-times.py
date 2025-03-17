@@ -176,6 +176,9 @@ def combine_data_frames(indirs, filename):
     mummi = pandas.read_csv(os.path.join(indirs[0], filename), index_col=0)
     sm = pandas.read_csv(os.path.join(indirs[1], filename), index_col=0)
     sm_flux = pandas.read_csv(os.path.join(indirs[2], filename), index_col=0)
+    import IPython
+    IPython.embed()
+    sys.exit()
     mummi["operator"] = "mummi"
     sm["operator"] = "state-machine"
     sm_flux["operator"] = "flux-state-machine"

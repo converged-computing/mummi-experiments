@@ -31,13 +31,13 @@ kubectl create namespace monitoring
 kubectl apply -f ../../../event-monitor
 
 # In a different terminal, this will save nodes and collect events.
-environ=cpu-static-0
-region=us-east-1
-instance=hpc7g.16xlarge
-
-# environ=gpu-static-0
+# environ=cpu-static-0
 # region=us-east-1
-# instance=p3.2xlarge
+# instance=hpc7g.16xlarge
+
+environ=gpu-static-0
+region=us-east-1
+instance=p3.2xlarge
 
 mkdir -p ./monitor/${environ}
 kubectl get nodes -o json > ./monitor/${environ}/nodes-$(date +%s).json
