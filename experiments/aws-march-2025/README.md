@@ -12,7 +12,7 @@ Note that [state-machine-operator](state-machine-operator) is not used, as it on
 
 ## Analysis
 
-These are early results that summarize across experiments (they will be updated).
+These are early results that summarize across experiments (they will be updated, we are finishing the MuMMI CPU runs).
 
 ### Completed Jobs By Experiment
 
@@ -28,33 +28,57 @@ This shows that the actual running of the steps does not vary based on the orche
 ![results/img/function_times_by_experiment.png](results/img/function_times_by_experiment.png)
 
 ```console
-experiment         global                            
-mummi-cpu          wfmanager_add_cgframes_to_ml             0.000026
-                   wfmanager_add_new_patches_mlserver       0.353598
-                   wfmanager_add_new_patches_to_ml          0.000018
-                   wfmanager_init_mlserver                  0.019922
-                   wfmanager_init_scheduling                0.000901
-                   wfmanager_run_workflow                6347.938754
-                   wfmanager_setup                          0.029337
-                   wfmanager_update_jobs                    1.189913
-mummi-gpu          wfmanager_add_cgframes_to_ml             0.000050
-                   wfmanager_add_new_patches_mlserver       2.732789
-                   wfmanager_add_new_patches_to_ml          0.000033
-                   wfmanager_init_mlserver                  0.020115
-                   wfmanager_init_scheduling                0.001608
-                   wfmanager_run_workflow                5630.112581
-                   wfmanager_setup                          0.049022
-                   wfmanager_update_jobs                    1.521514
-state-machine-cpu  cganalysis_success                    1874.858176
-                   createsim_success                     1140.086041
-                   mlrunner_failure                        36.617095
-                   mlrunner_success                        38.108823
-                   workflow_complete                     3101.351853
-state-machine-gpu  cganalysis_success                    1946.960304
-                   createsim_success                      877.742465
-                   mlrunner_failure                       450.427124
-                   mlrunner_success                       376.669176
-                   workflow_complete                     3327.152879
+experiment                   global                            
+flux-state-machine-cpu       cganalysis_success                    1746.684337
+                             createsim_failure                       36.650442
+                             createsim_success                      505.366921
+                             mlrunner_failure                         7.613389
+                             mlrunner_success                        26.574034
+                             workflow_complete                     5310.073213
+                             workflow_complete_without_pulling     4658.165546
+flux-state-machine-gpu       cganalysis_success                    1791.566859
+                             createsim_failure                       74.436712
+                             createsim_success                      698.774243
+                             mlrunner_success                        19.910789
+                             workflow_complete                     7512.133451
+                             workflow_complete_without_pulling     5040.576451
+mummi-cpu                    wfmanager_add_cgframes_to_ml             0.000017
+                             wfmanager_add_new_patches_mlserver       2.121534
+                             wfmanager_add_new_patches_to_ml          0.000017
+                             wfmanager_init_mlserver                  0.018468
+                             wfmanager_init_scheduling                0.000985
+                             wfmanager_run_workflow                7774.777192
+                             wfmanager_setup                          0.039344
+                             wfmanager_update_jobs                    4.293667
+mummi-gpu                    wfmanager_add_cgframes_to_ml             0.000059
+                             wfmanager_add_new_patches_mlserver       0.924778
+                             wfmanager_add_new_patches_to_ml          0.000039
+                             wfmanager_init_mlserver                  0.019831
+                             wfmanager_init_scheduling                0.001808
+                             wfmanager_run_workflow                8475.831559
+                             wfmanager_setup                          0.049078
+                             wfmanager_update_jobs                    3.020139
+state-machine-cpu            cganalysis_success                    1788.600051
+                             createsim_failure                       64.813726
+                             createsim_success                      511.899269
+                             mlrunner_success                       210.343512
+                             workflow_complete                     5057.044109
+state-machine-cpu-autoscale  cganalysis_success                    1788.618145
+                             createsim_failure                      614.855364
+                             createsim_success                      505.983102
+                             mlrunner_success                       189.933387
+                             workflow_complete                     5125.136059
+state-machine-gpu            cganalysis_success                    1887.482003
+                             createsim_failure                     1591.983059
+                             createsim_success                      886.281643
+                             mlrunner_success                       264.461762
+                             workflow_complete                     5985.524573
+state-machine-gpu-autoscale  cganalysis_success                    1867.880881
+                             createsim_failure                      204.304194
+                             createsim_success                      895.485270
+                             mlrunner_success                       264.951878
+                             workflow_complete                     5975.769484
+Name: duration, dtype: float64
 ```
 
 ### Job Times by Experiment
@@ -63,32 +87,12 @@ The MLRunner job is unique to the State Machine Operator so it only is there. Th
 
 ![results/img/job_times_by_experiment.png](results/img/job_times_by_experiment.png)
 
-```console
-job         experiment       
-cganalysis  mummi-cpu            11011
-            mummi-gpu             9322
-            state-machine-cpu    11251
-            state-machine-gpu    11683
-createsim   mummi-cpu            11671
-            mummi-gpu             7058
-            state-machine-cpu     6840
-            state-machine-gpu     5266
-mlrunner    state-machine-cpu     2352
-            state-machine-gpu     2259
-```
-
 ### Pull Times By Experiment
 
 This variation seems large, but it's only a handful of pulls per cluster. I expect this is more of a result of AWS not having a global caching strategy (and generally being less consistent than say, Google Cloud) than anything else. I have lots of pulling data from test runs we could combine here to get a more extensive result.
 
 ![results/img/pull_times_by_experiment.png](results/img/pull_times_by_experiment.png)
 
-```console
-mummi-cpu             864.742588
-mummi-gpu            2098.687371
-state-machine-cpu     2273.73425
-state-machine-gpu    4037.924493
-```
 
 ### Workflow Manager Times
 
@@ -100,17 +104,256 @@ And then we can compare to see the start differences in total workflow running t
 
 ![results/img/workflow_total_time.png](results/img/workflow_total_time.png)
 
-```console
-             experiment                   event     duration             global       operator environment
-1             mummi-cpu  wfmanager_run_workflow  6347.938754  workflow_complete          mummi         cpu
-1701          mummi-gpu  wfmanager_run_workflow  5630.112581  workflow_complete          mummi         gpu
-0     state-machine-cpu          workflow_start  3101.351853  workflow_complete  state-machine         cpu
-21    state-machine-gpu          workflow_start  3327.152879  workflow_complete  state-machine         gpu
+### Actual vs. Theoretical Best Time
+
+This was something I wanted to do (that I think is really interesting). If we add up the actual runtimes for every component plus the container pulling times, we get a theoretical "best" for a particular iteration and setup. In a way, it measures the additional overhead added by the orchestration. Since MuMMI didn't have individual ML runner jobs akin to the others, we use a strategy to sample from the actual runtimes from Flux, which were run on the exact same machines. The reason we see huge overhead (difference in theoretical best and actual time) with MuMMI is because of how it calculates resources. We lose a node to computation due to the workload manager subtracting it, and then further lose a node to the ML server running all the time.
+
+![results/actual-time-vs-theoretical.png](results/actual-time-vs-theoretical.png)
+
+### Uptime per node
+
 ```
+{
+    "state-machine-autoscale-cpu": {
+        "1": [
+            2856.274454832077,
+            4993.940594911575,
+            4993.940594911575,
+            4993.940594911575,
+            4993.940594911575,
+            2941.274454832077
+        ],
+        "2": [
+            3242.5922129154205,
+            5172.5922129154205,
+            5223.5922129154205,
+            5374.866969585419,
+            5182.5922129154205,
+            5207.5922129154205
+        ],
+        "0": [
+            3121.6075434684753,
+            2901.6075434684753,
+            5006.600611209869,
+            5006.600611209869,
+            5006.600611209869,
+            5006.600611209869
+        ]
+    },
+    "state-machine-autoscale-gpu": {
+        "2": [
+            6019.346858739853,
+            6019.346858739853,
+            6019.346858739853,
+            3617.9409580230713,
+            6019.346858739853,
+            3647.9409580230713
+        ],
+        "0": [
+            5926.065628290176,
+            5926.065628290176,
+            3663.4451377391815,
+            5926.065628290176,
+            5926.065628290176,
+            3528.4451377391815
+        ],
+        "1": [
+            5733.13568687439,
+            5981.89596581459,
+            3587.1356868743896,
+            5981.89596581459,
+            3572.1356868743896,
+            5981.89596581459
+        ]
+    },
+    "mummi-gpu": {
+        "1": [
+            8373.337833404541,
+            8373.337833404541,
+            8373.337833404541,
+            8373.337833404541,
+            8373.337833404541,
+            8373.337833404541
+        ],
+        "2": [
+            8418.256582975388,
+            8418.256582975388,
+            8418.256582975388,
+            8418.256582975388,
+            8418.256582975388,
+            8418.256582975388
+        ],
+        "3": [
+            8635.900259494781,
+            8635.900259494781,
+            8635.900259494781,
+            8635.900259494781,
+            8635.900259494781,
+            8635.900259494781
+        ]
+    },
+    "mummi-cpu": {
+        "1": [
+            7774.777191638946,
+            7774.777191638946,
+            7774.777191638946,
+            7774.777191638946,
+            7774.777191638946,
+            7774.777191638946
+        ]
+    },
+    "state-machine-cpu": {
+        "0": [
+            5084.473639726639,
+            5084.473639726639,
+            5084.473639726639,
+            5084.473639726639,
+            5084.473639726639,
+            5084.473639726639
+        ],
+        "1": [
+            4994.695705413818,
+            4994.695705413818,
+            4994.695705413818,
+            4994.695705413818,
+            4994.695705413818,
+            4994.695705413818
+        ],
+        "2": [
+            5091.962981462479,
+            5091.962981462479,
+            5091.962981462479,
+            5091.962981462479,
+            5091.962981462479,
+            5091.962981462479
+        ]
+    },
+    "state-machine-gpu": {
+        "0": [
+            5980.924844264984,
+            5980.924844264984,
+            5980.924844264984,
+            5980.924844264984,
+            5980.924844264984,
+            5980.924844264984
+        ],
+        "1": [
+            6016.819443464279,
+            6016.819443464279,
+            6016.819443464279,
+            6016.819443464279,
+            6016.819443464279,
+            6016.819443464279
+        ],
+        "2": [
+            5958.829431295395,
+            5958.829431295395,
+            5958.829431295395,
+            5958.829431295395,
+            5958.829431295395,
+            5958.829431295395
+        ]
+    },
+    "flux-state-machine-cpu": {
+        "1": [
+            5400.847153398514,
+            5400.847153398514,
+            5400.847153398514,
+            5400.847153398514,
+            5400.847153398514,
+            5400.847153398514
+        ],
+        "3": [
+            5227.663189220429,
+            5227.663189220429,
+            5227.663189220429,
+            5227.663189220429,
+            5227.663189220429,
+            5227.663189220429
+        ],
+        "2": [
+            5301.7092954406735,
+            5301.7092954406735,
+            5301.7092954406735,
+            5301.7092954406735,
+            5301.7092954406735,
+            5301.7092954406735
+        ]
+    },
+    "flux-state-machine-gpu": {
+        "1": [
+            7441.19877379036,
+            7441.19877379036,
+            7441.19877379036,
+            7441.19877379036,
+            7441.19877379036,
+            7441.19877379036
+        ],
+        "3": [
+            7470.544129337311,
+            7470.544129337311,
+            7470.544129337311,
+            7470.544129337311,
+            7470.544129337311,
+            7470.544129337311
+        ],
+        "2": [
+            7624.657448869705,
+            7624.657448869705,
+            7624.657448869705,
+            7624.657448869705,
+            7624.657448869705,
+            7624.657448869705
+        ]
+    }
+}
+```
+
 ### Costs
 
-This is the difference in cost between traditional MuMMI in Kubernetes vs. the State Machine Operator orchestration. The design decisions make a big difference. These are hpc6a (cpu) and p3 (gpu).  There are also fewer completions (only 6) so you can't compare to the cost plot for the autoscaling experiments, where we had 10 completions required.
+Here are the final costs to get to 10 cganalysis completions. Note that we have to include the container pulls in the final workflow times, since Kubernetes requires it, and so we include Singularity pulls for the flux bare metal.
 
 ![results/img/workflow_total_cost.png](results/img/workflow_total_cost.png)
 
-
+```
+{
+    "state-machine-autoscale-cpu": {
+        "1": 12.04902302775264,
+        "2": 13.746289605970981,
+        "0": 12.178196196105482
+    },
+    "state-machine-autoscale-gpu": {
+        "2": 26.641778948354723,
+        "0": 26.261729870343206,
+        "1": 26.212380714356897
+    },
+    "mummi-gpu": {
+        "1": 42.70402295036317,
+        "2": 42.93310857317448,
+        "3": 44.04309132342338
+    },
+    "mummi-cpu": {
+        "1": 21.80825002254724
+    },
+    "state-machine-cpu": {
+        "0": 14.261948559433222,
+        "1": 14.01012145368576,
+        "2": 14.282956163002252
+    },
+    "state-machine-gpu": {
+        "0": 30.50271670575142,
+        "1": 30.685779161667824,
+        "2": 30.390030099606516
+    },
+    "flux-state-machine-cpu": {
+        "1": 15.14937626528283,
+        "3": 14.663595245763302,
+        "2": 14.87129457371109
+    },
+    "flux-state-machine-gpu": {
+        "1": 37.95011374633084,
+        "3": 38.09977505962028,
+        "2": 38.8857529892355
+    }
+}
+```

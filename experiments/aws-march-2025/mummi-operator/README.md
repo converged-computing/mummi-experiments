@@ -31,7 +31,7 @@ aws eks update-kubeconfig --region us-east-1 --name mini-mummi
 
 ```bash
 # In a different terminal, this will save nodes and collect events.
-environ=cpu-static-0
+environ=cpu-static-1
 region=us-east-1
 instance=hpc7g.16xlarge
 
@@ -85,6 +85,7 @@ When the workflow is complete, we can save the state, etc. First, get output for
 environ=gpu-static-2
 # environ=cpu-static-1
 
+environ=cpu-static-0
 #kubectl logs <container>  > ./monitor/${environ}/<container>.out
 kubectl get pods -o wide > ./monitor/${environ}/final-pods-state.txt
 kubectl get pods -o json > ./monitor/${environ}/final-pods-state.json
@@ -123,6 +124,7 @@ pixi add htop
 htop
 kill -s SIGINT <process_id>
 kill -s SIGINT 100
+kill -s SIGINT 337
 ```
 
 ## Cleanup
