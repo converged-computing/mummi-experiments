@@ -10,7 +10,9 @@ cd ./mummi-experiments/experiments/aws-march-2025/mummi-operator
 ```
 Final results:
 
- - 
+ - gpu-static-0
+ - gpu-static-1
+
 
 ## Experiments
 
@@ -27,17 +29,17 @@ aws eks update-kubeconfig --region us-east-1 --name mini-mummi
 ```
 
 ```bash
+# In a different terminal, this will save nodes and collect events.
+# environ=cpu-static-0
+# region=us-east-1
+# instance=hpc7g.16xlarge
+
+environ=gpu-static-2
+region=us-east-1
+instance=p3.2xlarge
+
 kubectl create namespace monitoring
 kubectl apply -f ../../../event-monitor
-
-# In a different terminal, this will save nodes and collect events.
-environ=cpu-static-0
-region=us-east-1
-instance=hpc7g.16xlarge
-
-# environ=gpu-static-0
-# region=us-east-1
-# instance=p3.2xlarge
 
 mkdir -p ./monitor/${environ}
 kubectl get nodes -o json > ./monitor/${environ}/nodes-$(date +%s).json
@@ -76,7 +78,7 @@ When the workflow is complete, we can save the state, etc. First, get output for
 
 ```bash
 # In a different terminal, this will save nodes and collect events.
-environ=gpu-static-0
+environ=gpu-static-2
 # environ=cpu-static-1
 
 #kubectl logs <container>  > ./monitor/${environ}/<container>.out
@@ -136,6 +138,7 @@ eksctl delete cluster --config-file ../eks-config-cpu-static.yaml --wait
 - For the gpu-static-1 runs, one of the createsims ran the entire duration of the study, meaning there was only one node for createsims. It increased the time by 1.5x likely, and the study (cost) is going to be hugely impacted by it.
 - For the gpu-static-0 run, there was one failed createsims at ~13 minutes. Although it was replaced, it meant we extended the workflow by that amount of time (and maybe more since cganalysis wouldn't have a sample to process).
 - For the CPU runs, where there is an error (and the job is deleted) and a temporary change to the number of createsims job, the condition kicks in to generate more samples, and typically multiple iterations run to generate more samples than are needed. We would want this to happen, but for the sample generation to be more tightly linked with what is needed for createsims. For example, we only needed one sample here, but multiple loops were run to generate about 10 more.
+- I consistently was able to stop the workflow (and get times) within 5 seconds of the 10th sample completing. Stressful, yes.
 
 Also see [notes](notes.md) from testing runs.
 

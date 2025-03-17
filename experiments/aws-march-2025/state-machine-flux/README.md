@@ -2,7 +2,68 @@
 
 The sections below show how to do a run of either a CPU or GPU experiment. 
 
-## AWS Bare Metal
+## Experiments
+
+### Pulling Times
+
+Since we will have the containers pulled to the image to save time, we still need a metric of pulling time
+for containers, because the operator (Kubernetes) experiments all include one pull per container per node. We will do this with our final analysis containers on each respective instance type and save times.
+
+#### p3.2xlarge
+
+Each of these was done on the final AMI used for experiments.
+
+```bash
+# On your host with credentials: (username is AWS)
+# aws ecr get-login-password --region us-east-1
+# export SINGULARITY_DOCKER_USERNAME=AWS
+# export SINGULARITY_DOCKER_PASSWORD=<token>
+
+mkdir /home/ubuntu/containers
+cd /home/ubuntu/containers
+mkdir -p times
+container=docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi
+for iter in $(seq 1 3)
+  do
+  echo "Pulling mlrunner"
+  { time singularity pull $container:mlrunner-gpu 2> pull.stderr ; } 2> ./times/mlrunner-pull-time-$iter.txt
+  echo "Pulling createsims"
+  { time singularity pull $container:createsims-gpu 2> pull.stderr ; } 2> ./times/createsime-pull-time-$iter.txt
+  echo "Pulling cganalysis"
+  { time singularity pull $container:cganalsis-gpu 2> pull.stderr ; } 2> ./times/cganalysis-pull-time-$iter.txt
+  singularity cache clean --force
+  rm -rf *.sif
+done
+```
+
+#### hpc7g.16xlarge
+
+```bash
+# On your host with credentials: (username is AWS)
+# aws ecr get-login-password --region us-east-1
+# export SINGULARITY_DOCKER_USERNAME=AWS
+# export SINGULARITY_DOCKER_PASSWORD=<token>
+
+mkdir /home/ubuntu/containers
+cd /home/ubuntu/containers
+mkdir -p times
+container=docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi
+for iter in $(seq 1 3)
+  do
+  echo "Pulling mlrunner"
+  { time singularity pull $container:mlrunner-arm-singularity 2> pull.stderr ; } 2> ./times/mlrunner-pull-time-$iter.txt
+  echo "Pulling createsims"
+  { time singularity pull $container:createsims-arm 2> pull.stderr ; } 2> ./times/createsime-pull-time-$iter.txt
+  echo "Pulling cganalysis"
+  { time singularity pull $container:cganalsis-arm 2> pull.stderr ; } 2> ./times/cganalysis-pull-time-$iter.txt
+  singularity cache clean --force
+  rm -rf *.sif
+done
+```
+
+These times are in [results/container-pulls](results/container-pulls).
+
+### AWS Bare Metal
 
 Deploy the setup.  This will be moved to a different directory (organized with data, etc.) when run.
 
@@ -69,17 +130,20 @@ cd /mnt/efs/iter-1
 For the GPU instances, if we need in the start script:
 
 ```bash
-flux module unload sched-simple
-flux module load /usr/lib/flux/modules/sched-fluxion-resource.so 
-flux module load /usr/lib/flux/modules/sched-fluxion-qmanager.so 
+flux exec -r all flux module unload sched-simple
+flux exec -r all flux module load /usr/lib/flux/modules/sched-fluxion-resource.so 
+flux exec -r all flux module load /usr/lib/flux/modules/sched-fluxion-qmanager.so 
 sudo modprobe nvidia-uvm
 ```
 
+Note this seems to only need to be loaded on the lead broker node.
 Between iterations we need to clear the queue and remove the old files.
 
-```
+```bash
 flux job purge --age-limit=0 --force
+rm -rf /home/ubuntu/iter-2
 ```
+
 Start the manager to start the workflow. We assume flux is running and we are launching jobs to the system instance.
 
 ```bash
@@ -104,6 +168,7 @@ For each I also saved complete flux metadata from the queue:
 # When they are done:
 cd /home/ubuntu/iter-$iter
 mkdir -p ./logs
+flux jobs -a > final-queue-state.txt
 output=/home/ubuntu/iter-$iter/logs
 for jobid in $(flux jobs -a --json | jq -r .jobs[].id)
   do
@@ -125,8 +190,9 @@ Login to oras then push result.
 oras login ghcr.io
 ```
 
-```
+```bash
 cd /home/ubuntu/iter-$iter/
+oras push ghcr.io/converged-computing/mummi-experiments:gpu-arm-iter-$iter .
 oras push ghcr.io/converged-computing/mummi-experiments:cpu-arm-iter-$iter .
 ```
 
@@ -146,4 +212,135 @@ If you have trouble (it seems to be spinning on the autoscaling group) delete th
 
 ## Analysis
 
-- TODO: Account for saving of output for failed jobs too (a pro and con)!
+### Output Files
+
+Since this is using the state machine operator, we don't see any issue with excess and total jobs. There are only excess for steps that needed to be re-run. Unlike Kubernetes where these outputs (in the current implementation) aren't saved (pushed to the registry) the persistent filesystem means that we keep all result files.
+
+```console
+Experiment Job Counts (completed with results)
+    experiment         job count iteration
+0   cpu-static    mlsample    11         1
+1   cpu-static   createsim    10         1
+2   cpu-static  cganalysis    10         1
+3   cpu-static    mlsample    10         3
+4   cpu-static   createsim    10         3
+5   cpu-static  cganalysis    10         3
+6   cpu-static    mlsample    10         2
+7   cpu-static   createsim    10         2
+8   cpu-static  cganalysis    10         2
+9   gpu-static    mlsample    11         1
+10  gpu-static   createsim    10         1
+11  gpu-static  cganalysis    10         1
+12  gpu-static    mlsample    10         3
+13  gpu-static   createsim    10         3
+14  gpu-static  cganalysis    10         3
+15  gpu-static    mlsample    10         2
+16  gpu-static   createsim    10         2
+17  gpu-static  cganalysis    10         2
+```
+
+Thus, the excess reflects failures of a step.
+
+```
+Excess Completed
+    experiment         job count iteration
+0   cpu-static    mlsample     1         1
+1   cpu-static   createsim     0         1
+2   cpu-static  cganalysis     0         1
+3   cpu-static    mlsample     0         3
+4   cpu-static   createsim     0         3
+5   cpu-static  cganalysis     0         3
+6   cpu-static    mlsample     0         2
+7   cpu-static   createsim     0         2
+8   cpu-static  cganalysis     0         2
+9   gpu-static    mlsample     1         1
+10  gpu-static   createsim     0         1
+11  gpu-static  cganalysis     0         1
+12  gpu-static    mlsample     0         3
+13  gpu-static   createsim     0         3
+14  gpu-static  cganalysis     0         3
+15  gpu-static    mlsample     0         2
+16  gpu-static   createsim     0         2
+17  gpu-static  cganalysis     0         2
+```
+
+### Function Times
+
+Like the other results, the CPU ARM outperforms the GPU setup.
+
+![results/processed/function_times_by_experiment.png](results/processed/function_times_by_experiment.png)
+
+These are total summed timed across the experiment for different events.
+
+```bash
+experiment  global              iteration
+cpu-static  cganalysis_success  1            17978.735104
+                                2            17947.466616
+                                3            16474.328401
+            createsim_failure   1               36.650442
+            createsim_success   1             5105.182107
+                                2             5087.932331
+                                3             4967.893207
+            mlrunner_failure    2                7.613389
+            mlrunner_success    1              607.525203
+                                2              115.811255
+                                3              100.458604
+            workflow_complete   1             4745.525153
+                                2             4644.108295
+                                3             4584.863189
+gpu-static  cganalysis_success  1            17983.249766
+                                2            17881.616295
+                                3            17882.139705
+            createsim_failure   1               74.436712
+            createsim_success   1             7047.289262
+                                2             6979.106718
+                                3             6936.831313
+            mlrunner_success    1              293.894655
+                                2              161.889552
+                                3              161.450266
+            workflow_complete   1             5059.972774
+                                2             5044.751449
+                                3             5017.005129
+Name: duration, dtype: object
+```
+
+And these are mean times per single run, across iterations. Here we can glimpse at the workflow total time too.
+
+![results/processed/workflow_manager_times.png](results/processed/workflow_manager_times.png)
+![results/processed/workflow_total_time.png](results/processed/workflow_total_time.png)
+
+```
+experiment  global            
+cpu-static  cganalysis_success    1746.684337
+            createsim_failure       36.650442
+            createsim_success      505.366921
+            mlrunner_failure         7.613389
+            mlrunner_success        26.574034
+            workflow_complete     4658.165546
+gpu-static  cganalysis_success    1791.566859
+            createsim_failure       74.436712
+            createsim_success      698.774243
+            mlrunner_success        19.910789
+            workflow_complete     5040.576451
+```
+
+### Costs
+
+The costs are similar to the other environments (Kubernetes).
+
+![results/processed/workflow_total_cost.png](results/processed/workflow_total_cost.png)
+
+```console
+{
+    "cpu-static": {
+        "1": 13.31119805528283,
+        "3": 12.860541245763303,
+        "2": 13.02672376871109
+    },
+    "gpu-static": {
+        "1": 25.80586114633083,
+        "3": 25.58672615962029,
+        "2": 25.7282323892355
+    }
+}
+```

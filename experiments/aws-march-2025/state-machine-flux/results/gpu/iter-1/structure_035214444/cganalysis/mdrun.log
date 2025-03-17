@@ -1,0 +1,40 @@
+                :-) GROMACS - gmx mdrun, 2024.2-conda_forge (-:
+
+Executable:   /miniconda3/bin.AVX2_256/gmx
+Data prefix:  /miniconda3
+Working dir:  /mnt/efs/iter-1/structure_035214444/createsim
+Command line:
+  gmx mdrun -cpi -nb gpu -ntmpi 1 -ntomp 8 -pin off -maxh 0.5
+
+The current CPU can measure timings more accurately than the code in
+gmx mdrun was configured to use. This might affect your simulation
+speed as accurate timings are needed for load-balancing.
+Please consider rebuilding gmx mdrun with the GMX_USE_RDTSCP=ON CMake option.
+Reading file topol.tpr, VERSION 2024.2-conda_forge (single precision)
+Can not increase nstlist because verlet-buffer-tolerance is not set or used
+
+Update groups can not be used for this system because an incompatible virtual site type is used
+
+1 GPU selected for this run.
+Mapping of GPU IDs to the 1 GPU task in the 1 rank on this node:
+  PP:0
+PP tasks will do (non-perturbed) short-ranged interactions on the GPU
+PP task will update and constrain coordinates on the CPU
+Using 1 MPI thread
+Using 8 OpenMP threads 
+
+starting mdrun 'lipids-sim'
+-1 steps, infinite ps.
+
+Step 1833980: Run time exceeded 0.495 hours, will terminate the run within 40 steps
+
+NOTE: 18 % of the run time was spent in pair search,
+      you might want to increase nstlist (this has no effect on accuracy)
+
+               Core t (s)   Wall t (s)        (%)
+       Time:    14257.311     1782.169      800.0
+                 (ns/day)    (hour/ns)
+Performance:     1778.257        0.013
+
+GROMACS reminds you: "Jede der Scherben spiegelt das Licht" (Wir sind Helden)
+

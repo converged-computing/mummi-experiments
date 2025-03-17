@@ -11,8 +11,8 @@ These experiments will be run on AWS in March 2025. I will keep a record of runs
   - [ ] Iteration 1
   - [ ] Iteration 2
 - [ ] Mummi Operator Static GPU
-  - [ ] Iteration 0
-  - [ ] Iteration 1
+  - [x] Iteration 0
+  - [x] Iteration 1
   - [ ] Iteration 2
 - [x] State Machine Operator Static CPU
   - [x] Iteration 0 (March 13, 2025)
@@ -35,15 +35,14 @@ These experiments will be run on AWS in March 2025. I will keep a record of runs
 
 > Vanessa
 
-- [ ] State Machine Operator Flux VM CPU
-  - [ ] Iteration 0
-  - [ ] Iteration 1
-  - [ ] Iteration 2
-- [ ] State Machine Operator Flux VM GPU
-  - [ ] Iteration 0
-  - [ ] Iteration 1
-  - [ ] Iteration 2
-
+- [x] State Machine Operator Flux VM CPU
+  - [x] Iteration 0 (March 15, 2025)
+  - [x] Iteration 1 (March 16, 2025)
+  - [x] Iteration 2 (March 16, 2025)
+- [x] State Machine Operator Flux VM GPU
+  - [x] Iteration 0 (March 16, 2025)
+  - [x] Iteration 1 (March 16, 2025)
+  - [x] Iteration 2 (March 16, 2025)
 
 ## Bare Metal
 

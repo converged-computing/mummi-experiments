@@ -107,8 +107,8 @@ def main():
     gpu_pulling_files = find_inputs(gpu_indir, "events-")
     cpu_pulling_files = find_inputs(cpu_indir, "events-")
     pulling_files = gpu_pulling_files + cpu_pulling_files
-    times = parse_pulling_data(outdir, pulling_files)
-    parse_pulling_times(times)
+    times, _ = me.parse_events(outdir, pulling_files)
+    me.parse_pulling_times(times)
 
     # Now let's count outputs (total and excess)
     count_outputs([cpu_indir, gpu_indir], outdir, completions=args.completions)
@@ -220,7 +220,7 @@ def job_timings(indirs, outdir):
             if "/createsim/" in x
         ]
 
-        # Now we read in results via tarfile
+        # Now we read in results via tarfile (only done for MuMMI)
         df, idx = parse_createsim_times(df, samples, experiment, idx)
 
         samples = [
@@ -423,167 +423,6 @@ def parse_time_pulled(time_pulled):
         time_pulled = rest
     seconds = float(time_pulled.rstrip("s"))
     return (minutes * 60) + seconds
-
-
-def parse_pulling_times(times):
-    """
-    Read events and turn into data frame with container pull times
-    """
-    # This is for containers
-    df = pandas.DataFrame(
-        columns=[
-            "name",
-            "kind",
-            "job",
-            "event",
-            "duration",
-            "container",
-            "experiment",
-        ]
-    )
-    idx = 0
-
-    # STRATEGY:
-    # pod will get us pulling times
-    # job will get us completion times (success or fail)
-    #   jobs that do not complete in some respect are sunk cost
-    #   that will be reflected in the total cluster up/down time
-    for experiment, items in times.items():
-        for uid, item in items.items():
-            # Skip non-pod and job events for now
-            kind = item["kind"]
-            if kind not in ["Pod", "Job"]:
-                continue
-
-            # This is a problem with AWS CNI, usually shows up on deletion I think
-            if "failedcreatepodsandbox" in item["events"]:
-                continue
-
-            # The only experiment without a stated size is aws eks gpu, size 16
-            container = item.get("container")
-            if not container and "pulled" in item["events"]:
-                container = (
-                    re.search('["].*["]', item["events"]["pulled"]["message"])
-                    .group()
-                    .strip('"')
-                )
-
-            # PULLING
-            # We can do our own calculation based on timestamps here
-            # These seem to be better in terms of granularity
-            pulled_seconds = None
-            running_seconds = None
-            job = None
-
-            # We can derive pull plus waiting from the message here
-            # This is better data
-            if "pulled" in item["events"] and pulled_seconds is None:
-                message = item["events"]["pulled"]["message"]
-                # If it's already pulled, don't count it
-                if "already present on machine" in message.lower():
-                    continue
-                time_pulled = re.search("[(].*[)]", message)
-                time_pulled = time_pulled.group().split(" ")[0].replace("(", "")
-                # parse time pulled
-                pulled_seconds = parse_time_pulled(time_pulled)
-
-            elif "pulling" in item["events"] and "pulled" in item["events"]:
-                start = item["events"]["pulling"]["timestamp"]
-                end = item["events"]["pulled"]["timestamp"]
-                parsed_end = datetime.strptime(end, timestamp_format)
-                parsed_start = datetime.strptime(start, timestamp_format)
-                elapsed = parsed_end - parsed_start
-                pulled_seconds = elapsed.seconds
-
-            # We can't use "killing" to derive pod times, they don't show up
-            # until the cluster deletion. Also note that "Completed" can be
-            # success or error - we only know this from result data
-            if kind == "Job":
-                # This is a sunk cost - a job started that didn't finish
-                if "completed" not in item["events"]:
-                    continue
-                job_end = datetime.strptime(
-                    item["events"]["completed"]["timestamp"], timestamp_format
-                )
-                job_start = datetime.strptime(
-                    item["events"]["successfulcreate"]["timestamp"], timestamp_format
-                )
-                running_seconds = (job_end - job_start).seconds
-                job = uid.split("-")[0]
-
-            elif kind == "Pod" and container is not None:
-                if "cganalysis" in container:
-                    job = "cganalysis"
-                elif "createsim" in container:
-                    job = "createsim"
-
-            # parse all events for absolute timestamp
-            # For these we want absolute timestamps to compare across
-            # because we need to understand variation between nodes
-            pod_events = ["pulled", "pulling", "scheduled", "created", "started"]
-            job_events = ["successfulcreate", "completed"]
-            for event_name in pod_events + job_events:
-                if event_name not in item["events"]:
-                    continue
-                # For these, calculate a difference.
-                previous_event = {"created": "pulled", "started": "created"}
-                timestamp = item["events"][event_name]["timestamp"]
-                parsed_timestamp = datetime.strptime(timestamp, timestamp_format)
-                df.loc[idx, :] = [
-                    uid,
-                    kind,
-                    job,
-                    event_name + "-timestamp",
-                    parsed_timestamp.timestamp(),
-                    container,
-                    experiment,
-                ]
-                idx += 1
-                if event_name in previous_event:
-                    previous_timestamp = item["events"][previous_event[event_name]][
-                        "timestamp"
-                    ]
-                    previous_timestamp = datetime.strptime(
-                        previous_timestamp, timestamp_format
-                    )
-                    elapsed = parsed_timestamp - previous_timestamp
-                    event_seconds = elapsed.seconds
-                    df.loc[idx, :] = [
-                        uid,
-                        kind,
-                        job,
-                        event_name,
-                        event_seconds,
-                        container,
-                        experiment,
-                    ]
-                    idx += 1
-                continue
-
-            if pulled_seconds is not None:
-                df.loc[idx, :] = [
-                    uid,
-                    kind,
-                    job,
-                    "pulled",
-                    pulled_seconds,
-                    container,
-                    experiment,
-                ]
-                idx += 1
-
-            if running_seconds is not None:
-                df.loc[idx, :] = [
-                    uid,
-                    kind,
-                    job,
-                    "running",
-                    running_seconds,
-                    container,
-                    experiment,
-                ]
-                idx += 1
-    return df
 
 
 def plot_pulling_times(df, outdir):

@@ -1,0 +1,134 @@
+WARNING: Could not find any nv files on this host!
+>> jobid        = structure_017649704
+>> outpath      = /mnt/efs/iter-3/structure_017649704/mlrunner
+>> hostname     = i-0757c9a3fbc70239a
+> Initialized MuMMI
+	> MuMMI_ROOT: (/mnt/efs/iter-3)
+	> MuMMI_Resources: (/opt/clones/mummi_resources)
+	> MuMMI_Specs: (/opt/clones/mummi-ras/specs)
+
+> Creating MuMMI root hierarchy at (/mnt/efs/iter-3)
+
+mummi-ml start --jobid structure_017649704 --workspace=/mnt/efs/iter-3 --outdir=/mnt/efs/iter-3/structure_017649704/mlrunner --tag mlrunner --encoder-model /opt/clones/mummi_resources/ml/chonky-model/CG_pos_data_summary_pos_dis_C1_v1.npz --ml-outdir=/mnt/efs/iter-3 --device gpu --feedback --resources martini3-validator --complex=ras-rbdcrd-ref-CG.gro
+/pixi-env/.pixi/envs/default/lib/python3.11/site-packages/MDAnalysis/topology/TPRParser.py:161: DeprecationWarning: 'xdrlib' is deprecated and slated for removal in Python 3.13
+  import xdrlib
+INFO:mummi_operator.ml.runner:ML Server launched on host: i-0757c9a3fbc70239a
+INFO:mummi_operator.ml.runner:> Initializing MuMMI ML Runner
+INFO:mummi_operator.ml.runner:  > Mini-Mummi                 True
+INFO:mummi_operator.ml.runner:  > Sampler
+INFO:mummi_operator.ml.runner:    > Interpolator             ot_feedback
+INFO:mummi_operator.ml.runner:    > Run with feedback        True
+INFO:mummi_operator.ml.runner:    > Createsims Feedback DB   /mnt/efs/iter-3/feedback/db-feedback-sampling.npz
+INFO:mummi_operator.ml.runner:    > CG frames Feedback DB    /mnt/efs/iter-3/feedback/db-feedback-frames.npz
+INFO:mummi_operator.ml.runner:  > Generator
+INFO:mummi_operator.ml.runner:    > Encoder                  /opt/clones/mummi_resources/ml/chonky-model
+INFO:mummi_operator.ml.runner:  > Validator                   CGValidator
+INFO:mummi_ras.ml.autoencoders.mini.full_dense_autoencoder: > Using torch v2.0.0.post104 (/pixi-env/.pixi/envs/default/lib/python3.11/site-packages/torch/__init__.py)
+INFO:mummi_ras.ml.autoencoders.mini.full_dense_autoencoder:> Initialization of generator with:
+INFO:mummi_ras.ml.autoencoders.mini.full_dense_autoencoder:  > encoder      = /opt/clones/mummi_resources/ml/chonky-model
+INFO:mummi_ras.ml.autoencoders.mini.full_dense_autoencoder:  > dimensions   = ((2289,), (32,))
+INFO:mummi_ras.ml.autoencoders.mini.full_dense_autoencoder:  > #beads       = 763
+INFO:mummi_ras.ml.autoencoders.mini.model.model_torch:Initializing (model-protein_latent_space-mini_mummi_ls-c2289_z32-0)
+INFO:mummi_ras.ml.autoencoders.mini.full_dense_autoencoder: > Device used : cpu
+INFO:mummi_ras.ml.autoencoders.mini.model.model_torch:loading model (/opt/clones/mummi_resources/ml/chonky-model/model.pth)
+INFO:mummi_ras.ml.autoencoders.mini.model.model_torch:loading model standardization file (/opt/clones/mummi_resources/ml/chonky-model/CG_pos_data_summary_pos_dis_C1_v1.npz)
+INFO:mummi_operator.ml.validator:> Initialization of validator with
+INFO:mummi_operator.ml.validator:  > iteration_path        = /mnt/efs/iter-3/structure_017649704/mlrunner
+INFO:mummi_operator.ml.validator:  > resource_path         = /opt/clones/mummi_resources/martini3-validator-resources
+INFO:mummi_operator.ml.validator:  > complex_name          = ras-rbdcrd-ref-CG.gro
+INFO:mummi_operator.ml.validator:  > maximum force         = [-1000000.0, 1000000.0]
+INFO:mummi_operator.ml.validator:  > potential energy      = [-10000000.0, 10000000.0]
+INFO:mummi_operator.ml.validator:  > cleanup               = True
+INFO:mummi_operator.ml.validator:  > healing               = True
+INFO:mummi_operator.ml.validator:  > logical cores         = 2
+INFO:mummi_operator.ml.validator:  > available cores       = 1
+INFO:mummi_operator.ml.runner:Feedback DB for sampling located in /mnt/efs/iter-3/feedback/db-feedback-sampling.npz
+INFO:mummi_operator.ml.runner:Training data /opt/clones/mummi_resources/ml/chonky-model/training => 1 files
+WARNING:mummi_operator.ml.runner:Could not load pre-computed interpolator. Computing interpolator
+INFO:mummi_ras.ml.samplers.interpolators.feedback_interpolator:creating all states
+DEBUG:mummi_ras.ml.samplers.interpolators.feedback_interpolator:Doing assert
+INFO:mummi_ras.ml.samplers.interpolators.feedback_interpolator:compute_optimal_transport_pairwise with source=(226, 32) / target=(226, 32)
+INFO:mummi_ras.ml.samplers.interpolators.feedback_interpolator:ot.emd with a=(226,) / b=(226,) and M=(226, 226)
+INFO:mummi_operator.ml.runner:Interpolator ot_feedback created in 1.722 seconds for 452 LS points
+INFO:mummi_ras.ml.samplers.ls_sampler:Updating feedback database from /mnt/efs/iter-3/feedback/db-feedback-frames.npz
+INFO:mummi_ras.ml.samplers.ls_sampler:Reading feedback sampling db.
+INFO:mummi_ras.ml.samplers.ls_sampler:Skipping updating /mnt/efs/iter-3/feedback/db-feedback-frames.npz. DB is empty
+INFO:mummi_ras.ml.autoencoders.mini.full_dense_autoencoder: > Using torch v2.0.0.post104 (/pixi-env/.pixi/envs/default/lib/python3.11/site-packages/torch/__init__.py)
+INFO:mummi_ras.ml.autoencoders.mini.full_dense_autoencoder:> Initialization of generator with:
+INFO:mummi_ras.ml.autoencoders.mini.full_dense_autoencoder:  > encoder      = /opt/clones/mummi_resources/ml/chonky-model
+INFO:mummi_ras.ml.autoencoders.mini.full_dense_autoencoder:  > dimensions   = ((2289,), (32,))
+INFO:mummi_ras.ml.autoencoders.mini.full_dense_autoencoder:  > #beads       = 763
+INFO:mummi_ras.ml.autoencoders.mini.model.model_torch:Initializing (model-protein_latent_space-mini_mummi_ls-c2289_z32-0)
+INFO:mummi_ras.ml.autoencoders.mini.full_dense_autoencoder: > Device used : cpu
+INFO:mummi_ras.ml.autoencoders.mini.model.model_torch:loading model (/opt/clones/mummi_resources/ml/chonky-model/model.pth)
+INFO:mummi_ras.ml.autoencoders.mini.model.model_torch:loading model standardization file (/opt/clones/mummi_resources/ml/chonky-model/CG_pos_data_summary_pos_dis_C1_v1.npz)
+INFO:mummi_ras.ml.feedback_frames:Starting to observe feedback files
+INFO:mummi_ras.ml.feedback_frames: > Directory               /mnt/efs/iter-3/feedback-cg2ml
+INFO:mummi_ras.ml.feedback_frames: > ML model                /opt/clones/mummi_resources/ml/chonky-model
+INFO:mummi_ras.ml.feedback_frames: > Feeback Frame DB        /mnt/efs/iter-3/feedback/db-feedback-frames.npz
+INFO:mummi_ras.ml.feedback_frames: > Every (seconds)         60
+INFO:mummi_ras.ml.feedback_frames: > Max size (MB)           50
+INFO:mummi_operator.ml.runner:Sampled 1 in 1.0728836059570312e-05 seconds
+INFO:mummi_ras.ml.autoencoders.mini.full_dense_autoencoder:De-standardizing (1, 763, 3) predicted_positions
+DEBUG:mummi_ras.ml.autoencoders.mini.full_dense_autoencoder:new_positions= (1, 763, 3) from ls_coords = (1, 32)
+INFO:mummi_operator.ml.runner:Write patches in /mnt/efs/iter-3/structure_017649704
+INFO:mummi_operator.ml.runner:Writing /mnt/efs/iter-3/structure_017649704/structure_017649704_000000000000.npz
+DEBUG:mummi_operator.ml.runner:generated structures done. new_positions = (1, 763, 3)
+DEBUG:mummi_operator.ml.validator:Switched dir to fullPathDir /mnt/efs/iter-3/structure_017649704/mlrunner/structure_017649704_000000000000 (/mnt/efs/iter-3/structure_017649704/mlrunner/structure_017649704_000000000000)
+DEBUG:MDAnalysis.core.universe:_process_attr: Adding <MDAnalysis.core.topologyattrs.Atomnames object at 0x784620b253d0> to topology
+DEBUG:MDAnalysis.core.universe:_process_attr: Adding <MDAnalysis.core.topologyattrs.Atomids object at 0x784624971b50> to topology
+DEBUG:MDAnalysis.core.universe:_process_attr: Adding <MDAnalysis.core.topologyattrs.Atomtypes object at 0x784624972050> to topology
+DEBUG:MDAnalysis.core.universe:_process_attr: Adding <MDAnalysis.core.topologyattrs.Resids object at 0x784620b3de10> to topology
+DEBUG:MDAnalysis.core.universe:_process_attr: Adding <MDAnalysis.core.topologyattrs.Resnums object at 0x784628df6ed0> to topology
+DEBUG:MDAnalysis.core.universe:_process_attr: Adding <MDAnalysis.core.topologyattrs.Resnames object at 0x784627c94690> to topology
+DEBUG:MDAnalysis.core.universe:_process_attr: Adding <MDAnalysis.core.topologyattrs.Masses object at 0x784628fb9010> to topology
+DEBUG:MDAnalysis.core.universe:_process_attr: Adding <MDAnalysis.core.topologyattrs.Segids object at 0x784628740050> to topology
+DEBUG:MDAnalysis.core.universe:_process_attr: Adding <MDAnalysis.core.topologyattrs.Atomindices object at 0x784628df4f90> to topology
+DEBUG:MDAnalysis.core.universe:_process_attr: Adding <MDAnalysis.core.topologyattrs.Resindices object at 0x784620b3e110> to topology
+DEBUG:MDAnalysis.core.universe:_process_attr: Adding <MDAnalysis.core.topologyattrs.Segindices object at 0x784620b3e150> to topology
+DEBUG:MDAnalysis.core.universe:Universe.load_new(): loading /opt/clones/mummi_resources/martini3-validator-resources/ras-rbdcrd-ref-CG.gro...
+INFO:mummi_operator.ml.validator:Run GROMACS minimization in dir /mnt/efs/iter-3/structure_017649704/mlrunner/structure_017649704_000000000000/structure_017649704_000000000000
+DEBUG:mummi_operator.ml.validator:minimization results for structure_017649704_000000000000: potential energy of -4529.4253 and maximum force of 3693.0244
+DEBUG:MDAnalysis.core.universe:_process_attr: Adding <MDAnalysis.core.topologyattrs.Atomnames object at 0x784620b3dd10> to topology
+DEBUG:MDAnalysis.core.universe:_process_attr: Adding <MDAnalysis.core.topologyattrs.Atomids object at 0x784620b3b410> to topology
+DEBUG:MDAnalysis.core.universe:_process_attr: Adding <MDAnalysis.core.topologyattrs.Atomtypes object at 0x784620b3a990> to topology
+DEBUG:MDAnalysis.core.universe:_process_attr: Adding <MDAnalysis.core.topologyattrs.Resids object at 0x784620b500d0> to topology
+DEBUG:MDAnalysis.core.universe:_process_attr: Adding <MDAnalysis.core.topologyattrs.Resnums object at 0x784620b50090> to topology
+DEBUG:MDAnalysis.core.universe:_process_attr: Adding <MDAnalysis.core.topologyattrs.Resnames object at 0x784620b50110> to topology
+DEBUG:MDAnalysis.core.universe:_process_attr: Adding <MDAnalysis.core.topologyattrs.Masses object at 0x784620b50190> to topology
+DEBUG:MDAnalysis.core.universe:_process_attr: Adding <MDAnalysis.core.topologyattrs.Segids object at 0x784620b501d0> to topology
+DEBUG:MDAnalysis.core.universe:_process_attr: Adding <MDAnalysis.core.topologyattrs.Atomindices object at 0x784620b50350> to topology
+DEBUG:MDAnalysis.core.universe:_process_attr: Adding <MDAnalysis.core.topologyattrs.Resindices object at 0x784620b50390> to topology
+DEBUG:MDAnalysis.core.universe:_process_attr: Adding <MDAnalysis.core.topologyattrs.Segindices object at 0x784620b503d0> to topology
+DEBUG:MDAnalysis.core.universe:Universe.load_new(): loading structure_017649704_000000000000-em_whole.gro...
+INFO:mummi_operator.ml.validator:Structure structure_017649704_000000000000 VALID (potential energy of -4529.4253, maximum force of 3693.0244) in 2.607 seconds
+INFO:mummi_operator.ml.validator:Validator returned with 1 elements and took: 2.6809885470029258 sec (0.3729955980729958 sample/sec)
+INFO:mummi_operator.ml.validator:Found 1 valid patches out of 1 patches
+DEBUG:mummi_operator.ml.runner:mlrunner structure_017649704 => valid structures=['/mnt/efs/iter-3/structure_017649704/mlrunner/structure_017649704_000000000000.gro']
+
+> Initializing MuMMI (/opt/clones/mummi-core/mummi_core)
+> Initialized MuMMI
+	> MuMMI_ROOT: (/mnt/efs/iter-3)
+	> MuMMI_Resources: (/opt/clones/mummi_resources)
+	> MuMMI_Specs: (/opt/clones/mummi-ras/specs)
+
+> Creating MuMMI root hierarchy at (/mnt/efs/iter-3)
+
+(1, 763, 3)
+=== times
+{"created_interpolator_seconds": 1.7218892574310303, "sampled_structure_017649704": 1.0728836059570312e-05}
+===
+=== timestamps
+{"create_sets_start": 1742162766.1022172, "create_sets_complete": 1742162767.433455, "generator_decode_structure_017649704_start": 1742162768.1955643, "generator_decode_structure_017649704_complete": 1742162768.274265, "validate_structure_017649704_start": 1742162768.2879035, "validate_structure_017649704_complete": 1742162770.9893765}
+===
+START OF JOBSPEC
+{"resources": [{"type": "node", "count": 1, "with": [{"type": "slot", "count": 1, "with": [{"type": "core", "count": 1}, {"type": "gpu", "count": 1}], "label": "task"}]}], "tasks": [{"command": ["/usr/local/bin/singularity", "exec", "--nv", "--bind", "/mnt/efs", "--bind", "/home/ubuntu/containers/model-protein_latent_space-mini_mummi_ls-c2289_z32-t2024-10-01-23-33-17_h443704:/opt/clones/mummi_resources/ml/chonky-model", "/home/ubuntu/containers/mini-mummi_mlrunner-gpu.sif", "/opt/pixi/bin/pixi", "run", "--manifest-path", "/pixi-env/pixi.toml", "bash", "./entrypoint.sh"], "slot": "task", "count": {"per_slot": 1}}], "attributes": {"system": {"duration": 0.0, "job": {"name": "mlrunner"}, "cwd": "/mnt/efs/iter-3/structure_017649704/mlrunner"}, "user": {"workflow": "state-machine", "app": "mlrunner", "jobname": "structure_017649704"}}, "version": 1}
+START OF EVENTLOG
+{"timestamp":1742162755.249352,"name":"init"}
+{"timestamp":1742162755.2507308,"name":"starting"}
+{"timestamp":1742162755.2817531,"name":"shell.init","context":{"service":"1000-shell-f3TBy3KRYj","leader-rank":1,"size":1}}
+{"timestamp":1742162755.2845409,"name":"shell.start","context":{"taskmap":{"version":1,"map":[[0,1,1,1]]}}}
+{"timestamp":1742162771.6529155,"name":"shell.task-exit","context":{"localid":0,"rank":0,"state":"Exited","pid":26810,"wait_status":0,"signaled":0,"exitcode":0}}
+{"timestamp":1742162771.6557152,"name":"complete","context":{"status":0}}
+{"timestamp":1742162771.6557474,"name":"done"}
+
