@@ -14,9 +14,8 @@ import seaborn as sns
 
 here = os.path.abspath(os.path.dirname(__file__))
 root = os.path.dirname(here)
-
-timestamp_format = "%Y-%m-%dT%H:%M:%SZ"
-node_timestamp_format = "%Y-%m-%dT%H:%M:%S.%fZ"
+sys.path.insert(0, os.path.dirname(root))
+import mummi_experiments as me
 
 
 def get_parser():
@@ -40,56 +39,6 @@ def get_parser():
     return parser
 
 
-def read_file(filename):
-    with open(filename, "r") as fd:
-        content = fd.read()
-    return content
-
-
-def recursive_find(base, pattern="*.*"):
-    """
-    Recursively find and yield files matching a glob pattern.
-    """
-    for root, _, filenames in os.walk(base):
-        for filename in filenames:
-            if not re.search(pattern, filename):
-                continue
-            yield os.path.join(root, filename)
-
-
-def read_tarfile(filename):
-    """
-    Reads a .tar.gz file from a byte string and returns a dictionary
-    where keys are file names and values are file contents as byte strings.
-    """
-    file_contents = {}
-    with tarfile.open(filename, "r:gz") as tar:
-        for member in tar.getmembers():
-            if member.isfile():
-                file_contents[member.name] = tar.extractfile(member).read()
-    return file_contents
-
-
-def find_inputs(input_dir, pattern="*.out"):
-    """
-    Find inputs (times results files)
-    """
-    files = []
-    for filename in recursive_find(input_dir, pattern=pattern):
-        # We only have data for small
-        files.append(filename)
-    return files
-
-
-def read_json(filename):
-    return json.loads(read_file(filename))
-
-
-def write_json(obj, filename):
-    with open(filename, "w") as fd:
-        fd.write(json.dumps(obj, indent=4))
-
-
 def main():
     parser = get_parser()
     args, _ = parser.parse_known_args()
@@ -101,9 +50,17 @@ def main():
         os.makedirs(outdir)
 
     # Specific cpu and gpu results
-    cpu_static_indirs = ["cpu-arm-no-autoscaling", "cpu-arm-no-autoscaling-0", "cpu-arm-no-autoscaling-1"]
+    cpu_static_indirs = [
+        "cpu-arm-no-autoscaling",
+        "cpu-arm-no-autoscaling-0",
+        "cpu-arm-no-autoscaling-1",
+    ]
     cpu_as_indir = ["cpu-arm-autoscale", "cpu-arm-autoscale-0", "cpu-arm-autoscale-1"]
-    gpu_static_indir = ["gpu-no-autoscaling", "gpu-no-autoscaling-0", "gpu-no-autoscaling-1"]
+    gpu_static_indir = [
+        "gpu-no-autoscaling",
+        "gpu-no-autoscaling-0",
+        "gpu-no-autoscaling-1",
+    ]
     gpu_as_indir = ["gpu-autoscale", "gpu-autoscale-0", "gpu-autoscale-1"]
     indirs = []
     for indir_set in cpu_static_indirs, cpu_as_indir, gpu_static_indir, gpu_as_indir:
@@ -116,7 +73,7 @@ def main():
         event_files += find_inputs(dirname, "events-")
     times, nodes = parse_events(outdir, event_files)
     times_df = parse_pulling_times(times)
-    plot_pulling_times(times_df, outdir)
+    me.plot_pulling_times(times_df, outdir)
 
     # Now let's count outputs (total and excess)
     count_outputs(indirs, outdir, completions=args.completions)
@@ -177,12 +134,12 @@ def calculate_costs(
                 # While the experiment design doesn't elicit this, we need to check for the
                 # case that a node went away and came up during the experiment. This might
                 # happen with an aggressive autoscaling policy.
-                first_event = nodemeta["conditions"][0]['last_transition_time']
-                
+                first_event = nodemeta["conditions"][0]["last_transition_time"]
+
                 # By default we know the node is up at the start of the workfow
                 # Check that the first event was before the cluster was created
                 node_start_time = workflow_starts[experiment][iteration]
-                
+
                 # Did the node report ready the first time after the experiment started?
                 if first_event > node_start_time:
                     print(f"Found node {node_name} that came up during experiment")
@@ -194,9 +151,7 @@ def calculate_costs(
                     assert (
                         last_event["type"] == "Ready" and last_event["status"] is False
                     )
-                    node_uptime = (
-                        last_event["last_transition_time"] - node_start_time
-                    )
+                    node_uptime = last_event["last_transition_time"] - node_start_time
                     total_times[experiment][iteration].append(node_uptime)
                 # If the node remained ready, it was up the duration of the experiment
                 else:
@@ -348,6 +303,11 @@ def workflow_manager(indirs, outdir):
     # Save individual times too
     df.to_csv(os.path.join(outdir, "workflow-individual-times.csv"))
 
+    # Save workflow starts and ends
+    write_json(
+        {"starts": workflow_starts, "ends": workflow_ends},
+        os.path.join(outdir, "workflow-endpoint-times.json"),
+    )
     # Remove functions that total sum across the workflow is < 1 second
     make_plot(
         df,
@@ -534,6 +494,7 @@ def parse_createsim_times(df, samples, experiment, idx=0, iteration=0):
             ]
             idx += 1
     return df, idx
+
 
 def parse_timestamp(timestamp):
     """
@@ -869,80 +830,6 @@ def parse_pulling_times(times):
                 ]
                 idx += 1
     return df
-
-
-def plot_pulling_times(df, outdir):
-    """
-    Given an output directory, plot image to show pull times.
-    """
-    # Let's first plot pull times
-    subset = df[df.event == "pulled"]
-    # Don't account for already pulled
-    subset = subset[subset.duration != 0]
-    # Only include analysis containers
-    subset = subset[
-        subset.container.isin([x for x in subset.container.unique() if "mummi" in x])
-    ]
-    img_outdir = os.path.join(outdir, "img")
-    if not os.path.exists(img_outdir):
-        os.makedirs(img_outdir)
-    make_plot(
-        subset,
-        title="State Machine Operator Container Pulling Times",
-        ydimension="duration",
-        xdimension="experiment",
-        outdir=img_outdir,
-        ext="png",
-        plotname="pull_times_by_experiment",
-        hue="experiment",
-        plot_type="box",
-        xlabel="Container",
-        ylabel="Pull Time (seconds)",
-    )
-
-    # Now let's look at time for each job
-    # Let's first plot pull times
-    subset = df[df.event == "running"]
-
-    # IMPORTANT - this was an outlier that will mess up the plot, but it needs to be reported
-    # It never actually finished.
-    # createsim-structure-iter00-000000000001  Job  createsim  running    82583      None  gpu-static
-    subset = subset[subset.duration != subset.duration.max()]
-
-    make_plot(
-        subset,
-        title="State Machine Operator Job Times By Experiment",
-        ydimension="duration",
-        xdimension="job",
-        outdir=img_outdir,
-        ext="png",
-        plotname="job_times_by_experiment",
-        hue="experiment",
-        plot_type="box",
-        xlabel="Job",
-        ylabel="Running Time (seconds)",
-        rotation=360,
-    )
-
-    # Let's do summary of job times
-    by_job = subset.groupby(["job", "experiment"])["duration"].sum()
-    subset = df[df.event == "pulled"]
-    by_pull = subset.groupby(["experiment"])["duration"].sum()
-    print(by_job)
-    print(by_pull)
-
-    # Convert into data frame
-    summary_df = pandas.DataFrame(columns=["experiment", "event", "duration"])
-    idx = 0
-    for entry in by_job.items():
-        summary_df.loc[idx, :] = [entry[0][1], "running-" + entry[0][0], entry[1]]
-        idx += 1
-    for entry in by_pull.items():
-        summary_df.loc[idx, :] = [entry[0], "pulled", entry[1]]
-        idx += 1
-
-    # We will add costs to this based on workflow running time
-    return summary_df
 
 
 def make_plot(

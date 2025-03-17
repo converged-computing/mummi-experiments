@@ -10,7 +10,9 @@ cd ./mummi-experiments/experiments/aws-march-2025/mummi-operator
 ```
 Final results:
 
- - 
+ - gpu-static-0
+ - gpu-static-1
+
 
 ## Experiments
 
@@ -35,7 +37,7 @@ kubectl apply -f ../../../event-monitor
 # region=us-east-1
 # instance=hpc7g.16xlarge
 
-environ=gpu-static-0
+environ=gpu-static-1
 region=us-east-1
 instance=p3.2xlarge
 
@@ -76,7 +78,7 @@ When the workflow is complete, we can save the state, etc. First, get output for
 
 ```bash
 # In a different terminal, this will save nodes and collect events.
-environ=gpu-static-0
+environ=gpu-static-1
 # environ=cpu-static-1
 
 #kubectl logs <container>  > ./monitor/${environ}/<container>.out

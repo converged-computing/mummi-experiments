@@ -41,7 +41,6 @@ def read_file(filename):
         content = fd.read()
     return content
 
-
 def recursive_find(base, pattern="*.*"):
     """
     Recursively find and yield files matching a glob pattern.
@@ -108,18 +107,35 @@ def main():
     count_outputs(indirs, outdir, completions=args.completions)
 
     # Now look at times for the workflow manager
-    workflow_times = workflow_manager(indirs, outdir)
+    workflow_times, workflow_starts, workflow_ends = workflow_manager(indirs, outdir)
 
     # Now let's look at times for jobs
-    job_timings(indirs, outdir, workflow_times)
-
-    calculate_costs(workflow_times, outdir)
-
+    best_df = job_timings(indirs, outdir, workflow_times)
+    calculate_costs(indirs, times_df, workflow_times, workflow_starts, workflow_ends, outdir)
 
 def workflow_manager(indirs, outdir):
     """
     Look at timings for the workflow manager
     """
+    # Keep a lookup for the exact workflow start timestamps
+    workflow_starts = {}
+    workflow_ends = {}
+    for _indir in indirs:
+        experiment = get_experiment_name(_indir)
+        iteration = get_experiment_iteration(_indir)
+        times = read_json(os.path.join(_indir, "workflow-times.json"))
+        if experiment not in workflow_starts:
+            workflow_starts[experiment] = {}
+            workflow_ends[experiment] = {}
+        if iteration not in workflow_starts[experiment]:
+            workflow_starts[experiment][iteration] = {}
+            workflow_ends[experiment][iteration] = {}
+        for name, timestamp in times["timestamps"].items():
+            if "workflow_start" in name:
+                workflow_starts[experiment][iteration] = timestamp
+                workflow_end = times["timestamps"]["workflow_complete"]
+                workflow_ends[experiment][iteration] = workflow_end
+
     workflow_times = combine_data_frames(indirs, "workflow-individual-times.csv")
     make_plot(
         workflow_times,
@@ -163,10 +179,10 @@ def workflow_manager(indirs, outdir):
     )
 
     # The only meaningful comparison is the workflow running time to get 6 samples
-    print("See workflow running time to get 6 samples")
+    print("See workflow running time to get 10 samples")
     print(workflow_times.groupby(["experiment", "global"]).duration.mean())
     print(total_time)
-    return workflow_times
+    return workflow_times, workflow_starts, workflow_ends
 
 
 def combine_data_frames(indirs, filename):
@@ -280,7 +296,7 @@ def job_timings(indirs, outdir, workflow_times):
     workflow_complete_times["environment"] = [x.replace("-static", "") for x in workflow_complete_times["environment"]]
 
     # Now let's compare to actual orchestration time.
-    best_df = pandas.DataFrame(columns=['experiment', 'operator', 'environment', 'actual_duration', 'best_duration'])
+    best_df = pandas.DataFrame(columns=['experiment', 'operator', 'environment', 'iteration', 'actual_duration', 'best_duration'])
     idx = 0
     for experiment, best_times in best_possible_times.items():
        workflow_actual_times = workflow_complete_times[workflow_complete_times.experiment == experiment]
@@ -289,15 +305,30 @@ def job_timings(indirs, outdir, workflow_times):
            operator = workflow_complete_times[workflow_complete_times.experiment == experiment].operator.unique().tolist()[0]
            environ = "cpu" if "cpu" in experiment else "gpu"
            actual_duration = workflow_actual_times[workflow_actual_times.iteration == iteration].duration.values[0]
-           best_df.loc[idx, :] = [experiment, operator, environ, actual_duration, best_time]
+           best_df.loc[idx, :] = [experiment, operator, environ, iteration, actual_duration, best_time]
            idx +=1
+           
+    # Make a new label for the x axis that doesn't have gpu/cpu
+    labels = [re.sub('(-?)(gpu|cpu)(-?)', '', x) for x in best_df.experiment.values]
+    best_df['labels'] = labels
 
     # Finally! Make a plot!
-    # sns.histplot(best_df, stat='actual_duration', kde=False, label='Actual Experiment Time')
-
-    # Overlay the PDF of the theoretical distribution
-    # plt.plot(x, pdf, 'r', label=f'{theoretical_dist.name.capitalize()} PDF')
-
+    plt.figure(figsize=(7, 6))
+    ax = sns.barplot(data=best_df, x="labels", y="actual_duration", hue='environment')
+    sns.set_style("dark")
+    sns.barplot(ax=ax, data=best_df, x="labels", y="best_duration", hue='environment', legend=None, alpha=0.5)
+    ax.set_xlabel("Experiment", fontsize=10)
+    ax.set_ylabel("Workflow Total Time", fontsize=10)
+    ax.set_xticklabels(ax.get_xmajorticklabels(), fontsize=14)
+    ax.set_yticklabels(ax.get_yticks(), fontsize=14)
+    # sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
+    plt.title("Actual Time vs. Theoretical Best Time")
+    plt.xticks(rotation=90)
+    plt.tight_layout()
+    plt.savefig(os.path.join(outdir, f"actual-time-vs-theoretical.png"))
+    plt.savefig(os.path.join(outdir, f"actual-time-vs-theoretical.svg"))
+    plt.close()
+    return best_df
 
 def parse_timestamp(timestamp):
     """
@@ -546,13 +577,11 @@ def parse_pulling_times(indirs):
     return df
 
 
-def calculate_costs(workflow_times, outdir):
+def calculate_costs(workflow_times, outdir, best_df):
     """
     Calculate experiment costs based on timings.
     """
-    print('calculate costs')
-    import IPython
-    IPython.embed()
+    # TODO: need to save workflow starts and stops as data somewhere, then load here
     times = workflow_times[
         workflow_times["global"].isin(["workflow_complete", "wfmanager_run_workflow"])
     ]
@@ -583,9 +612,9 @@ def calculate_costs(workflow_times, outdir):
     return workflow_times
 
     # TODO this is new stuff
-def calculate_costs(
-    indirs, nodes, times_df, manager_df, workflow_starts, workflow_ends, outdir
-):
+#def calculate_costs(
+#    indirs, nodes, times_df, manager_df, workflow_starts, workflow_ends, outdir
+#):
 
     # Make a data frame of just nodes
     workflow_times = {}
