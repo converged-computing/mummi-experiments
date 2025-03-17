@@ -10,10 +10,10 @@ These experiments will be run on AWS in March 2025. I will keep a record of runs
   - [ ] Iteration 0
   - [ ] Iteration 1
   - [ ] Iteration 2
-- [ ] Mummi Operator Static GPU
-  - [x] Iteration 0
-  - [x] Iteration 1
-  - [ ] Iteration 2
+- [x] Mummi Operator Static GPU
+  - [x] Iteration 0 (March 16, 2025)
+  - [x] Iteration 1 (March 16, 2025)
+  - [x] Iteration 2 (March 17, 2025)
 - [x] State Machine Operator Static CPU
   - [x] Iteration 0 (March 13, 2025)
   - [x] Iteration 1 (March 14, 2025)

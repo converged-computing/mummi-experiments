@@ -12,6 +12,7 @@ Final results:
 
  - gpu-static-0
  - gpu-static-1
+ - gpu-static-2
 
 
 ## Experiments
