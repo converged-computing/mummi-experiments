@@ -41,6 +41,7 @@ def read_file(filename):
         content = fd.read()
     return content
 
+
 def recursive_find(base, pattern="*.*"):
     """
     Recursively find and yield files matching a glob pattern.
@@ -111,7 +112,10 @@ def main():
 
     # Now let's look at times for jobs
     best_df = job_timings(indirs, outdir, workflow_times)
-    calculate_costs(indirs, times_df, workflow_times, workflow_starts, workflow_ends, outdir)
+    calculate_costs(
+        indirs, times_df, workflow_times, workflow_starts, workflow_ends, outdir
+    )
+
 
 def workflow_manager(indirs, outdir):
     """
@@ -200,7 +204,8 @@ def combine_data_frames(indirs, filename):
     # Save initial name for later backup
     combined["environment"] = combined["experiment"]
     combined["experiment"] = [
-        x.replace("-static", "").replace('flux-', '') for x in combined["experiment"].tolist()
+        x.replace("-static", "").replace("flux-", "")
+        for x in combined["experiment"].tolist()
     ]
     combined["experiment"] = combined["operator"] + "-" + combined["experiment"]
     return combined
@@ -211,23 +216,41 @@ def find_mlrunner_times():
     We can get the runtimes of the mlrunner on each GPU/CPU instance from the flux logs.
     """
     times = {"cpu": [], "gpu": []}
-    mlrunner_gpu = [x for x in find_inputs(os.path.join(root, "state-machine-flux", "results", "gpu"), "out") if "error" not in x and "mlrunner" in x]
-    mlrunner_cpu = [x for x in find_inputs(os.path.join(root, "state-machine-flux", "results", "cpu"), "out") if "error" not in x and "mlrunner" in x]
+    mlrunner_gpu = [
+        x
+        for x in find_inputs(
+            os.path.join(root, "state-machine-flux", "results", "gpu"), "out"
+        )
+        if "error" not in x and "mlrunner" in x
+    ]
+    mlrunner_cpu = [
+        x
+        for x in find_inputs(
+            os.path.join(root, "state-machine-flux", "results", "cpu"), "out"
+        )
+        if "error" not in x and "mlrunner" in x
+    ]
     for filename in mlrunner_gpu + mlrunner_cpu:
-       content = read_file(filename)
-       # Already seen is a message that we see when there is an invalid sample (and it runs again)
-       # We only want to get times for one valid sample run
-       if "Already seen" in content:
-           continue
-       # We only count valid samples (exit code 0). Technically the jobs
-       flux_event = json.loads([x for x in content.split('\n') if "complete" in x and "status" in x][0])
-       if flux_event['context']['status'] != 0:
-           continue
-       # Get the two wrapping timestamps
-       run_start = json.loads([x for x in content.split('\n') if "shell.start" in x][0])['timestamp']
-       run_end = json.loads([x for x in content.split('\n') if "shell.task-exit" in x][0])['timestamp']
-       environ = "cpu" if "cpu" in filename else "gpu"
-       times[environ].append(run_end-run_start)
+        content = read_file(filename)
+        # Already seen is a message that we see when there is an invalid sample (and it runs again)
+        # We only want to get times for one valid sample run
+        if "Already seen" in content:
+            continue
+        # We only count valid samples (exit code 0). Technically the jobs
+        flux_event = json.loads(
+            [x for x in content.split("\n") if "complete" in x and "status" in x][0]
+        )
+        if flux_event["context"]["status"] != 0:
+            continue
+        # Get the two wrapping timestamps
+        run_start = json.loads(
+            [x for x in content.split("\n") if "shell.start" in x][0]
+        )["timestamp"]
+        run_end = json.loads(
+            [x for x in content.split("\n") if "shell.task-exit" in x][0]
+        )["timestamp"]
+        environ = "cpu" if "cpu" in filename else "gpu"
+        times[environ].append(run_end - run_start)
     return times
 
 
@@ -258,65 +281,140 @@ def job_timings(indirs, outdir, workflow_times):
     # Compare the actual workflow time with the theoretical minimum
     # Note that we won't have this for mummi, so we instead use the mean time of a single mummi run and multiply the runs needed
     # First find the mlrunner saves we have (from flux) that reflect mummi runs on the corresponding instance types
-    mlrunner_single_times = find_mlrunner_times()    
-    mlrunner_times = workflow_times[workflow_times['global'] == 'mlrunner_success']
-    createsim_times = function_times[function_times['global'] == 'createsim_runtime']
-    cganalysis_times = function_times[function_times['global'] == 'cganalysis_run']
+    mlrunner_single_times = find_mlrunner_times()
+    mlrunner_times = workflow_times[workflow_times["global"] == "mlrunner_success"]
+    createsim_times = function_times[function_times["global"] == "createsim_runtime"]
+    cganalysis_times = function_times[function_times["global"] == "cganalysis_run"]
 
     # For each of gpu and cpu, randomly select 10 samples for MuMMI, which doesn't have the actual times
     # because we were running a server
     idx = mlrunner_times.shape[0] + 1
-    mlrunner_cpu_sample = random.sample(mlrunner_single_times['cpu'], 10)
-    mlrunner_gpu_sample = random.sample(mlrunner_single_times['gpu'], 10)
+    mlrunner_cpu_sample = random.sample(mlrunner_single_times["cpu"], 10)
+    mlrunner_gpu_sample = random.sample(mlrunner_single_times["gpu"], 10)
     for i in range(10):
-        mlrunner_times.loc[idx, :] = ['mummi-cpu', 'mlrunner_success', mlrunner_cpu_sample[i], 'global', 'mummi', i, 'cpu-static']
-        idx +=1
-        mlrunner_times.loc[idx, :] = ['mummi-gpu', 'mlrunner_success', mlrunner_gpu_sample[i], 'global', 'mummi', i, 'gpu-static']
-        idx +=1
+        mlrunner_times.loc[idx, :] = [
+            "mummi-cpu",
+            "mlrunner_success",
+            mlrunner_cpu_sample[i],
+            "global",
+            "mummi",
+            i,
+            "cpu-static",
+        ]
+        idx += 1
+        mlrunner_times.loc[idx, :] = [
+            "mummi-gpu",
+            "mlrunner_success",
+            mlrunner_gpu_sample[i],
+            "global",
+            "mummi",
+            i,
+            "gpu-static",
+        ]
+        idx += 1
 
     # Calculate the hypothetical bests for each iteration and experiment - if we just ran 10 completions of each job
     best_possible_times = {}
     for experiment in function_times.experiment.unique():
         if experiment not in best_possible_times:
             best_possible_times[experiment] = {}
-        subset = function_times[function_times.experiment == experiment]        
+        subset = function_times[function_times.experiment == experiment]
         for iteration in subset.iteration.unique():
             # The best possible time is 10 of each of createsim, cganalysis, and mlrunner
-            createsim_best = createsim_times[(createsim_times.experiment == experiment) & (createsim_times.iteration == iteration)].duration[0:10].tolist()
-            cganalysis_best = cganalysis_times[(cganalysis_times.experiment == experiment) & (cganalysis_times.iteration == iteration)].duration[0:10].tolist()
-            mlrunner_best = mlrunner_times[(mlrunner_times.experiment == experiment) & (mlrunner_times.iteration == iteration)].duration[0:10].tolist()
-            # The best possible time is sum of 10 samples, divided by (distributed across) six nodes that are running 
-            best_possible_time = (sum(createsim_best) + sum(cganalysis_best) + sum(mlrunner_best)) / 6
+            createsim_best = (
+                createsim_times[
+                    (createsim_times.experiment == experiment)
+                    & (createsim_times.iteration == iteration)
+                ]
+                .duration[0:10]
+                .tolist()
+            )
+            cganalysis_best = (
+                cganalysis_times[
+                    (cganalysis_times.experiment == experiment)
+                    & (cganalysis_times.iteration == iteration)
+                ]
+                .duration[0:10]
+                .tolist()
+            )
+            mlrunner_best = (
+                mlrunner_times[
+                    (mlrunner_times.experiment == experiment)
+                    & (mlrunner_times.iteration == iteration)
+                ]
+                .duration[0:10]
+                .tolist()
+            )
+            # The best possible time is sum of 10 samples, divided by (distributed across) six nodes that are running
+            best_possible_time = (
+                sum(createsim_best) + sum(cganalysis_best) + sum(mlrunner_best)
+            ) / 6
             best_possible_times[experiment][iteration] = best_possible_time
 
     workflow_complete_times = workflow_times[
         workflow_times["global"].isin(["workflow_complete", "wfmanager_run_workflow"])
     ]
     workflow_complete_times["global"] = "workflow_complete"
-    workflow_complete_times["environment"] = [x.replace("-static", "") for x in workflow_complete_times["environment"]]
+    workflow_complete_times["environment"] = [
+        x.replace("-static", "") for x in workflow_complete_times["environment"]
+    ]
 
     # Now let's compare to actual orchestration time.
-    best_df = pandas.DataFrame(columns=['experiment', 'operator', 'environment', 'iteration', 'actual_duration', 'best_duration'])
+    best_df = pandas.DataFrame(
+        columns=[
+            "experiment",
+            "operator",
+            "environment",
+            "iteration",
+            "actual_duration",
+            "best_duration",
+        ]
+    )
     idx = 0
     for experiment, best_times in best_possible_times.items():
-       workflow_actual_times = workflow_complete_times[workflow_complete_times.experiment == experiment]
-       for iteration, best_time in best_times.items():
-           # There is only one operator per experiment
-           operator = workflow_complete_times[workflow_complete_times.experiment == experiment].operator.unique().tolist()[0]
-           environ = "cpu" if "cpu" in experiment else "gpu"
-           actual_duration = workflow_actual_times[workflow_actual_times.iteration == iteration].duration.values[0]
-           best_df.loc[idx, :] = [experiment, operator, environ, iteration, actual_duration, best_time]
-           idx +=1
-           
+        workflow_actual_times = workflow_complete_times[
+            workflow_complete_times.experiment == experiment
+        ]
+        for iteration, best_time in best_times.items():
+            # There is only one operator per experiment
+            operator = (
+                workflow_complete_times[
+                    workflow_complete_times.experiment == experiment
+                ]
+                .operator.unique()
+                .tolist()[0]
+            )
+            environ = "cpu" if "cpu" in experiment else "gpu"
+            actual_duration = workflow_actual_times[
+                workflow_actual_times.iteration == iteration
+            ].duration.values[0]
+            best_df.loc[idx, :] = [
+                experiment,
+                operator,
+                environ,
+                iteration,
+                actual_duration,
+                best_time,
+            ]
+            idx += 1
+
     # Make a new label for the x axis that doesn't have gpu/cpu
-    labels = [re.sub('(-?)(gpu|cpu)(-?)', '', x) for x in best_df.experiment.values]
-    best_df['labels'] = labels
+    labels = [re.sub("(-?)(gpu|cpu)(-?)", "", x) for x in best_df.experiment.values]
+    best_df["labels"] = labels
 
     # Finally! Make a plot!
     plt.figure(figsize=(7, 6))
-    ax = sns.barplot(data=best_df, x="labels", y="actual_duration", hue='environment')
+    ax = sns.barplot(data=best_df, x="labels", y="actual_duration", hue="environment")
     sns.set_style("dark")
-    sns.barplot(ax=ax, data=best_df, x="labels", y="best_duration", hue='environment', legend=None, alpha=0.5)
+    sns.barplot(
+        ax=ax,
+        data=best_df,
+        x="labels",
+        y="best_duration",
+        hue="environment",
+        legend=None,
+        alpha=0.5,
+    )
     ax.set_xlabel("Experiment", fontsize=10)
     ax.set_ylabel("Workflow Total Time", fontsize=10)
     ax.set_xticklabels(ax.get_xmajorticklabels(), fontsize=14)
@@ -329,6 +427,7 @@ def job_timings(indirs, outdir, workflow_times):
     plt.savefig(os.path.join(outdir, f"actual-time-vs-theoretical.svg"))
     plt.close()
     return best_df
+
 
 def parse_timestamp(timestamp):
     """
@@ -498,7 +597,9 @@ def parse_pulling_times(indirs):
                     if "completed" not in item["events"]:
                         continue
                     job_end = parse_timestamp(item["events"]["completed"]["timestamp"])
-                    job_start = parse_timestamp(item["events"]["successfulcreate"]["timestamp"])
+                    job_start = parse_timestamp(
+                        item["events"]["successfulcreate"]["timestamp"]
+                    )
                     running_seconds = (job_end - job_start).seconds
                     job = uid.split("-")[0]
 
@@ -612,9 +713,9 @@ def calculate_costs(workflow_times, outdir, best_df):
     return workflow_times
 
     # TODO this is new stuff
-#def calculate_costs(
-#    indirs, nodes, times_df, manager_df, workflow_starts, workflow_ends, outdir
-#):
+    # def calculate_costs(
+    #    indirs, nodes, times_df, manager_df, workflow_starts, workflow_ends, outdir
+    # ):
 
     # Make a data frame of just nodes
     workflow_times = {}
@@ -658,12 +759,12 @@ def calculate_costs(workflow_times, outdir, best_df):
                 # While the experiment design doesn't elicit this, we need to check for the
                 # case that a node went away and came up during the experiment. This might
                 # happen with an aggressive autoscaling policy.
-                first_event = nodemeta["conditions"][0]['last_transition_time']
-                
+                first_event = nodemeta["conditions"][0]["last_transition_time"]
+
                 # By default we know the node is up at the start of the workfow
                 # Check that the first event was before the cluster was created
                 node_start_time = workflow_starts[experiment][iteration]
-                
+
                 # Did the node report ready the first time after the experiment started?
                 if first_event > node_start_time:
                     print(f"Found node {node_name} that came up during experiment")
@@ -675,9 +776,7 @@ def calculate_costs(workflow_times, outdir, best_df):
                     assert (
                         last_event["type"] == "Ready" and last_event["status"] is False
                     )
-                    node_uptime = (
-                        last_event["last_transition_time"] - node_start_time
-                    )
+                    node_uptime = last_event["last_transition_time"] - node_start_time
                     total_times[experiment][iteration].append(node_uptime)
                 # If the node remained ready, it was up the duration of the experiment
                 else:

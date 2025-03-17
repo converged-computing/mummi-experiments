@@ -29,17 +29,17 @@ aws eks update-kubeconfig --region us-east-1 --name mini-mummi
 ```
 
 ```bash
-kubectl create namespace monitoring
-kubectl apply -f ../../../event-monitor
-
 # In a different terminal, this will save nodes and collect events.
 # environ=cpu-static-0
 # region=us-east-1
 # instance=hpc7g.16xlarge
 
-environ=gpu-static-1
+environ=gpu-static-2
 region=us-east-1
 instance=p3.2xlarge
+
+kubectl create namespace monitoring
+kubectl apply -f ../../../event-monitor
 
 mkdir -p ./monitor/${environ}
 kubectl get nodes -o json > ./monitor/${environ}/nodes-$(date +%s).json
@@ -78,7 +78,7 @@ When the workflow is complete, we can save the state, etc. First, get output for
 
 ```bash
 # In a different terminal, this will save nodes and collect events.
-environ=gpu-static-1
+environ=gpu-static-2
 # environ=cpu-static-1
 
 #kubectl logs <container>  > ./monitor/${environ}/<container>.out

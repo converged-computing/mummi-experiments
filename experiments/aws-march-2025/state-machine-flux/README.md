@@ -218,48 +218,50 @@ Since this is using the state machine operator, we don't see any issue with exce
 
 ```console
 Experiment Job Counts (completed with results)
-   experiment         job count iteration
-0    flux-cpu    mlsample    11         1
-1    flux-cpu   createsim    10         1
-2    flux-cpu  cganalysis    10         1
-3    flux-cpu    mlsample    10         3
-4    flux-cpu   createsim    10         3
-5    flux-cpu  cganalysis    10         3
-6    flux-cpu    mlsample    10         2
-7    flux-cpu   createsim    10         2
-8    flux-cpu  cganalysis    10         2
-9    flux-gpu    mlsample    11         1
-10   flux-gpu   createsim    10         1
-11   flux-gpu  cganalysis    10         1
-12   flux-gpu    mlsample    10         3
-13   flux-gpu   createsim    10         3
-14   flux-gpu  cganalysis    10         3
-15   flux-gpu    mlsample    10         2
-16   flux-gpu   createsim    10         2
-17   flux-gpu  cganalysis    10         2
+    experiment         job count iteration
+0   cpu-static    mlsample    11         1
+1   cpu-static   createsim    10         1
+2   cpu-static  cganalysis    10         1
+3   cpu-static    mlsample    10         3
+4   cpu-static   createsim    10         3
+5   cpu-static  cganalysis    10         3
+6   cpu-static    mlsample    10         2
+7   cpu-static   createsim    10         2
+8   cpu-static  cganalysis    10         2
+9   gpu-static    mlsample    11         1
+10  gpu-static   createsim    10         1
+11  gpu-static  cganalysis    10         1
+12  gpu-static    mlsample    10         3
+13  gpu-static   createsim    10         3
+14  gpu-static  cganalysis    10         3
+15  gpu-static    mlsample    10         2
+16  gpu-static   createsim    10         2
+17  gpu-static  cganalysis    10         2
 ```
+
 Thus, the excess reflects failures of a step.
+
 ```
 Excess Completed
-   experiment         job count iteration
-0    flux-cpu    mlsample     1         1
-1    flux-cpu   createsim     0         1
-2    flux-cpu  cganalysis     0         1
-3    flux-cpu    mlsample     0         3
-4    flux-cpu   createsim     0         3
-5    flux-cpu  cganalysis     0         3
-6    flux-cpu    mlsample     0         2
-7    flux-cpu   createsim     0         2
-8    flux-cpu  cganalysis     0         2
-9    flux-gpu    mlsample     1         1
-10   flux-gpu   createsim     0         1
-11   flux-gpu  cganalysis     0         1
-12   flux-gpu    mlsample     0         3
-13   flux-gpu   createsim     0         3
-14   flux-gpu  cganalysis     0         3
-15   flux-gpu    mlsample     0         2
-16   flux-gpu   createsim     0         2
-17   flux-gpu  cganalysis     0         2
+    experiment         job count iteration
+0   cpu-static    mlsample     1         1
+1   cpu-static   createsim     0         1
+2   cpu-static  cganalysis     0         1
+3   cpu-static    mlsample     0         3
+4   cpu-static   createsim     0         3
+5   cpu-static  cganalysis     0         3
+6   cpu-static    mlsample     0         2
+7   cpu-static   createsim     0         2
+8   cpu-static  cganalysis     0         2
+9   gpu-static    mlsample     1         1
+10  gpu-static   createsim     0         1
+11  gpu-static  cganalysis     0         1
+12  gpu-static    mlsample     0         3
+13  gpu-static   createsim     0         3
+14  gpu-static  cganalysis     0         3
+15  gpu-static    mlsample     0         2
+16  gpu-static   createsim     0         2
+17  gpu-static  cganalysis     0         2
 ```
 
 ### Function Times
@@ -272,7 +274,7 @@ These are total summed timed across the experiment for different events.
 
 ```bash
 experiment  global              iteration
-flux-cpu    cganalysis_success  1            17978.735104
+cpu-static  cganalysis_success  1            17978.735104
                                 2            17947.466616
                                 3            16474.328401
             createsim_failure   1               36.650442
@@ -286,7 +288,7 @@ flux-cpu    cganalysis_success  1            17978.735104
             workflow_complete   1             4745.525153
                                 2             4644.108295
                                 3             4584.863189
-flux-gpu    cganalysis_success  1            17983.249766
+gpu-static  cganalysis_success  1            17983.249766
                                 2            17881.616295
                                 3            17882.139705
             createsim_failure   1               74.436712
@@ -299,6 +301,7 @@ flux-gpu    cganalysis_success  1            17983.249766
             workflow_complete   1             5059.972774
                                 2             5044.751449
                                 3             5017.005129
+Name: duration, dtype: object
 ```
 
 And these are mean times per single run, across iterations. Here we can glimpse at the workflow total time too.
@@ -308,18 +311,17 @@ And these are mean times per single run, across iterations. Here we can glimpse 
 
 ```
 experiment  global            
-flux-cpu    cganalysis_success    1746.684337
+cpu-static  cganalysis_success    1746.684337
             createsim_failure       36.650442
             createsim_success      505.366921
             mlrunner_failure         7.613389
             mlrunner_success        26.574034
             workflow_complete     4658.165546
-flux-gpu    cganalysis_success    1791.566859
+gpu-static  cganalysis_success    1791.566859
             createsim_failure       74.436712
             createsim_success      698.774243
             mlrunner_success        19.910789
             workflow_complete     5040.576451
-Name: duration, dtype: object
 ```
 
 ### Costs
@@ -328,14 +330,14 @@ The costs are similar to the other environments (Kubernetes).
 
 ![results/processed/workflow_total_cost.png](results/processed/workflow_total_cost.png)
 
-```
+```console
 {
-    "flux-cpu": {
+    "cpu-static": {
         "1": 13.31119805528283,
         "3": 12.860541245763303,
         "2": 13.02672376871109
     },
-    "flux-gpu": {
+    "gpu-static": {
         "1": 25.80586114633083,
         "3": 25.58672615962029,
         "2": 25.7282323892355
