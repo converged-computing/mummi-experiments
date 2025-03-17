@@ -136,6 +136,7 @@ eksctl delete cluster --config-file ../eks-config-cpu-static.yaml --wait
 - For the gpu-static-1 runs, one of the createsims ran the entire duration of the study, meaning there was only one node for createsims. It increased the time by 1.5x likely, and the study (cost) is going to be hugely impacted by it.
 - For the gpu-static-0 run, there was one failed createsims at ~13 minutes. Although it was replaced, it meant we extended the workflow by that amount of time (and maybe more since cganalysis wouldn't have a sample to process).
 - For the CPU runs, where there is an error (and the job is deleted) and a temporary change to the number of createsims job, the condition kicks in to generate more samples, and typically multiple iterations run to generate more samples than are needed. We would want this to happen, but for the sample generation to be more tightly linked with what is needed for createsims. For example, we only needed one sample here, but multiple loops were run to generate about 10 more.
+- I consistently was able to stop the workflow (and get times) within 5 seconds of the 10th sample completing. Stressful, yes.
 
 Also see [notes](notes.md) from testing runs.
 

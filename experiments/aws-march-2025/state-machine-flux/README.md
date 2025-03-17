@@ -35,8 +35,33 @@ for iter in $(seq 1 3)
   rm -rf *.sif
 done
 ```
-**Currently running**
 
+#### hpc7g.16xlarge
+
+```bash
+# On your host with credentials: (username is AWS)
+# aws ecr get-login-password --region us-east-1
+# export SINGULARITY_DOCKER_USERNAME=AWS
+# export SINGULARITY_DOCKER_PASSWORD=<token>
+
+mkdir /home/ubuntu/containers
+cd /home/ubuntu/containers
+mkdir -p times
+container=docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi
+for iter in $(seq 1 3)
+  do
+  echo "Pulling mlrunner"
+  { time singularity pull $container:mlrunner-arm-singularity 2> pull.stderr ; } 2> ./times/mlrunner-pull-time-$iter.txt
+  echo "Pulling createsims"
+  { time singularity pull $container:createsims-arm 2> pull.stderr ; } 2> ./times/createsime-pull-time-$iter.txt
+  echo "Pulling cganalysis"
+  { time singularity pull $container:cganalsis-arm 2> pull.stderr ; } 2> ./times/cganalysis-pull-time-$iter.txt
+  singularity cache clean --force
+  rm -rf *.sif
+done
+```
+
+These times are in [results/container-pulls](results/container-pulls).
 
 ### AWS Bare Metal
 

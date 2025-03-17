@@ -235,27 +235,29 @@ def job_timings(indirs, outdir, workflow_times):
         width=12,
         height=12,
     )
+    # For now fill in MuMMI iteration as 1 - we just have one run
+    workflow_times.loc[workflow_times.operator == "mummi", "iteration"] = 1
+    function_times.loc[function_times.operator == "mummi", "iteration"] = 1
 
-    # Calculate the theoretical minimum time for experiments
+    # Compare the actual workflow time with the theoretical minimum
     # Note that we won't have this for mummi, so we instead use the mean time of a single mummi run and multiply the runs needed
     # First find the mlrunner saves we have (from flux) that reflect mummi runs on the corresponding instance types
-    mlrunner_single_times = find_mlrunner_times()
-    
+    mlrunner_single_times = find_mlrunner_times()    
     mlrunner_times = workflow_times[workflow_times['global'] == 'mlrunner_success']
     createsim_times = function_times[function_times['global'] == 'createsim_runtime']
     cganalysis_times = function_times[function_times['global'] == 'cganalysis_run']
 
-    # For each of gpu and cpu, randomly select three samples for MuMMI, which doesn't have the actual times
+    # For each of gpu and cpu, randomly select 10 samples for MuMMI, which doesn't have the actual times
     # because we were running a server
     idx = mlrunner_times.shape[0] + 1
-    mlrunner_cpu_sample = random.sample(mlrunner_single_times['cpu'], 3)
-    mlrunner_gpu_sample = random.sample(mlrunner_single_times['gpu'], 3)
-    for i in range(3):
+    mlrunner_cpu_sample = random.sample(mlrunner_single_times['cpu'], 10)
+    mlrunner_gpu_sample = random.sample(mlrunner_single_times['gpu'], 10)
+    for i in range(10):
         mlrunner_times.loc[idx, :] = ['mummi-cpu', 'mlrunner_success', mlrunner_cpu_sample[i], 'global', 'mummi', i, 'cpu-static']
         idx +=1
         mlrunner_times.loc[idx, :] = ['mummi-gpu', 'mlrunner_success', mlrunner_gpu_sample[i], 'global', 'mummi', i, 'gpu-static']
         idx +=1
-        
+
     # Calculate the hypothetical bests for each iteration and experiment - if we just ran 10 completions of each job
     best_possible_times = {}
     for experiment in function_times.experiment.unique():
@@ -263,13 +265,39 @@ def job_timings(indirs, outdir, workflow_times):
             best_possible_times[experiment] = {}
         subset = function_times[function_times.experiment == experiment]        
         for iteration in subset.iteration.unique():
-            if experiment not in best_possible_times:
-                best_possible_times[experiment] = {}
-            
-            
+            # The best possible time is 10 of each of createsim, cganalysis, and mlrunner
+            createsim_best = createsim_times[(createsim_times.experiment == experiment) & (createsim_times.iteration == iteration)].duration[0:10].tolist()
+            cganalysis_best = cganalysis_times[(cganalysis_times.experiment == experiment) & (cganalysis_times.iteration == iteration)].duration[0:10].tolist()
+            mlrunner_best = mlrunner_times[(mlrunner_times.experiment == experiment) & (mlrunner_times.iteration == iteration)].duration[0:10].tolist()
+            # The best possible time is sum of 10 samples, divided by (distributed across) six nodes that are running 
+            best_possible_time = (sum(createsim_best) + sum(cganalysis_best) + sum(mlrunner_best)) / 6
+            best_possible_times[experiment][iteration] = best_possible_time
 
-    import IPython
-    IPython.embed()
+    workflow_complete_times = workflow_times[
+        workflow_times["global"].isin(["workflow_complete", "wfmanager_run_workflow"])
+    ]
+    workflow_complete_times["global"] = "workflow_complete"
+    workflow_complete_times["environment"] = [x.replace("-static", "") for x in workflow_complete_times["environment"]]
+
+    # Now let's compare to actual orchestration time.
+    best_df = pandas.DataFrame(columns=['experiment', 'operator', 'environment', 'actual_duration', 'best_duration'])
+    idx = 0
+    for experiment, best_times in best_possible_times.items():
+       workflow_actual_times = workflow_complete_times[workflow_complete_times.experiment == experiment]
+       for iteration, best_time in best_times.items():
+           # There is only one operator per experiment
+           operator = workflow_complete_times[workflow_complete_times.experiment == experiment].operator.unique().tolist()[0]
+           environ = "cpu" if "cpu" in experiment else "gpu"
+           actual_duration = workflow_actual_times[workflow_actual_times.iteration == iteration].duration.values[0]
+           best_df.loc[idx, :] = [experiment, operator, environ, actual_duration, best_time]
+           idx +=1
+
+    # Finally! Make a plot!
+    # sns.histplot(best_df, stat='actual_duration', kde=False, label='Actual Experiment Time')
+
+    # Overlay the PDF of the theoretical distribution
+    # plt.plot(x, pdf, 'r', label=f'{theoretical_dist.name.capitalize()} PDF')
+
 
 def parse_timestamp(timestamp):
     """
