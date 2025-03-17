@@ -338,6 +338,8 @@ The costs are similar to the other environments (Kubernetes).
 
 ![results/processed/workflow_total_cost.png](results/processed/workflow_total_cost.png)
 
+Here is without pull:
+
 ```console
 {
     "cpu-static": {
@@ -349,6 +351,23 @@ The costs are similar to the other environments (Kubernetes).
         "1": 25.80586114633083,
         "3": 25.58672615962029,
         "2": 25.7282323892355
+    }
+}
+```
+
+And here is with pull:
+
+```console
+{
+    "cpu-static": {
+        "1": 15.149376265282832,
+        "3": 14.663595245763302,
+        "2": 14.87129457371109
+    },
+    "gpu-static": {
+        "1": 37.950113746330835,
+        "3": 38.099775059620285,
+        "2": 38.8857529892355
     }
 }
 ```

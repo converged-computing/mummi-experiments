@@ -71,9 +71,57 @@ def main():
 
     # Now look at times for the workflow manager
     manager_df, workflow_starts, workflow_ends = me.workflow_manager(indirs, outdir)
+
+    # Note that we add the pulling times here because they were not included in the experiment
+    # and need to be.
+    manager_df = add_pulling_times(manager_df, times_df, outdir)
     me.calculate_costs_static(
         indirs, manager_df, workflow_starts, workflow_ends, outdir
     )
+
+
+def add_pulling_times(manager_df, times_df, outdir):
+    """
+    All kubernetes experiments include the time to pull the mlrunner, createsim, and cganalysis to each
+    node, so we have to add that here.
+    """
+    # Here is subset without pull
+    subset = manager_df[manager_df["global"] == "workflow_complete"]
+    subset["global"] = subset["global"].replace(
+        {"workflow_complete": "workflow_complete_without_pulling"}
+    )
+
+    # We will assume the pulls happened in parallel and once per node (just count cost once)
+    additional_time = {}
+    for experiment in subset.experiment.unique():
+        additional_time[experiment] = {}
+        for iteration in subset.iteration.unique():
+            times_df[times_df.experiment == experiment]
+            experiment_df = times_df[times_df.experiment == experiment]
+            experiment_df = experiment_df[experiment_df.iteration == iteration]
+            # cganalysis, mlrunner, and createsims
+            assert experiment_df.shape[0] == 3
+            additional_time[experiment][iteration] = experiment_df.duration.sum()
+
+    # Create an updated data frame
+    updated = manager_df[manager_df["global"] != "workflow_complete"]
+    updated = pandas.concat([updated, subset])
+    idx = updated.shape[0] + 1
+    for experiment, additions in additional_time.items():
+        for iteration, addition in additions.items():
+            time_without_pull = subset[
+                (subset.experiment == experiment) & (subset.iteration == iteration)
+            ].duration.values[0]
+            updated.loc[idx, :] = [
+                experiment,
+                "workflow_start",
+                time_without_pull + addition,
+                "workflow_complete",
+                iteration,
+            ]
+            idx += 1
+    updated.to_csv(os.path.join(outdir, "workflow-individual-times.csv"))
+    return updated
 
 
 def parse_container_pulls(indir, outdir):

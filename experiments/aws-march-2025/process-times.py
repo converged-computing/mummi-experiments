@@ -828,9 +828,9 @@ def calculate_costs(indirs, workflow_times, outdir, best_df):
         hue="environment",
         plot_type="bar",
         order=[
-            "flux-state-machine",
             "state-machine-autoscale",
             "state-machine",
+            "flux-state-machine",
             "mummi",
         ],
         xlabel="Environment",
