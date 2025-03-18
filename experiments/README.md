@@ -1,15 +1,15 @@
 # Experiments
 
-These experiments will be run on AWS in March 2025. I will keep a record of runs here.
+These experiments are run on AWS in March 2025. A record is kept here.
 
 ## Kubernetes
 
 > Vanessa
 
-- [ ] Mummi Operator Static CPU
-  - [ ] Iteration 0
-  - [ ] Iteration 1
-  - [ ] Iteration 2
+- [x] Mummi Operator Static CPU
+  - [x] Iteration 0 (March 17, 2025)
+  - [x] Iteration 1 (March 17, 2025)
+  - [x] Iteration 2 (March 17, 2025)
 - [x] Mummi Operator Static GPU
   - [x] Iteration 0 (March 16, 2025)
   - [x] Iteration 1 (March 16, 2025)

@@ -1,0 +1,30 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: mini-mummi
+  region: us-east-1
+  version: "1.27"
+
+availabilityZones: ["us-east-1a", "us-east-1b"]
+managedNodeGroups:
+  - name: workers-control-plane
+    availabilityZones: ["us-east-1b"]
+    instanceType: m6a.4xlarge
+    desiredCapacity: 1
+    minSize: 1
+    maxSize: 1
+  - name: workers
+    availabilityZones: ["us-east-1a"]
+    instanceType: hpc7g.16xlarge
+    volumeSize: 150
+    volumeType: gp2
+    labels:
+      nodegroup: hpc7g-16xlarge
+    placement:
+      groupName: performance-study
+    minSize: 6
+    maxSize: 6
+    desiredCapacity: 6
+    ssh:
+      allow: false

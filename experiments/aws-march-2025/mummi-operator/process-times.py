@@ -53,8 +53,8 @@ def main():
         ],
         "cpu-static": [
             "cpu-static-0",
-            #            "cpu-static-1",
-            #            "cpu-static-2",
+            "cpu-static-1",
+            "cpu-static-2",
         ],
     }
     indirs, event_files = me.collect_inputs(_indirs, indir)
@@ -74,13 +74,13 @@ def main():
     )
 
     # Now let's look at times for jobs
-    job_timings(indirs, outdir)
+    end_times = job_timings(indirs, outdir)
 
     # Now look at times for the workflow manager
-    workflow_manager(indirs, outdir)
+    workflow_manager(indirs, end_times, outdir)
 
 
-def workflow_manager(indirs, outdir):
+def workflow_manager(indirs, job_end_times, outdir):
     """
     Look at timings for the workflow manager. Mummi has to be done differently
     because the manager exits (and prints at the end) so we use the last timestamp.
@@ -119,8 +119,20 @@ def workflow_manager(indirs, outdir):
 
                     # This method doesn't have a good way to determine the end, so we use the last event
                     if event == "wfmanager_run_workflow":
-                        ending_ts = list(times["timestamps"].values())[-1]
+                        ending_ts = list(times["timestamps"].values())[-1]                        
                         workflow_starts[experiment][iteration] = timestamp
+                        # Since we don't have an orchestrated end, the recorded end has
+                        # human error and could be off. Instead, we will choose a consistent
+                        # ending of the last cganalysis run. It likely is a little before the
+                        # actual job ending (the artifact needs to push) by about ~20 seconds.
+                        # This is the list of all cganalysis run ending times
+                        listing = job_end_times[experiment][iteration]['cganalysis_run_complete']
+                        listing.sort()
+                        # Ensure the last is the latest
+                        assert listing[-1] > listing[0]
+                        # 10th sample
+                        ending_ts = listing[9]
+                        
                         workflow_ends[experiment][iteration] = ending_ts
                         duration = ending_ts - timestamp
                         df.loc[idx, :] = [
@@ -134,7 +146,7 @@ def workflow_manager(indirs, outdir):
                         continue
 
                     print(f"Warning: missing completion marker for {event}")
-                    continue
+                    continue                
                 duration = times["timestamps"][complete_ts] - timestamp
                 df.loc[idx, :] = [experiment, event, duration, global_event, iteration]
                 idx += 1
@@ -183,9 +195,9 @@ def workflow_manager(indirs, outdir):
         height=12,
     )
 
-    # The only meaningful comparison is the workflow running time to get 6 samples
-    print("See workflow running time to get 6 samples")
-    print(subset.groupby(["experiment", "global"]).duration.mean())
+    # The only meaningful comparison is the workflow running time to get all completions
+    print("See workflow running time to get 10 samples")
+    print(subset.groupby(["experiment","global"]).duration.mean())
     return df
 
 
@@ -193,6 +205,9 @@ def job_timings(indirs, outdir):
     """
     Find output files for job timings.
     """
+    # We need to save end times for last cganalysis for one erroneous wfmanager run
+    end_times = {}
+
     # global is the function in absence of an iteration identifier
     df = pandas.DataFrame(
         columns=[
@@ -207,10 +222,14 @@ def job_timings(indirs, outdir):
     )
     idx = 0
     for experiment, indirset in indirs.items():
+        if experiment not in end_times:
+            end_times[experiment] = {}
         for _indir in indirset:
             data_dir = os.path.join(_indir, "data")
             iteration = me.get_experiment_iteration(_indir)
-
+            if iteration not in end_times[experiment]:
+                end_times[experiment][iteration] = {"cganalysis_run_complete": []}
+            
             # This is the total number of samples that were pushed from mlserver
             samples = [
                 x
@@ -223,9 +242,9 @@ def job_timings(indirs, outdir):
             samples = [
                 x
                 for x in me.find_inputs(data_dir, "cganalysis-output.tar.gz")
-                if "/cganalysis/" in x or '/cganalysis-fail/' in x
+                if "/cganalysis/" in x
             ]
-            df, idx = parse_cganalysis_times(df, samples, experiment, idx, iteration)
+            df, end_times, idx = parse_cganalysis_times(df, end_times, samples, experiment, idx, iteration)
 
     # Calculate sum totals for events. E.g., some functions are run multiple times
     # Note that this is across samples
@@ -269,6 +288,7 @@ def job_timings(indirs, outdir):
         width=12,
         height=12,
     )
+    return end_times
 
 
 def parse_createsim_times(df, samples, experiment, idx=0, iteration=0):
@@ -305,7 +325,7 @@ def parse_createsim_times(df, samples, experiment, idx=0, iteration=0):
     return df, idx
 
 
-def parse_cganalysis_times(df, samples, experiment, idx=0, iteration=0):
+def parse_cganalysis_times(df, end_times, samples, experiment, idx=0, iteration=0):
     """
     Parse timing output from cganalysis
     """
@@ -313,6 +333,7 @@ def parse_cganalysis_times(df, samples, experiment, idx=0, iteration=0):
         files = me.read_tarfile(sample)
         times = json.loads(files["tmp/out/cganalysis-times.json"])
         sample_name = sample.split(os.sep)[-3]
+        end_times[experiment][iteration]['cganalysis_run_complete'].append(times['timestamps']['cganalysis_run_complete'])
         df, idx = me.parse_single_time_event(
             df,
             idx,
@@ -322,7 +343,7 @@ def parse_cganalysis_times(df, samples, experiment, idx=0, iteration=0):
             sample_name,
             "cganalysis",
         )
-    return df, idx
+    return df, end_times, idx
 
 
 if __name__ == "__main__":
