@@ -27,10 +27,6 @@ This shows that the actual running of the steps does not vary based on the orche
 
 ![results/img/function_times_by_experiment.png](results/img/function_times_by_experiment.png)
 
-```console
-
-```
-
 ### Job Times by Experiment
 
 The MLRunner job is unique to the State Machine Operator so it only is there. The jobs are organized based on final status.
