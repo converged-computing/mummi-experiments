@@ -12,7 +12,7 @@ Note that [state-machine-operator](state-machine-operator) is not used, as it on
 
 ## Analysis
 
-These are early results that summarize across experiments (they will be updated, we are finishing the MuMMI CPU runs).
+These are early results that summarize across experiments.
 
 ### Completed Jobs By Experiment
 
@@ -28,6 +28,17 @@ This shows that the actual running of the steps does not vary based on the orche
 ![results/img/function_times_by_experiment.png](results/img/function_times_by_experiment.png)
 
 ```console
+
+```
+
+### Job Times by Experiment
+
+The MLRunner job is unique to the State Machine Operator so it only is there. The jobs are organized based on final status.
+
+![results/img/job_times_by_experiment.png](results/img/job_times_by_experiment.png)
+
+```
+See workflow running time to get 10 samples
 experiment                   global                            
 flux-state-machine-cpu       cganalysis_success                    1746.684337
                              createsim_failure                       36.650442
@@ -43,19 +54,19 @@ flux-state-machine-gpu       cganalysis_success                    1791.566859
                              workflow_complete                     7512.133451
                              workflow_complete_without_pulling     5040.576451
 mummi-cpu                    wfmanager_add_cgframes_to_ml             0.000017
-                             wfmanager_add_new_patches_mlserver       2.121534
-                             wfmanager_add_new_patches_to_ml          0.000017
-                             wfmanager_init_mlserver                  0.018468
-                             wfmanager_init_scheduling                0.000985
-                             wfmanager_run_workflow                7774.777192
-                             wfmanager_setup                          0.039344
-                             wfmanager_update_jobs                    4.293667
+                             wfmanager_add_new_patches_mlserver       1.432169
+                             wfmanager_add_new_patches_to_ml          0.000016
+                             wfmanager_init_mlserver                  0.019525
+                             wfmanager_init_scheduling                0.001005
+                             wfmanager_run_workflow                8204.480468
+                             wfmanager_setup                          0.039497
+                             wfmanager_update_jobs                    3.996264
 mummi-gpu                    wfmanager_add_cgframes_to_ml             0.000059
                              wfmanager_add_new_patches_mlserver       0.924778
                              wfmanager_add_new_patches_to_ml          0.000039
                              wfmanager_init_mlserver                  0.019831
                              wfmanager_init_scheduling                0.001808
-                             wfmanager_run_workflow                8475.831559
+                             wfmanager_run_workflow                8383.202545
                              wfmanager_setup                          0.049078
                              wfmanager_update_jobs                    3.020139
 state-machine-cpu            cganalysis_success                    1788.600051
@@ -78,14 +89,7 @@ state-machine-gpu-autoscale  cganalysis_success                    1867.880881
                              createsim_success                      895.485270
                              mlrunner_success                       264.951878
                              workflow_complete                     5975.769484
-Name: duration, dtype: float64
 ```
-
-### Job Times by Experiment
-
-The MLRunner job is unique to the State Machine Operator so it only is there. The means / distributions seems comparable.
-
-![results/img/job_times_by_experiment.png](results/img/job_times_by_experiment.png)
 
 ### Pull Times By Experiment
 
@@ -111,6 +115,8 @@ This was something I wanted to do (that I think is really interesting). If we ad
 ![results/actual-time-vs-theoretical.png](results/actual-time-vs-theoretical.png)
 
 ### Uptime per node
+
+We can generally see that with autoscaling, 2/6 nodes clean up earlier. This will be reflected in final costs.
 
 ```
 {
@@ -168,38 +174,54 @@ This was something I wanted to do (that I think is really interesting). If we ad
     },
     "mummi-gpu": {
         "1": [
-            8373.337833404541,
-            8373.337833404541,
-            8373.337833404541,
-            8373.337833404541,
-            8373.337833404541,
-            8373.337833404541
+            8373.977172374725,
+            8373.977172374725,
+            8373.977172374725,
+            8373.977172374725,
+            8373.977172374725,
+            8373.977172374725
         ],
         "2": [
-            8418.256582975388,
-            8418.256582975388,
-            8418.256582975388,
-            8418.256582975388,
-            8418.256582975388,
-            8418.256582975388
+            8410.330675840378,
+            8410.330675840378,
+            8410.330675840378,
+            8410.330675840378,
+            8410.330675840378,
+            8410.330675840378
         ],
         "3": [
-            8635.900259494781,
-            8635.900259494781,
-            8635.900259494781,
-            8635.900259494781,
-            8635.900259494781,
-            8635.900259494781
+            8365.29978632927,
+            8365.29978632927,
+            8365.29978632927,
+            8365.29978632927,
+            8365.29978632927,
+            8365.29978632927
         ]
     },
     "mummi-cpu": {
         "1": [
-            7774.777191638946,
-            7774.777191638946,
-            7774.777191638946,
-            7774.777191638946,
-            7774.777191638946,
-            7774.777191638946
+            7769.607348442078,
+            7769.607348442078,
+            7769.607348442078,
+            7769.607348442078,
+            7769.607348442078,
+            7769.607348442078
+        ],
+        "2": [
+            9006.884279251099,
+            9006.884279251099,
+            9006.884279251099,
+            9006.884279251099,
+            9006.884279251099,
+            9006.884279251099
+        ],
+        "3": [
+            7836.949776649475,
+            7836.949776649475,
+            7836.949776649475,
+            7836.949776649475,
+            7836.949776649475,
+            7836.949776649475
         ]
     },
     "state-machine-cpu": {
@@ -328,12 +350,14 @@ Here are the final costs to get to 10 cganalysis completions. Note that we have 
         "1": 26.212380714356897
     },
     "mummi-gpu": {
-        "1": 42.70402295036317,
-        "2": 42.93310857317448,
-        "3": 44.04309132342338
+        "1": 42.7072835791111,
+        "2": 42.89268644678592,
+        "3": 42.66302891027927
     },
     "mummi-cpu": {
-        "1": 21.80825002254724
+        "1": 21.79374861238003,
+        "2": 25.264310403299334,
+        "3": 21.982644123501778
     },
     "state-machine-cpu": {
         "0": 14.261948559433222,

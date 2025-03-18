@@ -524,7 +524,7 @@ def count_outputs(
             cganalysis = [
                 x
                 for x in find_inputs(data_dir, cganalysis_pattern)
-                if "/cganalysis/" in x or "/cganalysis-fail" in x
+                if "/cganalysis/" in x
             ]
             df.loc[idx, :] = [experiment, "cganalysis", len(cganalysis), iteration]
             excess.loc[idx, :] = [

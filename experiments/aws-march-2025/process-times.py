@@ -406,6 +406,9 @@ def job_timings(indirs, outdir, workflow_times, pull_df):
 
     # Make a new label for the x axis that doesn't have gpu/cpu
     labels = [re.sub("(-?)(gpu|cpu)(-?)", "", x) for x in best_df.experiment.values]
+    
+    # I am bad at regular expressions
+    labels = [x.replace('machineautoscale', 'machine-autoscale') for x in labels]
     best_df["labels"] = labels
 
     # Finally! Make a plot!

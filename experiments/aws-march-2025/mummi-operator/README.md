@@ -13,7 +13,8 @@ Final results:
  - gpu-static-0
  - gpu-static-1
  - gpu-static-2
-
+ - cpu-static-0
+ - cpu-static-1
 
 ## Experiments
 
@@ -31,7 +32,7 @@ aws eks update-kubeconfig --region us-east-1 --name mini-mummi
 
 ```bash
 # In a different terminal, this will save nodes and collect events.
-environ=cpu-static-1
+environ=cpu-static-2
 region=us-east-1
 instance=hpc7g.16xlarge
 
@@ -82,10 +83,10 @@ When the workflow is complete, we can save the state, etc. First, get output for
 
 ```bash
 # In a different terminal, this will save nodes and collect events.
-environ=gpu-static-2
+environ=cpu-static-2
 # environ=cpu-static-1
 
-environ=cpu-static-0
+environ=cpu-static-2
 #kubectl logs <container>  > ./monitor/${environ}/<container>.out
 kubectl get pods -o wide > ./monitor/${environ}/final-pods-state.txt
 kubectl get pods -o json > ./monitor/${environ}/final-pods-state.json
@@ -113,6 +114,7 @@ for repo in $(oras repo list --plain-http $registry)
         oras pull --plain-http $registry/$repo:$tag
     done
 done
+cd $root
 ```
 
 For the workflow manager to get times:
@@ -144,7 +146,7 @@ eksctl delete cluster --config-file ./crd/eks-config-cpu.yaml --wait
 - For the gpu-static-1 runs, one of the createsims ran the entire duration of the study, meaning there was only one node for createsims. It increased the time by 1.5x likely, and the study (cost) is going to be hugely impacted by it.
 - For the gpu-static-0 run, there was one failed createsims at ~13 minutes. Although it was replaced, it meant we extended the workflow by that amount of time (and maybe more since cganalysis wouldn't have a sample to process).
 - For the CPU runs, where there is an error (and the job is deleted) and a temporary change to the number of createsims job, the condition kicks in to generate more samples, and typically multiple iterations run to generate more samples than are needed. We would want this to happen, but for the sample generation to be more tightly linked with what is needed for createsims. For example, we only needed one sample here, but multiple loops were run to generate about 10 more.
-- I consistently was able to stop the workflow (and get times) within 5 seconds of the 10th sample completing. Stressful, yes.
+- I consistently was able to stop the workflow within 30 seconds of the 10th sample completing. Stressful, yes. I think a better "end" indicator to use will be the 10th completed cganalysis run, which won't have human variability.
 
 Also see [notes](notes.md) from testing runs.
 
@@ -152,82 +154,31 @@ Also see [notes](notes.md) from testing runs.
 
 Notes:
 
- - There was one createsims job in the GPU run that never completed, so its running time is the full workflow. It's an outlier that is removed from the plot.
  - The workflow and analysis times are filtered to not include anything < 1 second
  
-These are just some quick glances at a small amount of data for the runs here. I still need to add the state machine operator runs, do autoscaling runs, add both to these plots, then calculate costs. These are only moderately interesting to suggest that GPU is faster than CPU for this one setup using the MuMMI Operator (and costs TBA). I can guarantee you the state machine operator is much faster to do the same work! Some quick glances at output - this is hugely incomplete because we aren't comparing to anything interesting, but it's a start to parsing results.
-
 ### Job Times
 
-This shows total job times for each job type between environments. The createsim cpu static was hurt because one of the jobs ran for the entire lifecycle of the workflow, occupying an entire node, and never finished. This means we ran with 1 instead of 2 nodes for that entire job family, which I imagine at least 1.5x the time.  These are mean job times:
+This should be total accumulated time for each job type and iteration.
 
 ```console
-job         experiment
-cganalysis  cpu-static    11011
-            gpu-static     9322
-createsim   cpu-static    11671
-            gpu-static     7058
+job         experiment  iteration
+cganalysis  cpu-static  1            21552
+                        2            21574
+                        3            19782
+            gpu-static  1            20269
+                        2            20255
+                        3            20228
+createsim   cpu-static  1             6446
+                        2             7581
+                        3             9394
+            gpu-static  1            16954
+                        2            16199
+                        3            14833
 ```
 
 ![results/img/job_times_by_experiment.png](results/img/job_times_by_experiment.png)
 
-Here are times in a format easier to parse - these are the total summed times across jobs (so much longer than total experiment).
-
-```console
-experiment  global                                  job         iteration
-gpu-static  cganalysis_load_mdanalysis              cganalysis  1                8.431115
-                                                                2                8.427434
-                                                                3                8.364358
-            cganalysis_main_analysis                cganalysis  1            19561.218339
-                                                                2            19561.327647
-                                                                3            19561.236997
-            cganalysis_run                          cganalysis  1            19625.696573
-                                                                2            19625.811989
-                                                                3            19625.647382
-            cganalysis_run_simulation               cganalysis  1                55.11518
-                                                                2                55.12998
-                                                                3               55.119656
-            cganalysis_simrun                       cganalysis  1               55.113516
-                                                                2               55.128362
-                                                                3               55.118126
-            createsim_runtime                       createsim   1            15150.351368
-                                                                2            14426.596093
-                                                                3            13931.462085
-            createsims_create_cg_patch              createsim   1                0.024352
-                                                                2                 0.02297
-                                                                3                0.020899
-            createsims_generate_velocities          createsim   1              977.439474
-                                                                2              921.894407
-                                                                3              893.430991
-            createsims_gromacs_energy_minimization  createsim   1               33.362308
-                                                                2               63.584764
-                                                                3               51.335348
-            createsims_gromacs_make_ndx             createsim   1                9.681733
-                                                                2                9.197189
-                                                                3                8.200823
-            createsims_mdrun_lipids_water           createsim   1                77.37339
-                                                                2              127.941104
-                                                                3              103.424371
-            createsims_prime_cg_sim                 createsim   1               30.047769
-                                                                2                28.39332
-                                                                3               25.872878
-            createsims_pull_molecules               createsim   1              8796.25375
-                                                                2             8312.419094
-                                                                3             8058.163145
-            createsims_relax_protein                createsim   1              726.767629
-                                                                2              687.674484
-                                                                3              654.472362
-            createsims_setup_cg_sim                 createsim   1            15119.864793
-                                                                2            14397.791137
-                                                                3            13905.211739
-            createsims_short_equilibration          createsim   1             4432.255942
-                                                                2             4192.582493
-                                                                3             4065.234242
-            createsims_trjconv_lipids_water         createsim   1                7.866728
-                                                                2               14.994044
-                                                                3               11.995622
-
-```
+And function times by experiment.
 
 ![results/img/function_times_by_experiment.png](results/img/function_times_by_experiment.png)
 
@@ -235,13 +186,6 @@ gpu-static  cganalysis_load_mdanalysis              cganalysis  1               
 ### Pull Times
 
 These are total summed pulling times, just for containers relevant to mummi (the others are small and trivial anyway). Obviously GPU containers are bigger and take longer.
-
-```console
-experiment
-cpu-static     864.742588
-gpu-static    2098.687371
-Name: duration, dtype: object
-```
 
 ![results/img/pull_times_by_experiment.png](results/img/pull_times_by_experiment.png)
 
@@ -251,33 +195,51 @@ These are job completions, as assessed by the output that we have. Note that thi
 
 ```console
 Experiment Job Counts (completed with results)
-   experiment         job count
-0  cpu-static    mlsample    32
-1  cpu-static   createsim    10
-2  cpu-static  cganalysis     6
-3  gpu-static    mlsample   478
-4  gpu-static   createsim     8
-5  gpu-static  cganalysis     6
+    experiment         job count iteration
+0   gpu-static    mlsample    38         1
+1   gpu-static   createsim    19         1
+2   gpu-static  cganalysis    11         1
+3   gpu-static    mlsample    28         2
+4   gpu-static   createsim    18         2
+5   gpu-static  cganalysis    11         2
+6   gpu-static    mlsample   256         3
+7   gpu-static   createsim    16         3
+8   gpu-static  cganalysis    11         3
+9   cpu-static    mlsample   640         1
+10  cpu-static   createsim    13         1
+11  cpu-static  cganalysis    11         1
+12  cpu-static    mlsample    34         2
+13  cpu-static   createsim    15         2
+14  cpu-static  cganalysis    12         2
+15  cpu-static    mlsample    20         3
+16  cpu-static   createsim    19         3
+17  cpu-static  cganalysis    11         3
 ```
 
-Given we needed just 6, here are excess.
+The MLServer gets a little trigger happy when there is some state that crosses the threshold and it is triggered to generate samples. Given we needed just 10, here are excess.
 
 ```console
 Excess Completed
-   experiment         job count
-0  cpu-static    mlsample    26
-1  cpu-static   createsim     4
-2  cpu-static  cganalysis     0
-3  gpu-static    mlsample   472
-4  gpu-static   createsim     2
-5  gpu-static  cganalysis     0
+    experiment         job count iteration
+0   gpu-static    mlsample    28         1
+1   gpu-static   createsim     9         1
+2   gpu-static  cganalysis     1         1
+3   gpu-static    mlsample    18         2
+4   gpu-static   createsim     8         2
+5   gpu-static  cganalysis     1         2
+6   gpu-static    mlsample   246         3
+7   gpu-static   createsim     6         3
+8   gpu-static  cganalysis     1         3
+9   cpu-static    mlsample   630         1
+10  cpu-static   createsim     3         1
+11  cpu-static  cganalysis     1         1
+12  cpu-static    mlsample    24         2
+13  cpu-static   createsim     5         2
+14  cpu-static  cganalysis     2         2
+15  cpu-static    mlsample    10         3
+16  cpu-static   createsim     9         3
+17  cpu-static  cganalysis     1         3
 ```
-
-The mlsample generates quickly enough that we will not have any partial results (generated but not done).
-
-### Partial Job Excess
-
-These are running that started but didn't complete. You can look at the final-pod-state.txt in each output directory to see where this comes from. These are in _addition_ to the excess above in terms of time. We could likely calculate the extra cost of these extra completed runs and incompleted partial runs.
 
 ### Workflow Manager Times
 
@@ -285,6 +247,30 @@ We can look at summed times for the workflow manager, and really there are only 
 
 ```console
 experiment  global                              iteration
+cpu-static  wfmanager_add_cgframes_to_ml        1               0.008896
+                                                2               0.004282
+                                                3               0.005283
+            wfmanager_add_new_patches_mlserver  1            1098.954367
+                                                2             202.933205
+                                                3             246.286833
+            wfmanager_add_new_patches_to_ml     1               0.008777
+                                                2               0.003732
+                                                3               0.004627
+            wfmanager_init_mlserver             1               0.018468
+                                                2               0.020699
+                                                3               0.019409
+            wfmanager_init_scheduling           1               0.000985
+                                                2               0.000996
+                                                3               0.001035
+            wfmanager_run_workflow              1            7769.607348
+                                                2            9006.884279
+                                                3            7836.949777
+            wfmanager_setup                     1               0.039344
+                                                2               0.039282
+                                                3               0.039867
+            wfmanager_update_jobs               1            2224.119616
+                                                2             913.620913
+                                                3            1182.220609
 gpu-static  wfmanager_add_cgframes_to_ml        1               0.012286
                                                 2                 0.0433
                                                 3               0.044235
@@ -300,13 +286,15 @@ gpu-static  wfmanager_add_cgframes_to_ml        1               0.012286
             wfmanager_init_scheduling           1               0.001737
                                                 2               0.001934
                                                 3               0.001754
-            wfmanager_run_workflow              1            8373.337833
-                                                2            8418.256583
-                                                3            8635.900259
+            wfmanager_run_workflow              1            8373.977172
+                                                2            8410.330676
+                                                3            8365.299786
             wfmanager_setup                     1               0.046443
                                                 2               0.053153
                                                 3               0.047636
             wfmanager_update_jobs               1              808.27233
                                                 2            2185.037902
                                                 3            2125.824929
+Name: duration, dtype: object
 ```
+
