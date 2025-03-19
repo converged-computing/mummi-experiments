@@ -709,6 +709,63 @@ def plot_pulling_times(df, outdir, include_mlrunner=True):
         xlabel="Container",
         ylabel="Pull Time (seconds)",
     )
+    print(subset.groupby(["experiment", "container"]).duration.mean())
+
+    # Simplify into GPU, CPU, and Flux (Singularity)
+    by_env = subset.copy()
+
+    # Add mlrunner job labels to mlserver
+    by_env.loc[by_env["container"].str.contains("mlserver"), "job"] = "mlrunner"
+
+    # This get rid of containers not associated with a job
+    by_env = by_env[~by_env.job.isna()]
+
+    # This will be gpu or cpu
+    machines = []
+    jobs = []
+
+    # This will be Kubernetes or Singularity and container
+    environs = []
+    for row in by_env.iterrows():
+        if "mlrunner" in row[1].container or "mlserver" in row[1].container:
+            job = "mlrunner"
+        elif "createsim" in row[1].container:
+            job = "createsim"
+        elif "cganalysis" in row[1].container:
+            job = "cganalysis"
+        else:
+            continue
+
+        jobs.append(job)
+        if "docker://" in row[1].container:
+            environs.append("singularity")
+        else:
+            environs.append("containerd")
+        if "cpu" in row[1].experiment:
+            machines.append(f"{job}-cpu")
+        else:
+            machines.append(f"{job}-gpu")
+    by_env["machine"] = machines
+    by_env["tech"] = environs
+    by_env.loc[:, "job"] = jobs
+
+    make_plot(
+        by_env,
+        title="Container Pulling Times",
+        ydimension="duration",
+        xdimension="job",
+        outdir=img_outdir,
+        ext="png",
+        plotname="pull_times_by_environment",
+        hue="tech",
+        plot_type="box",
+        xlabel="Container",
+        ylabel="Pull Time (seconds)",
+        remove_legend=True,
+        height=4,
+        rotation=360,
+    )
+    print(by_env.groupby(["tech", "job"]).duration.mean())
 
     # Now let's look at time for each job
     # Let's first plot pull times
@@ -717,25 +774,50 @@ def plot_pulling_times(df, outdir, include_mlrunner=True):
     # These are jobs that never finished
     subset = subset[subset.duration < 30000]
 
-    # Mummi does not have an mlrunner
-    order = ["createsim", "cganalysis"]
-    if include_mlrunner:
-        order = ["mlrunner", "createsim", "cganalysis"]
-    make_plot(
-        subset,
-        title="Job Times By Experiment",
-        ydimension="duration",
-        xdimension="job",
-        outdir=img_outdir,
-        ext="png",
-        plotname="job_times_by_experiment",
-        order=order,
-        hue="experiment",
-        plot_type="box",
-        xlabel="Job",
-        ylabel="Running Time (seconds)",
-        rotation=360,
-    )
+    # These were two failed jobs, I don't remember why, but not included
+    subset = subset[~((subset.job == "cganalysis") & (subset.duration < 1500))]
+
+    # Make a separate figure for each job type.
+    for job in subset.job.unique():
+        job_subset = subset[subset.job == job]
+
+        labels = []
+        job_environs = []
+        for value in job_subset.experiment.values:
+            job_environ = "gpu"
+            if "cpu" in value:
+                job_environ = "cpu"
+            job_environs.append(job_environ)
+            value = (
+                value.replace("-static", "")
+                .replace("-" + job_environ, "")
+                .replace("-", " ")
+            )
+            labels.append(value)
+
+        job_subset["labels"] = labels
+        job_subset["job_environ"] = job_environs
+        make_plot(
+            job_subset,
+            title=f'Job "{job}" Times By Experiment',
+            ydimension="duration",
+            xdimension="job_environ",
+            outdir=img_outdir,
+            ext="png",
+            plotname=f"job_{job}_times_by_experiment",
+            hue="labels",
+            plot_type="box",
+            order=["cpu", "gpu"],
+            xlabel=None,
+            ylabel="Running Time (seconds)",
+            rotation=360,
+            height=4,
+            width=6,
+            remove_legend=True,
+            ymin=0,
+            ymax=2100,
+            remove_y=False if job == "mlrunner" else True,
+        )
 
     # Let's do summary of job times
     by_job = subset.groupby(["job", "experiment", "iteration"])["duration"].sum()
@@ -1102,6 +1184,12 @@ def make_plot(
     width=7,
     height=6,
     order=None,
+    remove_legend=False,
+    remove_y=False,
+    xmin=None,
+    xmax=None,
+    ymin=None,
+    ymax=None,
 ):
     """
     Helper function to make common plots.
@@ -1167,12 +1255,21 @@ def make_plot(
 
     if do_log:
         plt.yscale("log")
+    if remove_legend:
+        ax.get_legend().set_title(None)
+    if xmin is not None and xmax is not None:
+        plt.xlim(xmin, xmax)
+    if ymin is not None and ymax is not None:
+        plt.ylim(ymin, ymax)
     plt.title(title)
     ax.set_xlabel(xlabel, fontsize=10)
     ax.set_ylabel(ylabel, fontsize=10)
     ax.set_xticklabels(ax.get_xmajorticklabels(), fontsize=14)
     ax.set_yticklabels(ax.get_yticks(), fontsize=14)
     # sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
+    if remove_y:
+        ax.set_ylabel(None)
+        ax.set_yticks([])
     plt.xticks(rotation=rotation)
     plt.tight_layout()
     plt.savefig(os.path.join(outdir, f"{plotname}.svg"))

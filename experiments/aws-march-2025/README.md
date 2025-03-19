@@ -41,13 +41,13 @@ flux-state-machine-cpu       cganalysis_success                    1746.684337
                              createsim_success                      505.366921
                              mlrunner_failure                         7.613389
                              mlrunner_success                        26.574034
-                             workflow_complete                     5310.073213
+                             workflow_complete                     5453.411546
                              workflow_complete_without_pulling     4658.165546
 flux-state-machine-gpu       cganalysis_success                    1791.566859
                              createsim_failure                       74.436712
                              createsim_success                      698.774243
                              mlrunner_success                        19.910789
-                             workflow_complete                     7512.133451
+                             workflow_complete                     8396.296784
                              workflow_complete_without_pulling     5040.576451
 mummi-cpu                    wfmanager_add_cgframes_to_ml             0.000017
                              wfmanager_add_new_patches_mlserver       1.432169
@@ -93,6 +93,54 @@ This variation seems large, but it's only a handful of pulls per cluster. I expe
 
 ![results/img/pull_times_by_experiment.png](results/img/pull_times_by_experiment.png)
 
+These are mean times across containers:
+```
+experiment
+mummi-cpu-static                  48.719381
+mummi-gpu-static                 181.030326
+state-machine-cpu-autoscale       56.327411
+state-machine-cpu-static          62.504333
+state-machine-flux-cpu-static    217.302556
+state-machine-flux-gpu-static    823.852333
+state-machine-gpu-autoscale      222.721356
+state-machine-gpu-static         216.197821
+```
+
+And by container:
+
+```
+experiment                     container                                                                                
+mummi-cpu-static               633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-arm                         36.026791
+                               633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-arm                         54.268591
+                               633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlserver-arm                          131.520371
+                               633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:rabbitmq                                3.252676
+                               633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:wfmanager-arm                          96.589913
+                               ghcr.io/converged-computing/mummi-operator:test                                                 0.888370
+mummi-gpu-static               633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-gpu                        188.056696
+                               633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-gpu                        211.954320
+                               633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlserver-gpu                          332.784383
+                               633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:rabbitmq                                4.673991
+                               633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:wfmanager                             240.440288
+                               ghcr.io/converged-computing/mummi-operator:test                                                 1.447552
+state-machine-cpu-autoscale    633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-arm                          0.838624
+                               633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-arm                         46.544209
+                               633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlrunner-arm                          108.920590
+state-machine-cpu-static       633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-arm                          0.715711
+                               633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-arm                         48.710707
+                               633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlrunner-arm                          126.199604
+state-machine-flux-cpu-static  docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-arm               143.605667
+                               docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-arm               175.509333
+                               docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlrunner-arm-singularity     476.131000
+state-machine-flux-gpu-static  docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-gpu               884.507000
+                               docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-gpu              1281.552667
+                               docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlrunner-gpu                1189.660667
+state-machine-gpu-autoscale    633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-gpu                        153.199131
+                               633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-gpu                        142.300729
+                               633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlrunner-gpu                          349.490133
+state-machine-gpu-static       633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-gpu                        160.938367
+                               633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-gpu                        138.825408
+                               633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlrunner-gpu                          348.829689
+```
 
 ### Workflow Manager Times
 
@@ -109,6 +157,32 @@ And then we can compare to see the start differences in total workflow running t
 This was something I wanted to do (that I think is really interesting). If we add up the actual runtimes for every component plus the container pulling times, we get a theoretical "best" for a particular iteration and setup. In a way, it measures the additional overhead added by the orchestration. Since MuMMI didn't have individual ML runner jobs akin to the others, we use a strategy to sample from the actual runtimes from Flux, which were run on the exact same machines. The reason we see huge overhead (difference in theoretical best and actual time) with MuMMI is because of how it calculates resources. We lose a node to computation due to the workload manager subtracting it, and then further lose a node to the ML server running all the time.
 
 ![results/actual-time-vs-theoretical.png](results/actual-time-vs-theoretical.png)
+
+Theoretical Best Duration
+
+```
+Theoretical Best Duration
+operator            environment
+flux-state-machine  cpu            3772.726359
+                    gpu            4164.779461
+mummi               cpu            3864.468212
+                    gpu            4685.873165
+state-machine       cpu            4411.214031
+                    gpu            5322.892142
+```
+
+Actual Durations:
+
+```
+Actual Duration
+operator            environment
+flux-state-machine  cpu            5453.411546
+                    gpu            8396.296784
+mummi               cpu            8204.480468
+                    gpu            8383.202545
+state-machine       cpu            5091.090084
+                    gpu            5980.647029
+```
 
 ### Uptime per node
 
@@ -274,54 +348,54 @@ We can generally see that with autoscaling, 2/6 nodes clean up earlier. This wil
     },
     "flux-state-machine-cpu": {
         "1": [
-            5400.847153398514,
-            5400.847153398514,
-            5400.847153398514,
-            5400.847153398514,
-            5400.847153398514,
-            5400.847153398514
+            5544.855153398514,
+            5544.855153398514,
+            5544.855153398514,
+            5544.855153398514,
+            5544.855153398514,
+            5544.855153398514
         ],
         "3": [
-            5227.663189220429,
-            5227.663189220429,
-            5227.663189220429,
-            5227.663189220429,
-            5227.663189220429,
-            5227.663189220429
+            5370.4661892204285,
+            5370.4661892204285,
+            5370.4661892204285,
+            5370.4661892204285,
+            5370.4661892204285,
+            5370.4661892204285
         ],
         "2": [
-            5301.7092954406735,
-            5301.7092954406735,
-            5301.7092954406735,
-            5301.7092954406735,
-            5301.7092954406735,
-            5301.7092954406735
+            5444.913295440674,
+            5444.913295440674,
+            5444.913295440674,
+            5444.913295440674,
+            5444.913295440674,
+            5444.913295440674
         ]
     },
     "flux-state-machine-gpu": {
         "1": [
-            7441.19877379036,
-            7441.19877379036,
-            7441.19877379036,
-            7441.19877379036,
-            7441.19877379036,
-            7441.19877379036
+            8311.913773790358,
+            8311.913773790358,
+            8311.913773790358,
+            8311.913773790358,
+            8311.913773790358,
+            8311.913773790358
         ],
         "3": [
-            7470.544129337311,
-            7470.544129337311,
-            7470.544129337311,
-            7470.544129337311,
-            7470.544129337311,
-            7470.544129337311
+            8359.59212933731,
+            8359.59212933731,
+            8359.59212933731,
+            8359.59212933731,
+            8359.59212933731,
+            8359.59212933731
         ],
         "2": [
-            7624.657448869705,
-            7624.657448869705,
-            7624.657448869705,
-            7624.657448869705,
-            7624.657448869705,
-            7624.657448869705
+            8517.384448869705,
+            8517.384448869705,
+            8517.384448869705,
+            8517.384448869705,
+            8517.384448869705,
+            8517.384448869705
         ]
     }
 }
@@ -366,14 +440,30 @@ Here are the final costs to get to 10 cganalysis completions. Note that we have 
         "2": 30.390030099606516
     },
     "flux-state-machine-cpu": {
-        "1": 15.14937626528283,
-        "3": 14.663595245763302,
-        "2": 14.87129457371109
+        "1": 15.553318705282832,
+        "3": 15.064157660763303,
+        "2": 15.272981793711091
     },
     "flux-state-machine-gpu": {
-        "1": 37.95011374633084,
-        "3": 38.09977505962028,
-        "2": 38.8857529892355
+        "1": 42.39076024633083,
+        "3": 42.633919859620285,
+        "2": 43.4386606892355
     }
 }
 ```
+
+And summary of costs:
+
+```
+environment  labels                   
+cpu          flux\n state machine         15.296819
+             mummi                        23.013568
+             state machine                14.185009
+             state machine \nautoscale    12.657836
+gpu          flux\n state machine         42.821114
+             mummi                        42.754333
+             state machine                30.526175
+             state machine \nautoscale    26.371963
+```
+
+
