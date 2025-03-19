@@ -162,19 +162,22 @@ def workflow_manager(indirs, outdir):
         for x in total_time["environment"]
     ]
     total_time.loc[:, "operator"] = operators
+    total_time["labels"] = derive_pretty_labels(total_time.operator.values)
     me.make_plot(
         total_time,
         title="Total Time to Run Workflow",
         ydimension="duration",
-        xdimension="operator",
+        xdimension="labels",
         outdir=os.path.join(outdir, "img"),
         ext="png",
         plotname="workflow_total_time",
         hue="environment",
         plot_type="bar",
-        xlabel="Environment",
+        xlabel=None,
         ylabel="Running Time (seconds)",
-        rotation=90,
+        rotation=360,
+        width=8,
+        height=5,
     )
 
     # The only meaningful comparison is the workflow running time to get 6 samples
@@ -247,6 +250,25 @@ def find_mlrunner_times():
         environ = "cpu" if "cpu" in filename else "gpu"
         times[environ].append(run_end - run_start)
     return times
+
+
+def derive_pretty_labels(values):
+    """
+    Ensure we replace - with spaces and add newlines
+    to experiment names for better looking plots.
+    """
+    labels = [re.sub("(-?)(gpu|cpu)(-?)", "", x) for x in values]
+
+    # I am bad at regular expressions
+    labels = [x.replace("machineautoscale", "machine-autoscale") for x in labels]
+
+    # Try adding newlines and spoces
+    return [
+        x.replace("-", " ")
+        .replace("autoscale", "\nautoscale")
+        .replace("flux", "flux\n")
+        for x in labels
+    ]
 
 
 def job_timings(indirs, outdir, workflow_times, pull_df):
@@ -405,15 +427,19 @@ def job_timings(indirs, outdir, workflow_times, pull_df):
             idx += 1
 
     # Make a new label for the x axis that doesn't have gpu/cpu
-    labels = [re.sub("(-?)(gpu|cpu)(-?)", "", x) for x in best_df.experiment.values]
-    
-    # I am bad at regular expressions
-    labels = [x.replace('machineautoscale', 'machine-autoscale') for x in labels]
-    best_df["labels"] = labels
+    best_df["labels"] = derive_pretty_labels(best_df.experiment.values)
 
     # Finally! Make a plot!
-    plt.figure(figsize=(7, 6))
-    ax = sns.barplot(data=best_df, x="labels", y="actual_duration", hue="environment")
+    plt.figure(figsize=(8, 4))
+    order = [
+        "state machine \nautoscale",
+        "state machine",
+        "flux\n state machine",
+        "mummi",
+    ]
+    ax = sns.barplot(
+        data=best_df, x="labels", y="actual_duration", hue="environment", order=order
+    )
     sns.set_style("dark")
     sns.barplot(
         ax=ax,
@@ -422,19 +448,24 @@ def job_timings(indirs, outdir, workflow_times, pull_df):
         y="best_duration",
         hue="environment",
         legend=None,
+        order=order,
         alpha=0.5,
     )
-    ax.set_xlabel("Experiment", fontsize=10)
+    ax.set_xlabel(None)
     ax.set_ylabel("Workflow Total Time", fontsize=10)
     ax.set_xticklabels(ax.get_xmajorticklabels(), fontsize=14)
     ax.set_yticklabels(ax.get_yticks(), fontsize=14)
     # sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
     plt.title("Actual Time vs. Theoretical Best Time")
-    plt.xticks(rotation=90)
+    #    plt.xticks(rotation=90)
     plt.tight_layout()
     plt.savefig(os.path.join(outdir, "actual-time-vs-theoretical.png"))
     plt.savefig(os.path.join(outdir, "actual-time-vs-theoretical.svg"))
     plt.close()
+    print("Theoretical Best Duration")
+    print(best_df.groupby(["operator", "environment"]).best_duration.mean())
+    print("Actual Duration")
+    print(best_df.groupby(["operator", "environment"]).actual_duration.mean())
     return best_df
 
 
@@ -666,26 +697,30 @@ def calculate_costs(indirs, workflow_times, outdir, best_df):
             idx += 1
 
     cost_df.to_csv(os.path.join(outdir, "total-costs.csv"))
+    cost_df["labels"] = derive_pretty_labels(cost_df.operator.values)
     me.make_plot(
         cost_df,
         title="Total Cost to Run Workflow",
         ydimension="cost",
-        xdimension="operator",
+        xdimension="labels",
         outdir=os.path.join(outdir, "img"),
         ext="png",
         plotname="workflow_total_cost",
         hue="environment",
         plot_type="bar",
         order=[
-            "state-machine-autoscale",
-            "state-machine",
-            "flux-state-machine",
+            "state machine \nautoscale",
+            "state machine",
+            "flux\n state machine",
             "mummi",
         ],
-        xlabel="Environment",
+        xlabel=None,
         ylabel="Cost ($)",
-        rotation=90,
+        rotation=360,
+        width=8,
+        height=4,
     )
+    print(cost_df.groupby(["environment", "labels"]).cost.mean())
 
 
 if __name__ == "__main__":

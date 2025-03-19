@@ -122,6 +122,7 @@ def add_pulling_times(manager_df, times_df, outdir):
 
     # We will assume the pulls happened in parallel and once per node (just count cost once)
     additional_time = {}
+    print("Additional time for singularity container pulls")
     for experiment in subset.experiment.unique():
         additional_time[experiment] = {}
         for iteration in subset.iteration.unique():
@@ -131,6 +132,8 @@ def add_pulling_times(manager_df, times_df, outdir):
             # One for each of mlrunner, createsim, cganalysis
             assert experiment_df.shape[0] == 3
             additional_time[experiment][iteration] = experiment_df.duration.sum()
+            print(experiment)
+            print(iteration)
 
     # Create an updated data frame
     updated = manager_df[manager_df["global"] != "workflow_complete"]
@@ -229,6 +232,9 @@ def parse_container_pulls(indir, outdir):
     for environ in ["gpu", "cpu"]:
         pull_texts = me.find_inputs(os.path.join(pulls_dir, environ), "txt")
         for pull_text in pull_texts:
+            # This is raw data I pulled to my computer to move over
+            if "times" in pull_text:
+                continue
             job = os.path.basename(pull_text).split("-")[0]
             iteration = int(pull_text.replace(".txt", "").split("-")[-1])
             content = me.read_file(pull_text)

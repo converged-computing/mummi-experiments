@@ -299,3 +299,11 @@ gpu-static  wfmanager_add_cgframes_to_ml        1               0.012286
 Name: duration, dtype: object
 ```
 
+How many jobs had error?
+
+```
+grep -R --include="*.txt" "Error" ./monitor
+```
+
+- cpu-static-0 has 2,
+- gpu-static-2 has one

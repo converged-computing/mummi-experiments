@@ -264,7 +264,38 @@ def job_timings(samples, outdir):
     )
     df.to_csv(os.path.join(outdir, "createsim-timings.csv"))
     subset.to_csv(os.path.join(outdir, "createsim-total-times.csv"))
+    
+    # Generate figure for paper
+    order = [
+        "c7g-16xlarge",
+        "m6g-16xlarge",
+        "c7a-12xlarge",
+        "hpc7g-16xlarge",
+        "c6in-12xlarge",
+        "hpc6a-48xlarge",
+        "r7iz-8xlarge",
+        "m6a-16xlarge",
+    ]
 
+    # Replace -spot in instance
+    instance_names = [x.replace('-spot', '') for x in subset.instance.values]
+    subset['instance_name'] = instance_names
+    make_plot(
+        subset,
+        title="Cost Per Createsims Run By Instance Type",
+        ydimension="cost",
+        xdimension="instance_name",
+        outdir=img_outdir,
+        ext="png",
+        plotname="createsims_cost_by_instance_type",
+        hue="spot",
+        plot_type="box",
+        xlabel="Instance Type",
+        ylabel="Cost ($)",
+        order=order,
+        width=7,
+        height=4,
+    )
 
 def make_plot(
     df,

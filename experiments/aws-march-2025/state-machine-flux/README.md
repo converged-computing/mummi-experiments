@@ -30,7 +30,7 @@ for iter in $(seq 1 3)
   echo "Pulling createsims"
   { time singularity pull $container:createsims-gpu 2> pull.stderr ; } 2> ./times/createsime-pull-time-$iter.txt
   echo "Pulling cganalysis"
-  { time singularity pull $container:cganalsis-gpu 2> pull.stderr ; } 2> ./times/cganalysis-pull-time-$iter.txt
+  { time singularity pull $container:cganalysis-gpu 2> pull.stderr ; } 2> ./times/cganalysis-pull-time-$iter.txt
   singularity cache clean --force
   rm -rf *.sif
 done
@@ -55,7 +55,7 @@ for iter in $(seq 1 3)
   echo "Pulling createsims"
   { time singularity pull $container:createsims-arm 2> pull.stderr ; } 2> ./times/createsime-pull-time-$iter.txt
   echo "Pulling cganalysis"
-  { time singularity pull $container:cganalsis-arm 2> pull.stderr ; } 2> ./times/cganalysis-pull-time-$iter.txt
+  { time singularity pull $container:cganalysis-arm 2> pull.stderr ; } 2> ./times/cganalysis-pull-time-$iter.txt
   singularity cache clean --force
   rm -rf *.sif
 done
@@ -331,6 +331,71 @@ gpu-static  cganalysis_success    1791.566859
             mlrunner_success        19.910789
             workflow_complete     5040.576451
 ```
+```
+experiment  global              iteration
+cpu-static  cganalysis_success  1            17978.735104
+                                2            17947.466616
+                                3            16474.328401
+            createsim_failure   1               36.650442
+            createsim_success   1             5105.182107
+                                2             5087.932331
+                                3             4967.893207
+            mlrunner_failure    2                7.613389
+            mlrunner_success    1              607.525203
+                                2              115.811255
+                                3              100.458604
+            workflow_complete   1             4745.525153
+                                2             4644.108295
+                                3             4584.863189
+gpu-static  cganalysis_success  1            17983.249766
+                                2            17881.616295
+                                3            17882.139705
+            createsim_failure   1               74.436712
+            createsim_success   1             7047.289262
+                                2             6979.106718
+                                3             6936.831313
+            mlrunner_success    1              293.894655
+                                2              161.889552
+                                3              161.450266
+            workflow_complete   1             5059.972774
+                                2             5044.751449
+                                3             5017.005129
+```
+
+### Container Pulls
+
+Here are mean times to pulling containers. cganalysis benefits from having the cache.
+
+```
+job         experiment  iteration
+cganalysis  cpu-static  1             144.272
+                        2             143.479
+                        3             143.066
+            gpu-static  1             871.031
+                        2             893.124
+                        3             889.366
+createsime  cpu-static  1             171.851
+                        2              179.79
+                        3             174.887
+            gpu-static  1            1190.929
+                        2            1389.926
+                        3            1263.803
+mlrunner    cpu-static  1             483.207
+                        2             477.536
+                        3              467.65
+            gpu-static  1            1189.981
+                        2            1189.583
+                        3            1189.418
+```
+```
+experiment  container                                                                                
+cpu-static  docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-arm               143.605667
+            docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-arm               175.509333
+            docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlrunner-arm-singularity        476.131
+gpu-static  docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-gpu                  884.507
+            docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-gpu              1281.552667
+            docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlrunner-gpu                1189.660667
+```
 
 ### Costs
 
@@ -360,14 +425,18 @@ And here is with pull:
 ```console
 {
     "cpu-static": {
-        "1": 15.149376265282832,
-        "3": 14.663595245763302,
-        "2": 14.87129457371109
+        "1": 15.55331870528283,
+        "3": 15.064157660763302,
+        "2": 15.272981793711093
     },
     "gpu-static": {
-        "1": 37.950113746330835,
-        "3": 38.099775059620285,
-        "2": 38.8857529892355
+        "1": 42.39076024633083,
+        "3": 42.633919859620285,
+        "2": 43.4386606892355
     }
 }
 ```
+
+
+
+
