@@ -1,0 +1,36 @@
+                :-) GROMACS - gmx mdrun, 2024.2-conda_forge (-:
+
+Executable:   /miniconda3/bin.AVX2_256/gmx
+Data prefix:  /miniconda3
+Working dir:  /tmp/workdir
+Command line:
+  gmx mdrun -cpi -ntmpi 1 -ntomp 32 -pin off -maxh 0.5
+
+Compiled SIMD is AVX2_256, but CPU also supports AVX_512 (see log).
+The current CPU can measure timings more accurately than the code in
+gmx mdrun was configured to use. This might affect your simulation
+speed as accurate timings are needed for load-balancing.
+Please consider rebuilding gmx mdrun with the GMX_USE_RDTSCP=ON CMake option.
+Reading file topol.tpr, VERSION 2024.2-conda_forge (single precision)
+Can not increase nstlist because verlet-buffer-tolerance is not set or used
+
+Update groups can not be used for this system because an incompatible virtual site type is used
+
+Using 1 MPI thread
+Using 32 OpenMP threads 
+
+
+WARNING: Oversubscribing the recommended max load of 14 logical CPUs with 32 threads.
+         This will cause considerable performance loss.
+starting mdrun 'lipids-sim'
+-1 steps, infinite ps.
+
+Step 718820: Run time exceeded 0.495 hours, will terminate the run within 40 steps
+
+               Core t (s)   Wall t (s)        (%)
+       Time:    57026.935     1782.092     3200.0
+                 (ns/day)    (hour/ns)
+Performance:      697.022        0.034
+
+GROMACS reminds you: "Everybody Wants to Be Naked and Famous" (Tricky)
+

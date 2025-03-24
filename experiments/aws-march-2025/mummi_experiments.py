@@ -16,6 +16,11 @@ def read_file(filename):
         content = fd.read()
     return content
 
+# Set global colors for environments
+colors = {}
+color_palette = sns.color_palette()
+for environ in ['mummi', 'state machine', 'state machine autoscale', 'state machine flux']:
+    colors[environ] = color_palette.pop(0)
 
 def collect_inputs(_indirs, indir):
     """
@@ -807,6 +812,7 @@ def plot_pulling_times(df, outdir, include_mlrunner=True):
             plotname=f"job_{job}_times_by_experiment",
             hue="labels",
             plot_type="box",
+            palette=colors,
             order=["cpu", "gpu"],
             xlabel=None,
             ylabel="Running Time (seconds)",
@@ -1186,6 +1192,7 @@ def make_plot(
     order=None,
     remove_legend=False,
     remove_y=False,
+    remove_x=False,
     xmin=None,
     xmax=None,
     ymin=None,
@@ -1267,6 +1274,8 @@ def make_plot(
     ax.set_xticklabels(ax.get_xmajorticklabels(), fontsize=14)
     ax.set_yticklabels(ax.get_yticks(), fontsize=14)
     # sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
+    if remove_x:
+        ax.set_xlabel(None)
     if remove_y:
         ax.set_ylabel(None)
         ax.set_yticks([])

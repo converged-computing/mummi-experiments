@@ -1,0 +1,64 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: mini-mummi
+  region: us-east-2
+  version: "1.27"
+
+iam:
+  withOIDC: true
+  serviceAccounts:
+  - metadata:
+      name: cluster-autoscaler
+      namespace: kube-system
+    attachPolicy:
+      Version: "2012-10-17"
+      Statement:
+      - Effect: Allow
+        Action:
+        - "autoscaling:DescribeAutoScalingGroups"
+        - "autoscaling:DescribeAutoScalingInstances"
+        - "autoscaling:DescribeLaunchConfigurations"
+        - "ec2:DescribeImages"
+        - "ec2:DescribeInstanceTypes"
+        - "ec2:DescribeLaunchTemplateVersions"
+        - "ec2:GetInstanceTypesFromInstanceRequirements"
+        - "autoscaling:DescribeTags"
+        - "autoscaling:SetDesiredCapacity"
+        - "autoscaling:TerminateInstanceInAutoScalingGroup"
+        - "eks:DescribeNodegroup"        
+        Resource: '*'
+
+availabilityZones: ["us-east-2b", "us-east-2c"]
+managedNodeGroups:
+  - name: workers-control-plane
+    availabilityZones: ["us-east-2b"]
+    instanceType: c7a.4xlarge
+    desiredCapacity: 1
+    minSize: 1
+    maxSize: 1
+
+  - name: workers
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+    availabilityZones: ["us-east-2b"]
+    instanceType: hpc6a.48xlarge
+    volumeSize: 150
+    volumeType: gp2
+    minSize: 1
+    maxSize: 6
+    desiredCapacity: 6
+    placement:
+      groupName: performance-study
+    tags:
+      nodegroup: hpc6a-48xlarge
+      kubernetes.io/cluster/mini-mummi: "owned"
+      k8s.io/cluster-autoscaler/enabled: "true"
+      k8s.io/cluster-autoscaler/mini-mummi: "owned"
+      k8s.io/cluster-autoscaler/node-template/label/nodegroup: hpc6a-48xlarge
+      Name: 'mini-mummi'
+    propagateASGTags: true
+    ssh:
+      allow: false
