@@ -475,9 +475,13 @@ def count_outputs(indirs, outdir, completions=6):
     """
     completed = combine_data_frames(indirs, "jobs-completed.csv")
     excess = combine_data_frames(indirs, "jobs-excess-completed.csv")
+    
     img_outdir = os.path.join(outdir, "img")
     if not os.path.exists(img_outdir):
         os.makedirs(img_outdir)
+
+    # Remove hyphen
+    excess['experiment'] = [x.replace('-', ' ') for x in excess.experiment.values]
 
     # Plot each
     me.make_plot(
@@ -494,6 +498,7 @@ def count_outputs(indirs, outdir, completions=6):
         ylabel="Excess Completed Jobs (count)",
         height=3,
         rotation=360,
+        remove_x=True,
     )
 
     me.make_plot(
