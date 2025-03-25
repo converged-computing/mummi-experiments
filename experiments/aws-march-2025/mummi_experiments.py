@@ -1,4 +1,5 @@
 import os
+import time
 import json
 import tarfile
 import re
@@ -20,6 +21,10 @@ def read_file(filename):
 colors = {}
 color_palette = sns.color_palette()
 for environ in ['mummi', 'state machine', 'state machine autoscale', 'state machine flux']:
+    colors[environ] = color_palette.pop(0)
+
+# Different plots use cpu/gpu
+for environ in ['cpu', 'cpu autoscale', 'gpu', 'gpu autoscale']:
     colors[environ] = color_palette.pop(0)
 
 def collect_inputs(_indirs, indir):
@@ -585,11 +590,15 @@ def parse_single_time_event(
             print(f"Warning: missing completion marker for {event}")
             continue
 
-        if global_event == "cganalysis":
-            import IPython
-
-            IPython.embed()
         duration = times["timestamps"][complete_ts] - timestamp
+        if "cganalysis" == job_name and duration < 1600 and duration > 240:
+            print('Found sample that is too small')
+            print(f"Experiment: {experiment}")
+            print(f"Sample name: {sample_name}")
+            print(f"Duration: {duration}")
+            print(f"Event: {global_event}")
+            time.sleep(5)
+
         df.loc[idx, :] = [
             experiment,
             job_name,
@@ -779,7 +788,9 @@ def plot_pulling_times(df, outdir, include_mlrunner=True):
     # These are jobs that never finished
     subset = subset[subset.duration < 30000]
 
-    # These were two failed jobs, I don't remember why, but not included
+    # These were failed cganalysis that didn't exit with non zero, so we could not react to
+    # It must be an edge case error. E.g., see:
+    # https://github.com/converged-computing/mummi-experiments/blob/main/experiments/aws-march-2025/state-machine-flux/results/cpu/iter-3/structure_048708132/cganalysis/md.log#L691
     subset = subset[~((subset.job == "cganalysis") & (subset.duration < 1500))]
 
     # Make a separate figure for each job type.
@@ -799,9 +810,10 @@ def plot_pulling_times(df, outdir, include_mlrunner=True):
                 .replace("-", " ")
             )
             labels.append(value)
-
+        
         job_subset["labels"] = labels
         job_subset["job_environ"] = job_environs
+        
         make_plot(
             job_subset,
             title=f'Job "{job}" Times By Experiment',
@@ -812,7 +824,7 @@ def plot_pulling_times(df, outdir, include_mlrunner=True):
             plotname=f"job_{job}_times_by_experiment",
             hue="labels",
             plot_type="box",
-            palette=colors,
+            palette=colors if "gpu autoscale" not in job_environs else None,
             order=["cpu", "gpu"],
             xlabel=None,
             ylabel="Running Time (seconds)",
@@ -825,6 +837,7 @@ def plot_pulling_times(df, outdir, include_mlrunner=True):
             remove_y=False if job == "mlrunner" else True,
         )
 
+    
     # Let's do summary of job times
     by_job = subset.groupby(["job", "experiment", "iteration"])["duration"].sum()
     subset = df[df.event == "pulled"]
