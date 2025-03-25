@@ -201,18 +201,6 @@ def job_timings(samples, outdir):
     )
     df.to_csv(os.path.join(outdir, "cganlaysis-cost-per-simulation.csv"))
 
-    order = [
-        "c7g-16xlarge",
-        "hpc7g-16xlarge",
-        "c7a-12xlarge",
-        "m6g-16xlarge",
-        "p3-2xlarge",
-        "hpc6a-48xlarge",
-        "c6in-12xlarge",
-        "r7iz-8xlarge",
-        "m6a-16xlarge",
-    ]
-
     # Look at total simulation ns
     make_plot(
         df,

@@ -17,15 +17,22 @@ def read_file(filename):
         content = fd.read()
     return content
 
+
 # Set global colors for environments
 colors = {}
 color_palette = sns.color_palette()
-for environ in ['mummi', 'state machine', 'state machine autoscale', 'state machine flux']:
+for environ in [
+    "mummi",
+    "state machine",
+    "state machine autoscale",
+    "state machine flux",
+]:
     colors[environ] = color_palette.pop(0)
 
 # Different plots use cpu/gpu
-for environ in ['cpu', 'cpu autoscale', 'gpu', 'gpu autoscale']:
+for environ in ["cpu", "cpu autoscale", "gpu", "gpu autoscale"]:
     colors[environ] = color_palette.pop(0)
+
 
 def collect_inputs(_indirs, indir):
     """
@@ -592,7 +599,7 @@ def parse_single_time_event(
 
         duration = times["timestamps"][complete_ts] - timestamp
         if "cganalysis" == job_name and duration < 1600 and duration > 240:
-            print('Found sample that is too small')
+            print("Found sample that is too small")
             print(f"Experiment: {experiment}")
             print(f"Sample name: {sample_name}")
             print(f"Duration: {duration}")
@@ -810,10 +817,10 @@ def plot_pulling_times(df, outdir, include_mlrunner=True):
                 .replace("-", " ")
             )
             labels.append(value)
-        
+
         job_subset["labels"] = labels
         job_subset["job_environ"] = job_environs
-        
+
         make_plot(
             job_subset,
             title=f'Job "{job}" Times By Experiment',
@@ -837,7 +844,6 @@ def plot_pulling_times(df, outdir, include_mlrunner=True):
             remove_y=False if job == "mlrunner" else True,
         )
 
-    
     # Let's do summary of job times
     by_job = subset.groupby(["job", "experiment", "iteration"])["duration"].sum()
     subset = df[df.event == "pulled"]
@@ -1019,7 +1025,6 @@ def workflow_manager(indirs, outdir):
     return df, workflow_starts, workflow_ends
 
 
-# TODO compare this to the other one..
 def calculate_costs_static(indirs, manager_df, workflow_starts, workflow_ends, outdir):
     workflow_times = workflow_times_from_manager(manager_df)
 
