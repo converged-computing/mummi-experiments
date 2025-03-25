@@ -22,7 +22,8 @@ spec:
       nodes: 1
       gpus: 1
       command: "/opt/pixi/bin/pixi run --manifest-path /pixi-env/pixi.toml bash /workdir/entrypoint.sh"
-
+    properties:
+      save-path: "/opt"
     image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlrunner-gpu
     script: |
       mummi_mlserver_nnodes=1
@@ -70,7 +71,8 @@ spec:
       walltime: '0:26:00'
       # This is used for scheduling
       coresPerTask: 7
-
+    properties:
+      save-path: "/opt"
     image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-gpu
     registry:
       pull: mlrunner
@@ -107,7 +109,8 @@ spec:
       nodes: 1
       gpus: 1
       coresPerTask: 7
-
+    properties:
+      save-path: "/opt"
     image: 633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-gpu
     registry:
       pull: createsim

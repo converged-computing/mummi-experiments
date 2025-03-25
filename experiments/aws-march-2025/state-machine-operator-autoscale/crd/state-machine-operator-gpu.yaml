@@ -419,6 +419,19 @@ rules:
   - update
   - watch
 - apiGroups:
+  - batch
+  resources:
+  - pods/log
+  verbs:
+  - create
+  - delete
+  - exec
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
   - ""
   resources:
   - ""
@@ -855,7 +868,7 @@ spec:
         - --health-probe-bind-address=:8081
         command:
         - /manager
-        image: ghcr.io/converged-computing/state-machine-operator@sha256:4fbec679024f006562108190b7573ee9c62fdffdb77ecc8b3f81ae25461849b9
+        image: ghcr.io/converged-computing/state-machine-operator:test
         imagePullPolicy: Always
         livenessProbe:
           httpGet:

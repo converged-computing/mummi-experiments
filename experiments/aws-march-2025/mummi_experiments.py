@@ -597,7 +597,7 @@ def parse_single_time_event(
             print(f"Sample name: {sample_name}")
             print(f"Duration: {duration}")
             print(f"Event: {global_event}")
-            time.sleep(5)
+            time.sleep(10)
 
         df.loc[idx, :] = [
             experiment,

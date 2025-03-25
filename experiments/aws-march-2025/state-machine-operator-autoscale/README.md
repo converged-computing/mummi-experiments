@@ -25,6 +25,7 @@ Note that feedback files were generated and used, but not added here (there are 
  - gpu-autoscale (March 15, 2025)
  - gpu-autoscale-0 (March 15, 2025)
  - gpu-autoscale-1 (March 15, 2025)
+ - gpu-autoscale-2 (March 24, 2025)
  - gpu-no-autoscaling (March 14, 2025) 
  - gpu-no-autoscaling-0 (March 14, 2025) 
  - gpu-no-autoscaling-1 (March 14-15, 2025) 
@@ -56,7 +57,7 @@ kubectl apply -f ./event-monitor-gpu
 # instance=hpc7g.16xlarge
 
 # environ=gpu-no-autoscaling-1
-environ=gpu-autoscale-1
+environ=gpu-autoscale-2
 region=us-east-1
 instance=p3.2xlarge
 
@@ -107,7 +108,7 @@ When the workflow is complete, we can save the state, etc. First, get output for
 # environ=cpu-arm-no-autoscaling-1
 # environ=cpu-arm-autoscale-1
 # environ=gpu-no-autoscaling
-environ=gpu-autoscale-1
+environ=gpu-autoscale-2
 
 #kubectl logs <container>  > ./monitor/${environ}/<container>.out
 kubectl get pods -o wide > ./monitor/${environ}/final-pods-state.txt
@@ -120,6 +121,11 @@ kubectl get nodes -o wide > nodes.txt
 
 # Autoscaler logs (if deployed)
 kubectl logs -n kube-system cluster-autoscaler > cluster-autoscaler.out
+
+# And logs (if supported)
+mkdir logs
+cd logs
+kubectl cp <manager>:/opt/logs .
 ```
 
 I found the easiest thing to do was expose the headless service, and then oras pull to my local machine.
@@ -165,87 +171,6 @@ eksctl delete cluster --config-file ./crd/eks-config-cpu-arm-autoscaling.yaml --
 ## Quick Analysis
 
 ### Job Times
-
-This shows mean job time for each component and environment environments.  When createsims failed (which it did several times for the cpu runs) it failed quickly. In practice the mlrunner runs in about ~200 seconds and it failed in ~73, so it added a few minutes extra for one node.
-
-```console
-experiment     global              iteration
-cpu-autoscale  cganalysis_success  0            17887.433075
-                                   1            17882.476771
-                                   2            17888.634518
-               createsim_failure   0              145.010041
-                                   1               98.350998
-                                   2             2830.915782
-               createsim_success   0             5081.137343
-                                   1             5102.381859
-                                   2             4995.973853
-               mlrunner_success    0             2405.186497
-                                   1              2073.40269
-                                   2             2169.079353
-               workflow_complete   0             5006.600611
-                                   1             4993.940595
-                                   2              5374.86697
-cpu-static     cganalysis_success  0            17886.905851
-                                   1            17885.591606
-                                   2            17885.504066
-               createsim_failure   0               147.01553
-                                   2               47.425648
-               createsim_success   0             5089.432118
-                                   1             5120.167689
-                                   2             5147.378264
-               mlrunner_success    0             2357.309738
-                                   1             2293.776509
-                                   2             2290.249635
-               workflow_complete   0              5084.47364
-                                   1             4994.695705
-                                   2             5091.962981
-gpu-autoscale  cganalysis_success  0            18845.954653
-                                   1            18363.762444
-                                   2            18826.709348
-               createsim_failure   2              204.304194
-               createsim_success   0             8907.126935
-                                   1             8966.169381
-                                   2             8991.261782
-               mlrunner_success    0             2673.134994
-                                   1              2752.80203
-                                   2             2787.571181
-               workflow_complete   0             5926.065628
-                                   1             5981.895966
-                                   2             6019.346859
-gpu-static     cganalysis_success  0            18879.713266
-                                   1            18909.591505
-                                   2            18835.155305
-               createsim_failure   0             1591.983059
-               createsim_success   0             8755.175833
-                                   1             8997.380721
-                                   2             8835.892748
-               mlrunner_success    0             2724.749233
-                                   1             2764.735792
-                                   2             2708.829597
-               workflow_complete   0             5980.924844
-                                   1             6016.819443
-                                   2             5958.829431
-Name: duration, dtype: object
-```
-
-These are total accumulated job times:
-
-```console
-job         experiment   
-cganalysis  cpu-autoscale    53662
-            cpu-static       53660
-            gpu-autoscale    30032
-            gpu-static       54649
-createsim   cpu-autoscale    15179
-            cpu-static       15356
-            gpu-autoscale    15559
-            gpu-static       26590
-mlrunner    cpu-autoscale     6655
-            cpu-static        6945
-            gpu-autoscale     8026
-            gpu-static        8198
-Name: duration, dtype: object
-```
 
 Here are the total samples generated for each. CGanalysis always has 10 because that is the workflow manager's directed final state. We have extra for other components that correspond to the number of createsims failures. 
 
@@ -353,7 +278,46 @@ gpu-static     createsims_short_equilibration   createsim   1             2365.1
                createsims_trjconv_lipids_water  createsim   0                2.825601
                                                             1                2.838877
                                                             2                2.842137
-Name: duration, Length: 204, dtype: object
+```
+
+Accumulated job times:
+
+```
+job         experiment     iteration
+cganalysis  cpu-autoscale  0            17889
+                           1            17883
+                           2            17890
+            cpu-static     0            17887
+                           1            17886
+                           2            17887
+            gpu-autoscale  1            18911
+                           2            18826
+            gpu-static     0            18878
+                           1            18909
+                           2            18836
+createsim   cpu-autoscale  0             5082
+                           1             5100
+                           2             4997
+            cpu-static     0             5088
+                           1             5121
+                           2             5147
+            gpu-autoscale  1             9078
+                           2             8992
+            gpu-static     0             8752
+                           1             9000
+                           2             8838
+mlrunner    cpu-autoscale  0             2407
+                           1             2076
+                           2             2172
+            cpu-static     0             2359
+                           1             2295
+                           2             2291
+            gpu-autoscale  0             2486
+                           1             2743
+                           2             2788
+            gpu-static     0             2723
+                           1             2765
+                           2             2710
 ```
 
 ### Pull Times
@@ -392,17 +356,77 @@ cpu-static     cganalysis_success    1788.600051
                createsim_success      511.899269
                mlrunner_success       210.343512
                workflow_complete     5057.044109
-gpu-autoscale  cganalysis_success    1867.880881
+gpu-autoscale  cganalysis_success    1886.142956
                createsim_failure      204.304194
-               createsim_success       895.48527
-               mlrunner_success       264.951878
-               workflow_complete     5975.769484
+               createsim_success      899.218477
+               mlrunner_success       264.658255
+               workflow_complete     5985.909382
 gpu-static     cganalysis_success    1887.482003
                createsim_failure     1591.983059
                createsim_success      886.281643
                mlrunner_success       264.461762
                workflow_complete     5985.524573
 Name: duration, dtype: object
+```
+
+And by iteration:
+
+```console
+cpu-autoscale  cganalysis_success  0            17887.433075
+                                   1            17882.476771
+                                   2            17888.634518
+               createsim_failure   0              145.010041
+                                   1               98.350998
+                                   2             2830.915782
+               createsim_success   0             5081.137343
+                                   1             5102.381859
+                                   2             4995.973853
+               mlrunner_success    0             2405.186497
+                                   1              2073.40269
+                                   2             2169.079353
+               workflow_complete   0             5006.600611
+                                   1             4993.940595
+                                   2              5374.86697
+cpu-static     cganalysis_success  0            17886.905851
+                                   1            17885.591606
+                                   2            17885.504066
+               createsim_failure   0               147.01553
+                                   2               47.425648
+               createsim_success   0             5089.432118
+                                   1             5120.167689
+                                   2             5147.378264
+               mlrunner_success    0             2357.309738
+                                   1             2293.776509
+                                   2             2290.249635
+               workflow_complete   0              5084.47364
+                                   1             4994.695705
+                                   2             5091.962981
+gpu-autoscale  cganalysis_success  0            18845.954653
+                                   1            18911.624672
+                                   2            18826.709348
+               createsim_failure   2              204.304194
+               createsim_success   0             8907.126935
+                                   1             9078.165581
+                                   2             8991.261782
+               mlrunner_success    0             2673.134994
+                                   1             2743.699736
+                                   2             2787.571181
+               workflow_complete   0             5926.065628
+                                   1              6012.31566
+                                   2             6019.346859
+gpu-static     cganalysis_success  0            18879.713266
+                                   1            18909.591505
+                                   2            18835.155305
+               createsim_failure   0             1591.983059
+               createsim_success   0             8755.175833
+                                   1             8997.380721
+                                   2             8835.892748
+               mlrunner_success    0             2724.749233
+                                   1             2764.735792
+                                   2             2708.829597
+               workflow_complete   0             5980.924844
+                                   1             6016.819443
+                                   2             5958.829431
 ```
 
 Here are the accumulated worker node times (uptimes for each of 6 nodes). The autoscaling setups typically (but not always, depending on earlier failures) each have 2 nodes that were cleaned up early.
@@ -497,12 +521,12 @@ Here are the accumulated worker node times (uptimes for each of 6 nodes). The au
             3528.4451377391815
         ],
         "1": [
-            5733.13568687439,
-            5981.89596581459,
-            3587.1356868743896,
-            5981.89596581459,
-            3572.1356868743896,
-            5981.89596581459
+            3590.0915966033936,
+            6012.31565952301,
+            6012.31565952301,
+            6012.31565952301,
+            3595.0915966033936,
+            6012.31565952301
         ],
         "2": [
             6019.346858739853,
@@ -514,6 +538,7 @@ Here are the accumulated worker node times (uptimes for each of 6 nodes). The au
         ]
     }
 }
+
 ```
 
 And final costs.
@@ -537,7 +562,7 @@ And final costs.
     },
     "gpu-autoscale": {
         "0": 26.261729870343206,
-        "1": 26.212380714356897,
+        "1": 26.549278956604002,
         "2": 26.641778948354723
     }
 }
