@@ -122,3 +122,55 @@ eksctl delete cluster --config-file ./crd/eks-config-hpc6a.yaml --wait
   - We lost one r7iz-8xlarge at 7.5 minutes
   - m6a we lost one early on, and one right at the end before the final output save.
   - m6g we got them fairly quickly and lost all 3 in ~100 seconds
+  
+  
+## Results
+
+```
+          instance simulation_ns               sample       spot       instance_name  hourly_cost  half_hour_cost cost_per_simulation_ns
+18    c7g-16xlarge          53.5  structure_006217962       spot   c7g-16xlarge-spot       0.5415         0.27075               0.005061
+8     c7g-16xlarge          52.5  structure_080531946       spot   c7g-16xlarge-spot       0.5415         0.27075               0.005157
+14    c7g-16xlarge          52.5  structure_027786779       spot   c7g-16xlarge-spot       0.5415         0.27075               0.005157
+6       p3-2xlarge          30.5  structure_084840146       spot     p3-2xlarge-spot       0.3760         0.18800               0.006164
+5     c7a-12xlarge          51.5  structure_067366513       spot   c7a-12xlarge-spot       0.6458         0.32290                0.00627
+12    c7a-12xlarge          46.5  structure_042686490       spot   c7a-12xlarge-spot       0.6458         0.32290               0.006944
+15    c7a-12xlarge          45.5  structure_062152093       spot   c7a-12xlarge-spot       0.6458         0.32290               0.007097
+11      p3-2xlarge          19.5  structure_077031477       spot     p3-2xlarge-spot       0.3760         0.18800               0.009641
+7       p3-2xlarge          19.5  structure_077236396       spot     p3-2xlarge-spot       0.3760         0.18800               0.009641
+3   hpc7g-16xlarge          53.5  structure_042030664  on-demand      hpc7g-16xlarge       1.6830         0.84150               0.015729
+1   hpc7g-16xlarge          52.5  structure_030303311  on-demand      hpc7g-16xlarge       1.6830         0.84150               0.016029
+0   hpc7g-16xlarge          52.0  structure_032102085  on-demand      hpc7g-16xlarge       1.6830         0.84150               0.016183
+2   hpc7g-16xlarge          52.0  structure_055438499  on-demand      hpc7g-16xlarge       1.6830         0.84150               0.016183
+17   c6in-12xlarge          22.0  structure_050113487       spot  c6in-12xlarge-spot       0.8272         0.41360                 0.0188
+30    c7g-16xlarge          53.5  structure_018976077  on-demand        c7g-16xlarge       2.3200         1.16000               0.021682
+37    c7g-16xlarge          53.5  structure_011469773  on-demand        c7g-16xlarge       2.3200         1.16000               0.021682
+23    c7g-16xlarge          52.0  structure_080296043  on-demand        c7g-16xlarge       2.3200         1.16000               0.022308
+9    c6in-12xlarge          17.5  structure_064668606       spot  c6in-12xlarge-spot       0.8272         0.41360               0.023634
+25    c7a-12xlarge          52.0  structure_080296043  on-demand        c7a-12xlarge       2.4630         1.23150               0.023683
+10   c6in-12xlarge          17.0  structure_037634390       spot  c6in-12xlarge-spot       0.8272         0.41360               0.024329
+32    c7a-12xlarge          50.5  structure_018976077  on-demand        c7a-12xlarge       2.4630         1.23150               0.024386
+39    c7a-12xlarge          50.0  structure_011469773  on-demand        c7a-12xlarge       2.4630         1.23150                0.02463
+16    m6a-16xlarge          17.0  structure_040099301       spot   m6a-16xlarge-spot       0.8596         0.42980               0.025282
+13    r7iz-8xlarge          14.0  structure_034117895       spot   r7iz-8xlarge-spot       0.7677         0.38385               0.027418
+4     r7iz-8xlarge          14.0  structure_099352644       spot   r7iz-8xlarge-spot       0.7677         0.38385               0.027418
+29    m6g-16xlarge          40.5  structure_018976077  on-demand        m6g-16xlarge       2.4640         1.23200                0.03042
+36    m6g-16xlarge          40.0  structure_011469773  on-demand        m6g-16xlarge       2.4640         1.23200                 0.0308
+22    m6g-16xlarge          40.0  structure_080296043  on-demand        m6g-16xlarge       2.4640         1.23200                 0.0308
+43      p3-2xlarge          32.5  structure_002428053  on-demand          p3-2xlarge       3.0600         1.53000               0.047077
+28      p3-2xlarge          31.0  structure_024332431  on-demand          p3-2xlarge       3.0600         1.53000               0.049355
+35  hpc6a-48xlarge          24.0  structure_021755152  on-demand      hpc6a-48xlarge       2.8800         1.44000                   0.06
+21  hpc6a-48xlarge          24.0  structure_014136731  on-demand      hpc6a-48xlarge       2.8800         1.44000                   0.06
+42  hpc6a-48xlarge          23.5  structure_090721860  on-demand      hpc6a-48xlarge       2.8800         1.44000               0.061277
+38   c6in-12xlarge          22.0  structure_011469773  on-demand       c6in-12xlarge       2.7220         1.36100               0.061864
+20      p3-2xlarge          20.0  structure_063157840  on-demand          p3-2xlarge       3.0600         1.53000                 0.0765
+41    m6a-16xlarge          18.0  structure_011469773  on-demand        m6a-16xlarge       2.7650         1.38250               0.076806
+31   c6in-12xlarge          17.5  structure_018976077  on-demand       c6in-12xlarge       2.7220         1.36100               0.077771
+19      p3-2xlarge          19.5  structure_040591829  on-demand          p3-2xlarge       3.0600         1.53000               0.078462
+24   c6in-12xlarge          17.0  structure_080296043  on-demand       c6in-12xlarge       2.7220         1.36100               0.080059
+40    r7iz-8xlarge          18.0  structure_011469773  on-demand        r7iz-8xlarge       2.9760         1.48800               0.082667
+26    r7iz-8xlarge          14.5  structure_080296043  on-demand        r7iz-8xlarge       2.9760         1.48800               0.102621
+33    r7iz-8xlarge          14.5  structure_018976077  on-demand        r7iz-8xlarge       2.9760         1.48800               0.102621
+27    m6a-16xlarge           4.5  structure_080296043  on-demand        m6a-16xlarge       2.7650         1.38250               0.307222
+34    m6a-16xlarge           4.5  structure_018976077  on-demand        m6a-16xlarge       2.7650         1.38250               0.307222
+
+```

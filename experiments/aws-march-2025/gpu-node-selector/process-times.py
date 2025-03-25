@@ -159,6 +159,8 @@ def job_timings(samples, outdir):
     # Now we assume that we ran for 30 minutes
     df["half_hour_cost"] = [x / 2 for x in costs]
 
+    # Let's try to do simulation seconds
+    
     # Calculate costs based on science accomplished
     # We want to calculate dollars per simulation ns
     df["cost_per_simulation_ns"] = df.half_hour_cost / df.simulation_ns
@@ -168,6 +170,7 @@ def job_timings(samples, outdir):
         os.makedirs(img_outdir)
 
     order = [
+        "hpc7g-16xlarge",
         "c7g-16xlarge",
         "c7a-12xlarge",
         "m6g-16xlarge",
@@ -175,7 +178,6 @@ def job_timings(samples, outdir):
         "hpc6a-48xlarge",
         "m6a-16xlarge",
         "c6in-12xlarge",
-        "hpc7g-16xlarge",
         "r7iz-8xlarge",
     ]
 
@@ -193,7 +195,8 @@ def job_timings(samples, outdir):
         ylabel="Cost ($)",
         order=order,
         width=7,
-        height=4,
+        height=3,
+        rotation=45,
         remove_x=True,
     )
     df.to_csv(os.path.join(outdir, "cganlaysis-cost-per-simulation.csv"))
@@ -225,8 +228,9 @@ def job_timings(samples, outdir):
         ylabel="Simulation Progress in 30 Minutes (ns)",
         order=order,
         width=7,
-        height=4,
+        height=3,
         remove_x=True,
+        rotation=45,
     )
 
 
