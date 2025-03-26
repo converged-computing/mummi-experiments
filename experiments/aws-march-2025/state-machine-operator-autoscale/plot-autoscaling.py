@@ -146,9 +146,14 @@ def main():
             workflow_end=parser.workflow_ends[experiment][iteration],
         )
 
+    # Colors for autoscaling / static - y and b are good too
+    colors = {"static": "c", "autoscale": "m"}
+
     # Make a gantt chart of nodes
     title = "Node Uptimes for Static vs Autoscaling (GPU)"
-    node_parser.to_gantt(os.path.join(outdir, "node-gantt-chart-gpu.png"), title=title)
+    node_parser.to_gantt(
+        os.path.join(outdir, "node-gantt-chart-gpu.png"), title=title, colors=colors
+    )
 
     # CPU: Parse workflow times
     parser = WorkflowTimesParser()
@@ -172,7 +177,9 @@ def main():
 
     # Make a gantt chart of nodes
     title = "Node Uptimes for Static vs Autoscaling (CPU)"
-    node_parser.to_gantt(os.path.join(outdir, "node-gantt-chart-cpu.png"), title=title)
+    node_parser.to_gantt(
+        os.path.join(outdir, "node-gantt-chart-cpu.png"), title=title, colors=colors
+    )
 
 
 if __name__ == "__main__":
