@@ -7,6 +7,7 @@ import pandas
 import seaborn as sns
 from datetime import datetime
 import matplotlib.pylab as plt
+import matplotlib.ticker as ticker
 
 timestamp_format = "%Y-%m-%dT%H:%M:%SZ"
 node_timestamp_format = "%Y-%m-%dT%H:%M:%S.%fZ"
@@ -1211,6 +1212,7 @@ def make_plot(
     remove_legend=False,
     remove_y=False,
     remove_x=False,
+    round_y=False,
     xmin=None,
     xmax=None,
     ymin=None,
@@ -1287,6 +1289,8 @@ def make_plot(
     if ymin is not None and ymax is not None:
         plt.ylim(ymin, ymax)
     plt.title(title)
+    if round_y:
+        ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.2f'))
     ax.set_xlabel(xlabel, fontsize=10)
     ax.set_ylabel(ylabel, fontsize=10)
     ax.set_xticklabels(ax.get_xmajorticklabels(), fontsize=14)
