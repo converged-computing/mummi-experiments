@@ -151,9 +151,10 @@ def main():
 
     # Make a gantt chart of nodes
     title = "Node Uptimes for Static vs Autoscaling (GPU)"
-    node_parser.to_gantt(
-        os.path.join(outdir, "node-gantt-chart-gpu.png"), title=title, colors=colors
-    )
+    for extension in ['png', 'svg']:
+        node_parser.to_gantt(
+            os.path.join(outdir, f"node-gantt-chart-gpu.{extension}"), title=title, colors=colors
+        )
 
     # CPU: Parse workflow times
     parser = WorkflowTimesParser()
@@ -177,10 +178,10 @@ def main():
 
     # Make a gantt chart of nodes
     title = "Node Uptimes for Static vs Autoscaling (CPU)"
-    node_parser.to_gantt(
-        os.path.join(outdir, "node-gantt-chart-cpu.png"), title=title, colors=colors
-    )
-
-
+    for extension in ['png', 'svg']:
+        node_parser.to_gantt(
+            os.path.join(outdir, f"node-gantt-chart-cpu.{extension}"), title=title, colors=colors
+        )
+    
 if __name__ == "__main__":
     main()
