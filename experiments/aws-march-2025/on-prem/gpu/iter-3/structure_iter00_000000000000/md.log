@@ -1,0 +1,1635 @@
+                      :-) GROMACS - gmx mdrun, 2024.1 (-:
+
+Copyright 1991-2024 The GROMACS Authors.
+GROMACS is free software; you can redistribute it and/or modify it
+under the terms of the GNU Lesser General Public License
+as published by the Free Software Foundation; either version 2.1
+of the License, or (at your option) any later version.
+
+                         Current GROMACS contributors:
+       Mark Abraham           Andrey Alekseenko           Vladimir Basov      
+      Cathrine Bergh            Eliane Briand               Ania Brown        
+      Mahesh Doijade            Giacomo Fiorin          Stefan Fleischmann    
+      Sergey Gorelov         Gilles Gouaillardet            Alan Gray         
+     M. Eric Irrgang         Farzaneh Jalalypour            Joe Jordan        
+     Carsten Kutzner           Justin A. Lemkul          Magnus Lundborg      
+       Pascal Merz              Vedran Miletic            Dmitry Morozov      
+       Julien Nabet              Szilard Pall        Andrea Pasquadibisceglie 
+    Michele Pellegrino          Hubert Santuz             Roland Schulz       
+     Tatiana Shugaeva          Alexey Shvetsov            Philip Turner       
+     Alessandra Villa      Sebastian Wingbermuehle  
+
+                         Previous GROMACS contributors:
+        Emile Apol             Rossen Apostolov           James Barnett       
+        Paul Bauer          Herman J.C. Berendsen          Par Bjelkmar       
+      Christian Blau          Viacheslav Bolnykh            Kevin Boyd        
+    Aldert van Buuren          Carlo Camilloni           Rudi van Drunen      
+      Anton Feenstra           Oliver Fleetwood            Vytas Gapsys       
+       Gaurav Garg             Gerrit Groenhof            Bert de Groot       
+      Anca Hamuraru           Vincent Hindriksen          Victor Holanda      
+     Aleksei Iupinov          Christoph Junghans        Prashanth Kanduri     
+   Dimitrios Karkoulis           Peter Kasson             Sebastian Kehl      
+     Sebastian Keller             Jiri Kraus               Per Larsson        
+      Viveca Lindahl            Erik Marklund           Pieter Meulenhoff     
+      Teemu Murtola              Sander Pronk             Michael Shirts      
+      Alfons Sijbers            Balint Soproni         David van der Spoel    
+      Peter Tieleman            Carsten Uphoff             Jon Vincent        
+     Teemu Virolainen         Christian Wennberg           Maarten Wolf       
+      Artem Zhmurov       
+
+                  Coordinated by the GROMACS project leaders:
+                           Berk Hess and Erik Lindahl
+
+GROMACS:      gmx mdrun, version 2024.1
+Executable:   /usr/WS1/mummiusr/mummi-spack/spack/0.21/opt/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_pla/linux-rhel7-power9le/gcc-11.2.1/gromacs-2024.1-qjy7zpleiv5vefcx74wqch3gy2rui4uh/bin/gmx
+Data prefix:  /usr/WS1/mummiusr/mummi-spack/spack/0.21/opt/spack/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_pla/linux-rhel7-power9le/gcc-11.2.1/gromacs-2024.1-qjy7zpleiv5vefcx74wqch3gy2rui4uh
+Working dir:  /tmp/mummi/cg/structure_iter00_000000000000-20250408_222900
+Process ID:   25104
+Command line:
+  gmx mdrun -cpi -nb gpu -ntmpi 1 -ntomp 8 -pin off -maxh 0.5
+
+GROMACS version:     2024.1
+Precision:           mixed
+Memory model:        64 bit
+MPI library:         thread_mpi
+OpenMP support:      enabled (GMX_OPENMP_MAX_THREADS = 128)
+GPU support:         CUDA
+NBNxM GPU setup:     super-cluster 2x2x2 / cluster 8
+SIMD instructions:   IBM_VSX
+CPU FFT library:     fftw-3.3.9-vsx
+GPU FFT library:     cuFFT
+Multi-GPU FFT:       none
+TNG support:         enabled
+Hwloc support:       hwloc-2.9.1
+Tracing support:     disabled
+C compiler:          /usr/WS1/mummiusr/mummi-spack/spack/0.21/lib/spack/env/gcc/gcc GNU 11.2.1
+C compiler flags:    -fexcess-precision=fast -funroll-all-loops -mcpu=power9 -mtune=power9 -mvsx -Wno-missing-field-initializers -O3 -DNDEBUG
+C++ compiler:        /usr/WS1/mummiusr/mummi-spack/spack/0.21/lib/spack/env/gcc/g++ GNU 11.2.1
+C++ compiler flags:  -fexcess-precision=fast -funroll-all-loops -mcpu=power9 -mtune=power9 -mvsx -Wno-missing-field-initializers -Wno-cast-function-type-strict -fopenmp -O3 -DNDEBUG
+BLAS library:        External - user-supplied
+LAPACK library:      External - user-supplied
+CUDA compiler:       /usr/tce/packages/cuda/cuda-11.6.1/bin/nvcc nvcc: NVIDIA (R) Cuda compiler driver;Copyright (c) 2005-2022 NVIDIA Corporation;Built on Thu_Feb_10_18:24:19_PST_2022;Cuda compilation tools, release 11.6, V11.6.112;Build cuda_11.6.r11.6/compiler.30978841_0
+CUDA compiler flags:-std=c++17;--generate-code=arch=compute_35,code=sm_35;--generate-code=arch=compute_37,code=sm_37;--generate-code=arch=compute_50,code=sm_50;--generate-code=arch=compute_52,code=sm_52;--generate-code=arch=compute_60,code=sm_60;--generate-code=arch=compute_61,code=sm_61;--generate-code=arch=compute_70,code=sm_70;--generate-code=arch=compute_75,code=sm_75;--generate-code=arch=compute_80,code=sm_80;--generate-code=arch=compute_86,code=sm_86;-Wno-deprecated-gpu-targets;--generate-code=arch=compute_53,code=sm_53;--generate-code=arch=compute_80,code=sm_80;-use_fast_math;-Xptxas;-warn-double-usage;-Xptxas;-Werror;;-Xcompiler;-fopenmp;-fexcess-precision=fast -funroll-all-loops -mcpu=power9 -mtune=power9 -mvsx -Wno-missing-field-initializers -Wno-cast-function-type-strict -fopenmp -O3 -DNDEBUG
+CUDA driver:         11.60
+CUDA runtime:        11.60
+
+
+Running on 1 node with total 40 cores, 160 processing units, 1 compatible GPU
+Hardware detected on host lassen172:
+  CPU info:
+    Vendor: IBM
+    Brand:  POWER9, altivec supported
+    Family: 0   Model: 0   Stepping: 0
+    Features: vmx vsx
+  Hardware topology: Full, with devices
+    Packages, cores, and logical processors:
+    [indices refer to OS logical processors]
+      Package  0: [   8   9  10  11] [  12  13  14  15] [  16  17  18  19] [  20  21  22  23] [  24  25  26  27] [  28  29  30  31] [  32  33  34  35] [  36  37  38  39] [  40  41  42  43] [  44  45  46  47] [  48  49  50  51] [  52  53  54  55] [  56  57  58  59] [  60  61  62  63] [  64  65  66  67] [  68  69  70  71] [  72  73  74  75] [  76  77  78  79] [  80  81  82  83] [  84  85  86  87]
+      Package  1: [  96  97  98  99] [ 100 101 102 103] [ 104 105 106 107] [ 108 109 110 111] [ 112 113 114 115] [ 116 117 118 119] [ 120 121 122 123] [ 124 125 126 127] [ 128 129 130 131] [ 132 133 134 135] [ 136 137 138 139] [ 140 141 142 143] [ 144 145 146 147] [ 148 149 150 151] [ 152 153 154 155] [ 156 157 158 159] [ 160 161 162 163] [ 164 165 166 167] [ 168 169 170 171] [ 172 173 174 175]
+    CPU limit set by OS: -1   Recommended max number of threads: 160
+    Numa nodes:
+      Node  0 (137100066816 bytes mem):   8   9  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36  37  38  39  40  41  42  43  44  45  46  47  48  49  50  51  52  53  54  55  56  57  58  59  60  61  62  63  64  65  66  67  68  69  70  71  72  73  74  75  76  77  78  79  80  81  82  83  84  85  86  87
+      Node  1 (137166913536 bytes mem):  96  97  98  99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175
+      Latency:
+               0     1
+         0  1.00  4.00
+         1  4.00  1.00
+    Caches:
+      L1: 32768 bytes, linesize 128 bytes, assoc. 32, shared 4 ways
+      L2: 524288 bytes, linesize 0 bytes, assoc. 0, shared 8 ways
+      L3: 10485760 bytes, linesize 0 bytes, assoc. 0, shared 8 ways
+    PCI devices:
+      0000:01:00.0  Id: 144d:a822  Class: 0x0108  Numa: 0
+      0002:02:00.0  Id: 1a03:2000  Class: 0x0300  Numa: 0
+      0003:01:00.0  Id: 15b3:1019  Class: 0x0207  Numa: 0
+      0003:01:00.1  Id: 15b3:1019  Class: 0x0207  Numa: 0
+      0004:03:00.0  Id: 1b4b:9235  Class: 0x0106  Numa: 0
+      0004:04:00.0  Id: 10de:1db1  Class: 0x0302  Numa: 0
+      0004:05:00.0  Id: 10de:1db1  Class: 0x0302  Numa: 0
+      0005:01:00.0  Id: 14e4:1657  Class: 0x0200  Numa: 0
+      0005:01:00.1  Id: 14e4:1657  Class: 0x0200  Numa: 0
+      0033:01:00.0  Id: 15b3:1019  Class: 0x0207  Numa: 1
+      0033:01:00.1  Id: 15b3:1019  Class: 0x0207  Numa: 1
+      0035:03:00.0  Id: 10de:1db1  Class: 0x0302  Numa: 1
+      0035:04:00.0  Id: 10de:1db1  Class: 0x0302  Numa: 1
+  GPU info:
+    Number of GPUs detected: 1
+    #0: NVIDIA Tesla V100-SXM2-16GB, compute cap.: 7.0, ECC: yes, stat: compatible
+
+
+++++ PLEASE READ AND CITE THE FOLLOWING REFERENCE ++++
+M. J. Abraham, T. Murtola, R. Schulz, S. Páll, J. C. Smith, B. Hess, E.
+Lindahl
+GROMACS: High performance molecular simulations through multi-level
+parallelism from laptops to supercomputers
+SoftwareX 1 (2015) pp. 19-25
+-------- -------- --- Thank You --- -------- --------
+
+
+++++ PLEASE READ AND CITE THE FOLLOWING REFERENCE ++++
+S. Páll, M. J. Abraham, C. Kutzner, B. Hess, E. Lindahl
+Tackling Exascale Software Challenges in Molecular Dynamics Simulations with
+GROMACS
+In S. Markidis & E. Laure (Eds.), Solving Software Challenges for Exascale 8759 (2015) pp. 3-27
+-------- -------- --- Thank You --- -------- --------
+
+
+++++ PLEASE READ AND CITE THE FOLLOWING REFERENCE ++++
+S. Pronk, S. Páll, R. Schulz, P. Larsson, P. Bjelkmar, R. Apostolov, M. R.
+Shirts, J. C. Smith, P. M. Kasson, D. van der Spoel, B. Hess, and E. Lindahl
+GROMACS 4.5: a high-throughput and highly parallel open source molecular
+simulation toolkit
+Bioinformatics 29 (2013) pp. 845-54
+-------- -------- --- Thank You --- -------- --------
+
+
+++++ PLEASE READ AND CITE THE FOLLOWING REFERENCE ++++
+B. Hess and C. Kutzner and D. van der Spoel and E. Lindahl
+GROMACS 4: Algorithms for highly efficient, load-balanced, and scalable
+molecular simulation
+J. Chem. Theory Comput. 4 (2008) pp. 435-447
+-------- -------- --- Thank You --- -------- --------
+
+
+++++ PLEASE READ AND CITE THE FOLLOWING REFERENCE ++++
+D. van der Spoel, E. Lindahl, B. Hess, G. Groenhof, A. E. Mark and H. J. C.
+Berendsen
+GROMACS: Fast, Flexible and Free
+J. Comp. Chem. 26 (2005) pp. 1701-1719
+-------- -------- --- Thank You --- -------- --------
+
+
+++++ PLEASE READ AND CITE THE FOLLOWING REFERENCE ++++
+E. Lindahl and B. Hess and D. van der Spoel
+GROMACS 3.0: A package for molecular simulation and trajectory analysis
+J. Mol. Mod. 7 (2001) pp. 306-317
+-------- -------- --- Thank You --- -------- --------
+
+
+++++ PLEASE READ AND CITE THE FOLLOWING REFERENCE ++++
+H. J. C. Berendsen, D. van der Spoel and R. van Drunen
+GROMACS: A message-passing parallel molecular dynamics implementation
+Comp. Phys. Comm. 91 (1995) pp. 43-56
+-------- -------- --- Thank You --- -------- --------
+
+
+++++ PLEASE CITE THE DOI FOR THIS VERSION OF GROMACS ++++
+https://doi.org/10.5281/zenodo.10721181
+-------- -------- --- Thank You --- -------- --------
+
+
+The number of OpenMP threads was set by environment variable OMP_NUM_THREADS to 8 (and the command-line setting agreed with that)
+
+Input Parameters:
+   integrator                     = md
+   tinit                          = 0
+   dt                             = 0.02
+   nsteps                         = -1
+   init-step                      = 0
+   simulation-part                = 1
+   mts                            = false
+   mass-repartition-factor        = 1
+   comm-mode                      = Linear
+   nstcomm                        = 100
+   bd-fric                        = 0
+   ld-seed                        = -268968764
+   emtol                          = 10
+   emstep                         = 0.01
+   niter                          = 20
+   fcstep                         = 0
+   nstcgsteep                     = 1000
+   nbfgscorr                      = 10
+   rtpi                           = 0.05
+   nstxout                        = 0
+   nstvout                        = 0
+   nstfout                        = 0
+   nstlog                         = 25000
+   nstcalcenergy                  = 100
+   nstenergy                      = 25000
+   nstxout-compressed             = 25000
+   compressed-x-precision         = 100
+   cutoff-scheme                  = Verlet
+   nstlist                        = 20
+   pbc                            = xyz
+   periodic-molecules             = false
+   verlet-buffer-tolerance        = -1
+   verlet-buffer-pressure-tolerance = -1
+   rlist                          = 1.35
+   coulombtype                    = Reaction-Field
+   coulomb-modifier               = Potential-shift
+   rcoulomb-switch                = 0
+   rcoulomb                       = 1.1
+   epsilon-r                      = 15
+   epsilon-rf                     = inf
+   vdw-type                       = Cut-off
+   vdw-modifier                   = Potential-shift
+   rvdw-switch                    = 0
+   rvdw                           = 1.1
+   DispCorr                       = No
+   table-extension                = 1
+   fourierspacing                 = 0.12
+   fourier-nx                     = 0
+   fourier-ny                     = 0
+   fourier-nz                     = 0
+   pme-order                      = 4
+   ewald-rtol                     = 1e-05
+   ewald-rtol-lj                  = 0.001
+   lj-pme-comb-rule               = Geometric
+   ewald-geometry                 = 3d
+   epsilon-surface                = 0
+   ensemble-temperature-setting   = constant
+   ensemble-temperature           = 310
+   tcoupl                         = V-rescale
+   nsttcouple                     = 20
+   nh-chain-length                = 0
+   print-nose-hoover-chain-variables = false
+   pcoupl                         = Parrinello-Rahman
+   pcoupltype                     = Semiisotropic
+   nstpcouple                     = 20
+   tau-p                          = 12
+   compressibility (3x3):
+      compressibility[    0]={ 3.00000e-04,  0.00000e+00,  0.00000e+00}
+      compressibility[    1]={ 0.00000e+00,  3.00000e-04,  0.00000e+00}
+      compressibility[    2]={ 0.00000e+00,  0.00000e+00,  3.00000e-04}
+   ref-p (3x3):
+      ref-p[    0]={ 1.00000e+00,  0.00000e+00,  0.00000e+00}
+      ref-p[    1]={ 0.00000e+00,  1.00000e+00,  0.00000e+00}
+      ref-p[    2]={ 0.00000e+00,  0.00000e+00,  1.00000e+00}
+   refcoord-scaling               = COM
+   posres-com (3):
+      posres-com[0]= 1.14378e-01
+      posres-com[1]= 9.46704e-01
+      posres-com[2]= 8.20443e-01
+   posres-comB (3):
+      posres-comB[0]= 1.14378e-01
+      posres-comB[1]= 9.46704e-01
+      posres-comB[2]= 8.20443e-01
+   QMMM                           = false
+qm-opts:
+   ngQM                           = 0
+   constraint-algorithm           = Lincs
+   continuation                   = false
+   Shake-SOR                      = false
+   shake-tol                      = 0.0001
+   lincs-order                    = 12
+   lincs-iter                     = 2
+   lincs-warnangle                = 90
+   nwall                          = 0
+   wall-type                      = 9-3
+   wall-r-linpot                  = -1
+   wall-atomtype[0]               = -1
+   wall-atomtype[1]               = -1
+   wall-density[0]                = 0
+   wall-density[1]                = 0
+   wall-ewald-zfac                = 3
+   pull                           = false
+   awh                            = false
+   rotation                       = false
+   interactiveMD                  = false
+   disre                          = No
+   disre-weighting                = Conservative
+   disre-mixed                    = false
+   dr-fc                          = 1000
+   dr-tau                         = 0
+   nstdisreout                    = 100
+   orire-fc                       = 0
+   orire-tau                      = 0
+   nstorireout                    = 100
+   free-energy                    = no
+   cos-acceleration               = 0
+   deform (3x3):
+      deform[    0]={ 0.00000e+00,  0.00000e+00,  0.00000e+00}
+      deform[    1]={ 0.00000e+00,  0.00000e+00,  0.00000e+00}
+      deform[    2]={ 0.00000e+00,  0.00000e+00,  0.00000e+00}
+   simulated-tempering            = false
+   swapcoords                     = no
+   userint1                       = 0
+   userint2                       = 0
+   userint3                       = 0
+   userint4                       = 0
+   userreal1                      = 0
+   userreal2                      = 0
+   userreal3                      = 0
+   userreal4                      = 0
+   applied-forces:
+     electric-field:
+       x:
+         E0                       = 0
+         omega                    = 0
+         t0                       = 0
+         sigma                    = 0
+       y:
+         E0                       = 0
+         omega                    = 0
+         t0                       = 0
+         sigma                    = 0
+       z:
+         E0                       = 0
+         omega                    = 0
+         t0                       = 0
+         sigma                    = 0
+     density-guided-simulation:
+       active                     = false
+       group                      = protein
+       similarity-measure         = inner-product
+       atom-spreading-weight      = unity
+       force-constant             = 1e+09
+       gaussian-transform-spreading-width = 0.2
+       gaussian-transform-spreading-range-in-multiples-of-width = 4
+       reference-density-filename = reference.mrc
+       nst                        = 1
+       normalize-densities        = true
+       adaptive-force-scaling     = false
+       adaptive-force-scaling-time-constant = 4
+       shift-vector               = 
+       transformation-matrix      = 
+     qmmm-cp2k:
+       active                     = false
+       qmgroup                    = System
+       qmmethod                   = PBE
+       qmfilenames                = 
+       qmcharge                   = 0
+       qmmultiplicity             = 1
+     colvars:
+       active                     = false
+       configfile                 = 
+       seed                       = -1
+grpopts:
+   nrdf:      114471       41876
+   ref-t:         310         310
+   tau-t:           1           1
+annealing:          No          No
+annealing-npoints:           0           0
+   acc:	           0           0           0
+   nfreeze:           N           N           N
+   energygrp-flags[  0]: 0
+
+Can not increase nstlist because verlet-buffer-tolerance is not set or used
+Update groups can not be used for this system because an incompatible virtual site type is used
+
+Update task can not run on the GPU, because the following condition(s) were not satisfied:
+
+Virtual sites are not supported.
+
+1 GPU selected for this run.
+Mapping of GPU IDs to the 1 GPU task in the 1 rank on this node:
+  PP:0
+PP tasks will do (non-perturbed) short-ranged interactions on the GPU
+PP task will update and constrain coordinates on the CPU
+Using 1 MPI thread
+Using 8 OpenMP threads 
+
+System total charge: 0.000
+Reaction-Field:
+epsRF = 0, rc = 1.1, krf = 0.375657, crf = 1.36364, epsfac = 9.26236
+The electrostatics potential has its minimum at r = 1.1
+Potential shift: LJ r^-12: -3.186e-01 r^-6: -5.645e-01
+
+
+Using GPU 8x8 nonbonded short-range kernels
+
+Using a 8x8 pair-list setup:
+  updated every 20 steps, buffer 0.250 nm, rlist 1.350 nm
+
+The average pressure is off by at most nan bar due to missing LJ interactions
+
+Using full Lennard-Jones parameter combination matrix
+Removing pbc first time
+
+Initializing LINear Constraint Solver
+
+++++ PLEASE READ AND CITE THE FOLLOWING REFERENCE ++++
+B. Hess
+P-LINCS: A Parallel Linear Constraint Solver for molecular simulation
+J. Chem. Theory Comput. 4 (2008) pp. 116-122
+-------- -------- --- Thank You --- -------- --------
+
+The number of constraints is 1507
+1328 constraints are involved in constraint triangles,
+will apply an additional matrix expansion of order 12 for couplings
+between constraints inside triangles
+
+++++ PLEASE READ AND CITE THE FOLLOWING REFERENCE ++++
+G. Bussi, D. Donadio and M. Parrinello
+Canonical sampling through velocity rescaling
+J. Chem. Phys. 126 (2007) pp. 014101
+-------- -------- --- Thank You --- -------- --------
+
+There are: 52620 Atoms
+There are: 1927 VSites
+
+Constraining the starting coordinates (step 0)
+
+Constraining the coordinates at t0-dt (step 0)
+Center of mass motion removal mode is Linear
+We have the following groups for center of mass motion removal:
+  0:  Rest
+  1:  Solvent
+RMS relative constraint deviation after constraining: 1.16e-06
+Initial temperature: 313.972 K
+
+Started mdrun on rank 0 Tue Apr  8 22:29:20 2025
+
+           Step           Time
+              0        0.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.84180e+04    3.07963e+00    1.30021e+04    5.41514e+02    6.86816e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.26237e+02    4.36671e+02   -1.26545e+06   -1.45414e+04    1.44610e-10
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24648e+06    2.04093e+05   -1.04239e+06   -1.04203e+06    3.14003e+02
+ Pressure (bar)   Constr. rmsd
+   -6.23962e+00    1.19095e-06
+
+           Step           Time
+          25000      500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.86437e+04    3.14415e+00    1.30088e+04    5.32531e+02    6.74319e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.85644e+02    4.46171e+02   -1.26677e+06   -1.46678e+04    1.47080e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24773e+06    2.00588e+05   -1.04714e+06   -1.04202e+06    3.08611e+02
+ Pressure (bar)   Constr. rmsd
+   -1.17310e+00    1.13882e-06
+
+           Step           Time
+          50000     1000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.81883e+04    3.87998e+00    1.28980e+04    5.00374e+02    6.72018e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.16094e+02    4.80037e+02   -1.26553e+06   -1.47441e+04    1.55789e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24710e+06    2.02578e+05   -1.04452e+06   -1.04213e+06    3.11672e+02
+ Pressure (bar)   Constr. rmsd
+    2.15941e+01    1.15449e-06
+
+           Step           Time
+          75000     1500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.87917e+04    3.70521e+00    1.27536e+04    5.47515e+02    6.30441e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.32178e+02    4.70435e+02   -1.26785e+06   -1.46938e+04    1.80074e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24890e+06    2.00933e+05   -1.04797e+06   -1.04198e+06    3.09142e+02
+ Pressure (bar)   Constr. rmsd
+    7.06125e+00    1.15428e-06
+
+           Step           Time
+         100000     2000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.81626e+04    6.50259e+00    1.31983e+04    4.66926e+02    6.66548e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.67614e+02    5.15673e+02   -1.26620e+06   -1.46018e+04    1.64408e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24740e+06    2.01121e+05   -1.04628e+06   -1.04219e+06    3.09431e+02
+ Pressure (bar)   Constr. rmsd
+    1.37303e+01    1.18341e-06
+
+           Step           Time
+         125000     2500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.83616e+04    4.13806e+00    1.26374e+04    5.00912e+02    6.59185e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.06784e+02    4.76917e+02   -1.26453e+06   -1.48338e+04    1.77878e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24630e+06    2.02472e+05   -1.04383e+06   -1.04230e+06    3.11509e+02
+ Pressure (bar)   Constr. rmsd
+    3.40040e+00    1.13456e-06
+
+           Step           Time
+         150000     3000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.85425e+04    3.59895e+00    1.25712e+04    5.12834e+02    6.28382e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.73807e+02    4.56537e+02   -1.26630e+06   -1.47581e+04    1.68919e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24795e+06    2.03325e+05   -1.04463e+06   -1.04231e+06    3.12822e+02
+ Pressure (bar)   Constr. rmsd
+   -4.56989e+00    1.15012e-06
+
+           Step           Time
+         175000     3500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.79346e+04    2.21330e+00    1.28979e+04    5.01795e+02    6.74655e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.86790e+02    4.43707e+02   -1.26491e+06   -1.48916e+04    1.34787e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24694e+06    2.00721e+05   -1.04622e+06   -1.04216e+06    3.08815e+02
+ Pressure (bar)   Constr. rmsd
+   -1.15123e+01    1.08899e-06
+
+           Step           Time
+         200000     4000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.85083e+04    7.29093e+00    1.28144e+04    5.48002e+02    6.41969e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.59424e+02    4.80595e+02   -1.26608e+06   -1.48709e+04    1.24994e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24747e+06    2.01521e+05   -1.04595e+06   -1.04206e+06    3.10046e+02
+ Pressure (bar)   Constr. rmsd
+    3.76702e+00    1.03289e-06
+
+           Step           Time
+         225000     4500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.83662e+04    6.99855e+00    1.25196e+04    5.39495e+02    7.30556e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.82577e+02    4.03323e+02   -1.26668e+06   -1.48324e+04    1.69794e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24855e+06    1.99814e+05   -1.04873e+06   -1.04212e+06    3.07421e+02
+ Pressure (bar)   Constr. rmsd
+   -1.83392e+01    1.13517e-06
+
+           Step           Time
+         250000     5000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.83590e+04    7.59782e+00    1.28205e+04    4.68774e+02    6.54137e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.74901e+02    5.32119e+02   -1.26626e+06   -1.45753e+04    1.77961e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24750e+06    2.02596e+05   -1.04491e+06   -1.04211e+06    3.11700e+02
+ Pressure (bar)   Constr. rmsd
+   -8.68355e+00    1.11523e-06
+
+           Step           Time
+         275000     5500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.84989e+04    9.88108e+00    1.26527e+04    5.06015e+02    6.55357e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.98704e+02    4.69302e+02   -1.26596e+06   -1.47945e+04    1.62409e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24755e+06    2.01366e+05   -1.04618e+06   -1.04209e+06    3.09809e+02
+ Pressure (bar)   Constr. rmsd
+   -2.43864e+01    1.15925e-06
+
+           Step           Time
+         300000     6000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.81899e+04    7.24757e+00    1.27781e+04    5.20504e+02    6.84379e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.05806e+02    4.61100e+02   -1.26838e+06   -1.46553e+04    2.95945e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24996e+06    2.01768e+05   -1.04819e+06   -1.04209e+06    3.10426e+02
+ Pressure (bar)   Constr. rmsd
+   -2.30317e+00    1.04321e-06
+
+           Step           Time
+         325000     6500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.85196e+04    6.07820e+00    1.30705e+04    5.56337e+02    6.76997e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.35447e+02    4.57495e+02   -1.26591e+06   -1.47009e+04    2.32290e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24686e+06    2.01055e+05   -1.04581e+06   -1.04199e+06    3.09329e+02
+ Pressure (bar)   Constr. rmsd
+   -7.96261e+00    1.08760e-06
+
+           Step           Time
+         350000     7000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.88730e+04    3.57385e+00    1.28243e+04    5.20265e+02    6.26316e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.96710e+02    5.11762e+02   -1.26699e+06   -1.45814e+04    1.89615e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24780e+06    2.01315e+05   -1.04649e+06   -1.04215e+06    3.09729e+02
+ Pressure (bar)   Constr. rmsd
+   -3.16038e+00    1.09859e-06
+
+           Step           Time
+         375000     7500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.82959e+04    3.55366e+00    1.28376e+04    4.94640e+02    6.96277e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.26821e+02    4.51812e+02   -1.26630e+06   -1.47448e+04    1.92984e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24782e+06    2.02211e+05   -1.04561e+06   -1.04224e+06    3.11108e+02
+ Pressure (bar)   Constr. rmsd
+    1.38073e+01    1.11414e-06
+
+           Step           Time
+         400000     8000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.87585e+04    5.71039e+00    1.26844e+04    5.15186e+02    6.74856e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.94915e+02    4.43986e+02   -1.26768e+06   -1.49474e+04    2.17921e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24913e+06    2.01887e+05   -1.04724e+06   -1.04239e+06    3.10609e+02
+ Pressure (bar)   Constr. rmsd
+    9.61367e+00    1.06661e-06
+
+           Step           Time
+         425000     8500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.84587e+04    8.92797e+00    1.26922e+04    4.88791e+02    7.23339e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.08058e+02    4.86086e+02   -1.26608e+06   -1.47593e+04    2.22636e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24755e+06    2.02232e+05   -1.04532e+06   -1.04250e+06    3.11140e+02
+ Pressure (bar)   Constr. rmsd
+   -6.13469e+00    1.04918e-06
+
+           Step           Time
+         450000     9000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.82770e+04    9.25537e+00    1.26114e+04    4.95898e+02    6.96357e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.86601e+02    4.29366e+02   -1.26830e+06   -1.48861e+04    1.50067e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.25026e+06    2.01555e+05   -1.04871e+06   -1.04259e+06    3.10099e+02
+ Pressure (bar)   Constr. rmsd
+    5.26131e+00    1.14748e-06
+
+           Step           Time
+         475000     9500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.88188e+04    7.19130e+00    1.27868e+04    5.29545e+02    6.46691e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.73437e+02    4.59490e+02   -1.26358e+06   -1.49894e+04    2.24580e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24483e+06    2.01445e+05   -1.04338e+06   -1.04274e+06    3.09930e+02
+ Pressure (bar)   Constr. rmsd
+   -6.52393e+00    1.07517e-06
+
+           Step           Time
+         500000    10000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.84476e+04    8.66572e+00    1.25353e+04    4.99405e+02    6.69305e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.40321e+02    4.60609e+02   -1.26797e+06   -1.48858e+04    2.12235e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24977e+06    2.01582e+05   -1.04819e+06   -1.04279e+06    3.10140e+02
+ Pressure (bar)   Constr. rmsd
+   -9.79369e+00    1.11010e-06
+
+           Step           Time
+         525000    10500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.83925e+04    8.08660e+00    1.24671e+04    5.35143e+02    7.05912e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.06005e+02    4.27859e+02   -1.26927e+06   -1.48439e+04    2.21515e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.25115e+06    2.00803e+05   -1.05034e+06   -1.04282e+06    3.08941e+02
+ Pressure (bar)   Constr. rmsd
+    1.65472e+01    1.09393e-06
+
+           Step           Time
+         550000    11000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.81629e+04    7.72648e+00    1.26093e+04    5.34676e+02    6.66214e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.40138e+02    4.46146e+02   -1.26611e+06   -1.47059e+04    2.03885e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24793e+06    2.01552e+05   -1.04638e+06   -1.04282e+06    3.10094e+02
+ Pressure (bar)   Constr. rmsd
+   -4.27407e+00    1.14822e-06
+
+           Step           Time
+         575000    11500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.85872e+04    4.46964e+00    1.27927e+04    4.93681e+02    7.20757e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.67981e+02    4.96973e+02   -1.26862e+06   -1.48635e+04    1.97513e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.25000e+06    2.01282e+05   -1.04872e+06   -1.04278e+06    3.09679e+02
+ Pressure (bar)   Constr. rmsd
+    1.91484e+01    1.13302e-06
+
+           Step           Time
+         600000    12000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.85527e+04    5.94174e+00    1.28492e+04    5.79692e+02    6.79373e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.27957e+02    4.28602e+02   -1.26768e+06   -1.50282e+04    2.05472e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24917e+06    2.01510e+05   -1.04766e+06   -1.04278e+06    3.10030e+02
+ Pressure (bar)   Constr. rmsd
+    3.72956e+01    1.13070e-06
+
+           Step           Time
+         625000    12500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.83783e+04    5.39912e+00    1.26919e+04    4.95070e+02    6.65397e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.98807e+02    4.40044e+02   -1.26859e+06   -1.47312e+04    2.02015e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.25023e+06    2.02782e+05   -1.04745e+06   -1.04286e+06    3.11986e+02
+ Pressure (bar)   Constr. rmsd
+    2.63529e+01    1.12338e-06
+
+           Step           Time
+         650000    13000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.83491e+04    5.68523e+00    1.25579e+04    5.65548e+02    7.01138e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.19108e+02    4.75097e+02   -1.26742e+06   -1.48126e+04    1.69592e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24914e+06    2.01024e+05   -1.04812e+06   -1.04291e+06    3.09282e+02
+ Pressure (bar)   Constr. rmsd
+    1.16842e+01    1.13544e-06
+
+           Step           Time
+         675000    13500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.79012e+04    5.37732e+00    1.26578e+04    5.49176e+02    7.18673e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.49621e+02    4.35252e+02   -1.26780e+06   -1.46511e+04    1.84018e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24982e+06    2.02150e+05   -1.04767e+06   -1.04297e+06    3.11013e+02
+ Pressure (bar)   Constr. rmsd
+   -9.08565e+00    1.14526e-06
+
+           Step           Time
+         700000    14000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.85004e+04    6.08464e+00    1.24714e+04    5.33163e+02    7.02216e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.73796e+02    4.85092e+02   -1.26651e+06   -1.46663e+04    2.12220e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24808e+06    2.00399e+05   -1.04768e+06   -1.04292e+06    3.08320e+02
+ Pressure (bar)   Constr. rmsd
+   -6.80569e+00    1.08666e-06
+
+           Step           Time
+         725000    14500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.84439e+04    4.23253e+00    1.28068e+04    5.55350e+02    6.72951e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.83680e+02    4.56800e+02   -1.26748e+06   -1.48986e+04    1.97708e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24903e+06    2.01674e+05   -1.04736e+06   -1.04314e+06    3.10281e+02
+ Pressure (bar)   Constr. rmsd
+   -1.09119e+01    1.07414e-06
+
+           Step           Time
+         750000    15000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.82801e+04    8.26235e+00    1.26005e+04    5.34094e+02    7.28283e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.72130e+02    4.20432e+02   -1.26568e+06   -1.46831e+04    2.11726e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24739e+06    2.00970e+05   -1.04642e+06   -1.04313e+06    3.09199e+02
+ Pressure (bar)   Constr. rmsd
+   -3.82505e+01    1.11208e-06
+
+           Step           Time
+         775000    15500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.85506e+04    4.13326e+00    1.26165e+04    5.47941e+02    7.06442e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.81552e+02    4.80735e+02   -1.26810e+06   -1.47588e+04    1.88058e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24955e+06    2.01133e+05   -1.04842e+06   -1.04335e+06    3.09450e+02
+ Pressure (bar)   Constr. rmsd
+   -3.36994e+01    1.10479e-06
+
+           Step           Time
+         800000    16000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.87682e+04    7.71916e+00    1.30463e+04    5.68389e+02    7.10714e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.38395e+02    4.86099e+02   -1.26682e+06   -1.44811e+04    2.55719e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24725e+06    2.02841e+05   -1.04441e+06   -1.04336e+06    3.12078e+02
+ Pressure (bar)   Constr. rmsd
+    3.10355e+01    1.09420e-06
+
+           Step           Time
+         825000    16500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.86914e+04    3.81835e+00    1.29336e+04    5.67791e+02    6.78051e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.86392e+02    4.54873e+02   -1.26948e+06   -1.47070e+04    2.24386e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.25045e+06    2.01288e+05   -1.04916e+06   -1.04344e+06    3.09688e+02
+ Pressure (bar)   Constr. rmsd
+    2.40082e+01    1.08520e-06
+
+           Step           Time
+         850000    17000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.83974e+04    6.58658e+00    1.26680e+04    5.69474e+02    6.87226e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.89868e+02    4.13667e+02   -1.26805e+06   -1.47430e+04    2.16370e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24964e+06    2.01359e+05   -1.04828e+06   -1.04355e+06    3.09798e+02
+ Pressure (bar)   Constr. rmsd
+    3.57722e+00    1.08269e-06
+
+Writing checkpoint, step 873780 at Tue Apr  8 22:44:20 2025
+
+
+           Step           Time
+         875000    17500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.88633e+04    4.06187e+00    1.24830e+04    5.41511e+02    6.90992e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.29476e+02    4.31848e+02   -1.26724e+06   -1.46970e+04    2.38111e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24846e+06    2.00887e+05   -1.04758e+06   -1.04368e+06    3.09071e+02
+ Pressure (bar)   Constr. rmsd
+    9.34338e+00    1.10870e-06
+
+           Step           Time
+         900000    18000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.88194e+04    4.08344e+00    1.27014e+04    4.66794e+02    6.53179e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.04352e+02    4.76940e+02   -1.26588e+06   -1.48581e+04    1.84720e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24719e+06    2.00698e+05   -1.04650e+06   -1.04364e+06    3.08780e+02
+ Pressure (bar)   Constr. rmsd
+   -8.27997e+00    1.04988e-06
+
+           Step           Time
+         925000    18500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.85100e+04    4.26579e+00    1.27104e+04    5.10288e+02    6.44874e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.97547e+02    4.76959e+02   -1.26659e+06   -1.48460e+04    2.05230e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24816e+06    2.01864e+05   -1.04630e+06   -1.04345e+06    3.10574e+02
+ Pressure (bar)   Constr. rmsd
+    4.55996e+01    1.14650e-06
+
+           Step           Time
+         950000    19000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.82789e+04    3.99659e+00    1.28469e+04    5.39542e+02    7.01402e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.72127e+02    4.76785e+02   -1.26590e+06   -1.45345e+04    2.48822e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24719e+06    1.99505e+05   -1.04769e+06   -1.04359e+06    3.06944e+02
+ Pressure (bar)   Constr. rmsd
+   -3.99382e+01    1.11685e-06
+
+           Step           Time
+         975000    19500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.84941e+04    4.86822e+00    1.27030e+04    5.53543e+02    6.64938e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.25011e+02    3.96120e+02   -1.26587e+06   -1.48001e+04    2.69883e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24740e+06    2.00800e+05   -1.04660e+06   -1.04360e+06    3.08938e+02
+ Pressure (bar)   Constr. rmsd
+   -1.89296e+01    1.11733e-06
+
+           Step           Time
+        1000000    20000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.84462e+04    5.43081e+00    1.28077e+04    5.09687e+02    6.67962e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.57928e+02    4.66935e+02   -1.26728e+06   -1.44631e+04    2.19757e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24846e+06    2.01783e+05   -1.04667e+06   -1.04365e+06    3.10450e+02
+ Pressure (bar)   Constr. rmsd
+   -7.41430e+00    1.09551e-06
+
+           Step           Time
+        1025000    20500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.84532e+04    5.37673e+00    1.28196e+04    5.09348e+02    6.50064e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.33064e+02    4.43408e+02   -1.26768e+06   -1.46773e+04    1.76069e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24902e+06    2.01880e+05   -1.04714e+06   -1.04354e+06    3.10598e+02
+ Pressure (bar)   Constr. rmsd
+   -6.05006e+00    1.13401e-06
+
+           Step           Time
+        1050000    21000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.85402e+04    4.70739e+00    1.28443e+04    5.46345e+02    6.91237e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.43477e+02    4.03361e+02   -1.26564e+06   -1.46654e+04    2.32318e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24691e+06    2.01056e+05   -1.04585e+06   -1.04328e+06    3.09330e+02
+ Pressure (bar)   Constr. rmsd
+   -3.21386e+01    1.13112e-06
+
+           Step           Time
+        1075000    21500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.84329e+04    6.70542e+00    1.26532e+04    5.52677e+02    6.74607e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.83279e+02    5.15866e+02   -1.26850e+06   -1.46650e+04    1.58313e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24993e+06    1.99859e+05   -1.05007e+06   -1.04332e+06    3.07489e+02
+ Pressure (bar)   Constr. rmsd
+    1.06215e+00    1.10418e-06
+
+           Step           Time
+        1100000    22000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.85511e+04    5.01364e+00    1.28782e+04    5.47318e+02    6.39069e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.81024e+02    4.52817e+02   -1.26391e+06   -1.47941e+04    1.74091e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24523e+06    2.01464e+05   -1.04376e+06   -1.04328e+06    3.09958e+02
+ Pressure (bar)   Constr. rmsd
+   -1.44625e+01    1.12485e-06
+
+           Step           Time
+        1125000    22500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.81525e+04    2.79208e+00    1.28151e+04    5.55937e+02    7.16414e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.77996e+02    4.42020e+02   -1.26403e+06   -1.44827e+04    1.95428e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24543e+06    2.01806e+05   -1.04363e+06   -1.04324e+06    3.10485e+02
+ Pressure (bar)   Constr. rmsd
+   -2.86404e+00    1.08418e-06
+
+           Step           Time
+        1150000    23000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.85596e+04    3.26082e+00    1.29208e+04    5.69166e+02    6.48320e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.15501e+02    4.49539e+02   -1.26712e+06   -1.47199e+04    2.00867e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24825e+06    2.01707e+05   -1.04654e+06   -1.04324e+06    3.10332e+02
+ Pressure (bar)   Constr. rmsd
+   -6.10268e+00    1.11221e-06
+
+           Step           Time
+        1175000    23500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.83253e+04    4.81748e+00    1.26590e+04    5.22119e+02    6.69112e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.73156e+02    4.61204e+02   -1.26490e+06   -1.47894e+04    2.01806e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24665e+06    2.01683e+05   -1.04497e+06   -1.04319e+06    3.10295e+02
+ Pressure (bar)   Constr. rmsd
+    6.36893e+00    1.09574e-06
+
+           Step           Time
+        1200000    24000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.85414e+04    3.01076e+00    1.29983e+04    5.45424e+02    6.84931e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.78165e+02    5.24190e+02   -1.26790e+06   -1.45931e+04    1.85930e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24880e+06    2.00865e+05   -1.04794e+06   -1.04323e+06    3.09037e+02
+ Pressure (bar)   Constr. rmsd
+   -1.99940e+01    1.14205e-06
+
+           Step           Time
+        1225000    24500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.84659e+04    4.43607e+00    1.29209e+04    5.03272e+02    6.61917e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.18736e+02    4.31335e+02   -1.26676e+06   -1.48572e+04    2.13718e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24819e+06    2.01791e+05   -1.04640e+06   -1.04340e+06    3.10462e+02
+ Pressure (bar)   Constr. rmsd
+    1.64104e-01    1.11133e-06
+
+           Step           Time
+        1250000    25000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.88462e+04    4.52254e+00    1.24857e+04    5.45806e+02    6.92690e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.21293e+02    4.25752e+02   -1.26365e+06   -1.47657e+04    2.89568e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24496e+06    2.01176e+05   -1.04379e+06   -1.04351e+06    3.09515e+02
+ Pressure (bar)   Constr. rmsd
+    2.61771e+01    1.15585e-06
+
+           Step           Time
+        1275000    25500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.85391e+04    4.55635e+00    1.28632e+04    5.55250e+02    6.93470e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.75596e+02    4.16914e+02   -1.26672e+06   -1.45643e+04    2.73028e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24781e+06    2.01033e+05   -1.04677e+06   -1.04358e+06    3.09296e+02
+ Pressure (bar)   Constr. rmsd
+    2.42079e+01    1.17139e-06
+
+           Step           Time
+        1300000    26000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.86250e+04    6.68366e+00    1.26951e+04    5.66962e+02    6.26182e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.55724e+02    4.83655e+02   -1.26773e+06   -1.47268e+04    1.93638e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24897e+06    2.02150e+05   -1.04682e+06   -1.04363e+06    3.11014e+02
+ Pressure (bar)   Constr. rmsd
+    9.25246e+00    1.08622e-06
+
+           Step           Time
+        1325000    26500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.87539e+04    5.93342e+00    1.27116e+04    5.76969e+02    6.86492e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.12888e+02    4.69659e+02   -1.26757e+06   -1.47373e+04    2.51501e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24866e+06    1.99630e+05   -1.04903e+06   -1.04373e+06    3.07136e+02
+ Pressure (bar)   Constr. rmsd
+    1.11778e+01    1.13031e-06
+
+           Step           Time
+        1350000    27000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.82762e+04    7.71327e+00    1.30342e+04    4.93982e+02    6.99444e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.63164e+02    4.23756e+02   -1.26806e+06   -1.46447e+04    2.55853e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24928e+06    1.99972e+05   -1.04931e+06   -1.04377e+06    3.07663e+02
+ Pressure (bar)   Constr. rmsd
+   -2.68631e+01    1.10127e-06
+
+           Step           Time
+        1375000    27500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.83261e+04    6.18167e+00    1.25937e+04    5.05017e+02    6.59082e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.54132e+02    4.31543e+02   -1.26734e+06   -1.46804e+04    2.15020e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24902e+06    2.01019e+05   -1.04801e+06   -1.04374e+06    3.09274e+02
+ Pressure (bar)   Constr. rmsd
+    2.33196e+01    1.10639e-06
+
+           Step           Time
+        1400000    28000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.86383e+04    9.47383e+00    1.27005e+04    5.63180e+02    6.51406e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.99975e+02    5.22107e+02   -1.26684e+06   -1.48876e+04    2.04927e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24823e+06    2.01679e+05   -1.04655e+06   -1.04381e+06    3.10289e+02
+ Pressure (bar)   Constr. rmsd
+   -2.09149e+00    1.09163e-06
+
+           Step           Time
+        1425000    28500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.89102e+04    1.17247e+01    1.28261e+04    4.86811e+02    6.78856e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.60471e+02    4.46507e+02   -1.26512e+06   -1.46849e+04    1.87647e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24606e+06    2.02602e+05   -1.04346e+06   -1.04392e+06    3.11710e+02
+ Pressure (bar)   Constr. rmsd
+    4.81954e+00    1.09692e-06
+
+           Step           Time
+        1450000    29000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.86983e+04    1.32088e+01    1.27063e+04    5.33202e+02    6.56647e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.17540e+02    4.50078e+02   -1.26688e+06   -1.47446e+04    1.99776e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24813e+06    2.01014e+05   -1.04711e+06   -1.04393e+06    3.09266e+02
+ Pressure (bar)   Constr. rmsd
+    1.70951e+01    1.06838e-06
+
+           Step           Time
+        1475000    29500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.85329e+04    3.86683e+00    1.27476e+04    5.24927e+02    6.83371e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.87142e+02    4.70811e+02   -1.26806e+06   -1.46400e+04    2.29698e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24933e+06    2.00747e+05   -1.04858e+06   -1.04408e+06    3.08856e+02
+ Pressure (bar)   Constr. rmsd
+   -1.41292e-01    1.13826e-06
+
+           Step           Time
+        1500000    30000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.89482e+04    3.27654e+00    1.25288e+04    5.18573e+02    6.82164e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.36851e+02    4.55609e+02   -1.26845e+06   -1.46203e+04    2.05513e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24947e+06    2.02637e+05   -1.04684e+06   -1.04423e+06    3.11764e+02
+ Pressure (bar)   Constr. rmsd
+    3.65427e+01    1.07585e-06
+
+           Step           Time
+        1525000    30500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.85125e+04    6.10261e+00    1.28706e+04    5.15054e+02    7.04565e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.21432e+02    4.63678e+02   -1.26743e+06   -1.46862e+04    2.22558e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24860e+06    1.99853e+05   -1.04875e+06   -1.04447e+06    3.07481e+02
+ Pressure (bar)   Constr. rmsd
+   -4.85629e+01    1.08265e-06
+
+           Step           Time
+        1550000    31000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.85427e+04    5.84629e+00    1.24905e+04    5.17904e+02    6.86478e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.03413e+02    4.89534e+02   -1.26734e+06   -1.46397e+04    2.04796e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24882e+06    2.02371e+05   -1.04645e+06   -1.04448e+06    3.11353e+02
+ Pressure (bar)   Constr. rmsd
+    3.06203e+00    1.10103e-06
+
+           Step           Time
+        1575000    31500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.86020e+04    5.92993e+00    1.28384e+04    5.94096e+02    6.59187e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.64134e+02    4.36712e+02   -1.26734e+06   -1.49203e+04    2.04459e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24874e+06    2.00750e+05   -1.04799e+06   -1.04446e+06    3.08861e+02
+ Pressure (bar)   Constr. rmsd
+   -2.62639e+01    1.11132e-06
+
+           Step           Time
+        1600000    32000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.86020e+04    8.84034e+00    1.25157e+04    4.99309e+02    6.85122e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.60764e+02    4.42987e+02   -1.26574e+06   -1.48873e+04    1.82539e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24740e+06    2.00860e+05   -1.04654e+06   -1.04445e+06    3.09029e+02
+ Pressure (bar)   Constr. rmsd
+   -3.74613e+01    1.12324e-06
+
+           Step           Time
+        1625000    32500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.85755e+04    8.24119e+00    1.27868e+04    5.42822e+02    6.77431e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.98830e+02    4.51220e+02   -1.26663e+06   -1.49288e+04    2.77287e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24809e+06    2.00734e+05   -1.04736e+06   -1.04457e+06    3.08835e+02
+ Pressure (bar)   Constr. rmsd
+    1.30361e+01    1.11705e-06
+
+           Step           Time
+        1650000    33000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.85654e+04    9.94508e+00    1.27061e+04    5.50827e+02    7.11057e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.22131e+02    4.28940e+02   -1.26582e+06   -1.47533e+04    1.62055e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24717e+06    2.01317e+05   -1.04585e+06   -1.04461e+06    3.09732e+02
+ Pressure (bar)   Constr. rmsd
+   -9.69673e+00    1.14989e-06
+
+           Step           Time
+        1675000    33500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.87080e+04    8.25351e+00    1.27322e+04    5.21216e+02    7.18438e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.11893e+02    4.51109e+02   -1.26667e+06   -1.47985e+04    2.60265e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24789e+06    2.01770e+05   -1.04612e+06   -1.04475e+06    3.10430e+02
+ Pressure (bar)   Constr. rmsd
+    2.56447e+01    1.15177e-06
+
+           Step           Time
+        1700000    34000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.83902e+04    8.34310e+00    1.28275e+04    5.36663e+02    6.67775e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.57727e+02    4.43883e+02   -1.26845e+06   -1.45199e+04    1.89542e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24972e+06    2.00992e+05   -1.04873e+06   -1.04482e+06    3.09233e+02
+ Pressure (bar)   Constr. rmsd
+   -8.35757e+00    1.12044e-06
+
+           Step           Time
+        1725000    34500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.83602e+04    7.73562e+00    1.26078e+04    4.84469e+02    7.05715e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.65117e+02    4.39976e+02   -1.26929e+06   -1.48976e+04    2.13256e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.25120e+06    2.01625e+05   -1.04957e+06   -1.04481e+06    3.10206e+02
+ Pressure (bar)   Constr. rmsd
+    8.24784e+00    1.12122e-06
+
+           Step           Time
+        1750000    35000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.87979e+04    8.79971e+00    1.25402e+04    5.19451e+02    6.48114e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.10014e+02    4.69085e+02   -1.26657e+06   -1.46545e+04    1.87982e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24781e+06    2.01467e+05   -1.04635e+06   -1.04494e+06    3.09963e+02
+ Pressure (bar)   Constr. rmsd
+   -2.86482e+01    1.10360e-06
+
+           Step           Time
+        1775000    35500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.84680e+04    4.89620e+00    1.24780e+04    5.34876e+02    6.99637e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.84836e+02    4.60641e+02   -1.26574e+06   -1.48044e+04    1.79642e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24749e+06    2.02128e+05   -1.04537e+06   -1.04492e+06    3.10980e+02
+ Pressure (bar)   Constr. rmsd
+   -2.70653e+01    1.20786e-06
+
+           Step           Time
+        1800000    36000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.86541e+04    6.85521e+00    1.27771e+04    5.36895e+02    7.33970e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.22947e+02    4.65113e+02   -1.27000e+06   -1.50746e+04    1.88782e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.25146e+06    2.02721e+05   -1.04874e+06   -1.04498e+06    3.11893e+02
+ Pressure (bar)   Constr. rmsd
+    3.86664e+01    1.10350e-06
+
+           Step           Time
+        1825000    36500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.85705e+04    1.00022e+01    1.25941e+04    4.70078e+02    6.81509e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.71308e+02    5.07160e+02   -1.26748e+06   -1.45490e+04    1.98889e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24870e+06    2.00346e+05   -1.04835e+06   -1.04500e+06    3.08239e+02
+ Pressure (bar)   Constr. rmsd
+   -1.67637e+00    1.10558e-06
+
+           Step           Time
+        1850000    37000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.83084e+04    5.94060e+00    1.22731e+04    5.39761e+02    6.74686e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.08621e+02    4.67437e+02   -1.26763e+06   -1.49870e+04    2.09814e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24991e+06    2.02751e+05   -1.04716e+06   -1.04516e+06    3.11939e+02
+ Pressure (bar)   Constr. rmsd
+    1.84566e+01    1.06344e-06
+
+           Step           Time
+        1875000    37500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.81040e+04    5.30992e+00    1.27248e+04    5.15991e+02    6.70052e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.99762e+02    4.61002e+02   -1.26710e+06   -1.49715e+04    2.08691e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24917e+06    2.02552e+05   -1.04662e+06   -1.04515e+06    3.11632e+02
+ Pressure (bar)   Constr. rmsd
+    2.36617e+01    1.10096e-06
+
+           Step           Time
+        1900000    38000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.83064e+04    4.07818e+00    1.29933e+04    5.07129e+02    6.70395e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.95164e+02    4.10943e+02   -1.26786e+06   -1.46142e+04    2.59534e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24916e+06    2.01523e+05   -1.04764e+06   -1.04530e+06    3.10049e+02
+ Pressure (bar)   Constr. rmsd
+   -4.90433e+00    1.19087e-06
+
+           Step           Time
+        1925000    38500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.87459e+04    3.90614e+00    1.28403e+04    5.49515e+02    6.45743e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.78683e+02    4.46026e+02   -1.26698e+06   -1.45944e+04    2.01411e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24795e+06    2.02159e+05   -1.04579e+06   -1.04549e+06    3.11028e+02
+ Pressure (bar)   Constr. rmsd
+   -1.46206e+01    1.05970e-06
+
+           Step           Time
+        1950000    39000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.87920e+04    8.10580e+00    1.27074e+04    5.74986e+02    6.74877e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.87793e+02    5.51526e+02   -1.26653e+06   -1.46768e+04    2.86999e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24748e+06    2.00161e+05   -1.04732e+06   -1.04565e+06    3.07954e+02
+ Pressure (bar)   Constr. rmsd
+   -2.04315e+01    1.09969e-06
+
+           Step           Time
+        1975000    39500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.83316e+04    7.78467e+00    1.25950e+04    5.39393e+02    6.56191e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.57163e+02    4.52234e+02   -1.26606e+06   -1.47911e+04    2.54317e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24779e+06    2.02305e+05   -1.04548e+06   -1.04551e+06    3.11253e+02
+ Pressure (bar)   Constr. rmsd
+    7.99977e+00    1.07422e-06
+
+           Step           Time
+        2000000    40000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.88092e+04    6.88976e+00    1.28836e+04    4.78532e+02    6.82049e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.50658e+02    4.29137e+02   -1.26669e+06   -1.48272e+04    2.36666e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24775e+06    2.02772e+05   -1.04498e+06   -1.04553e+06    3.11971e+02
+ Pressure (bar)   Constr. rmsd
+   -8.28538e+00    1.11933e-06
+
+           Step           Time
+        2025000    40500.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.85388e+04    5.75399e+00    1.26000e+04    5.17120e+02    7.09143e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    3.86299e+02    5.04076e+02   -1.26865e+06   -1.47807e+04    2.23333e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.25015e+06    2.02245e+05   -1.04791e+06   -1.04562e+06    3.11161e+02
+ Pressure (bar)   Constr. rmsd
+    8.30966e+00    1.10818e-06
+
+           Step           Time
+        2050000    41000.00000
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.81841e+04    5.39504e+00    1.27699e+04    5.18586e+02    6.91758e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.43785e+02    4.60690e+02   -1.26823e+06   -1.48896e+04    1.85280e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.25003e+06    2.01346e+05   -1.04868e+06   -1.04571e+06    3.09778e+02
+ Pressure (bar)   Constr. rmsd
+    1.46067e+01    1.07038e-06
+
+
+
+Received the TERM signal, stopping within 40 steps
+
+           Step           Time
+        2058060    41161.20000
+
+Writing checkpoint, step 2058060 at Tue Apr  8 22:59:02 2025
+
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.84081e+04    6.22704e+00    1.28413e+04    5.62133e+02    6.80042e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.24408e+02    4.60258e+02   -1.26658e+06   -1.47111e+04    1.71079e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24789e+06    2.01632e+05   -1.04625e+06   -1.04579e+06    3.10217e+02
+ Pressure (bar)   Constr. rmsd
+   -2.57668e+01    1.09161e-06
+
+
+Energy conservation over simulation part #1 of length 41161.2 ps, time 0 to 41161.2 ps
+  Conserved energy drift: -1.68e-06 kJ/mol/ps per atom
+
+
+	<======  ###############  ==>
+	<====  A V E R A G E S  ====>
+	<==  ###############  ======>
+
+	Statistics over 2058061 steps using 20581 frames
+
+   Energies (kJ/mol)
+           Bond  Harmonic Pot.          Angle       G96Angle  Restr. Angles
+    1.85019e+04    6.22846e+00    1.27250e+04    5.29102e+02    6.80475e+02
+    Proper Dih.  Improper Dih.        LJ (SR)   Coulomb (SR) Position Rest.
+    4.08912e+02    4.59137e+02   -1.26708e+06   -1.47607e+04    2.04718e+01
+      Potential    Kinetic En.   Total Energy  Conserved En.    Temperature
+   -1.24851e+06    2.01503e+05   -1.04701e+06   -1.04353e+06    3.10019e+02
+ Pressure (bar)   Constr. rmsd
+    1.05680e+00    0.00000e+00
+
+          Box-X          Box-Y          Box-Z
+    1.80685e+01    1.80685e+01    1.83549e+01
+
+   Total Virial (kJ/mol)
+    6.71462e+04   -6.85392e+00   -8.99927e+00
+   -6.85215e+00    6.71207e+04   -4.25685e-01
+   -8.99984e+00   -4.26941e-01    6.66723e+04
+
+   Pressure (bar)
+    9.28971e-01    4.61089e-02    6.61624e-02
+    4.60991e-02    1.04692e+00   -9.77928e-03
+    6.61656e-02   -9.77233e-03    1.19449e+00
+
+      T-Solvent         T-Rest
+    3.09999e+02    3.10073e+02
+
+
+	M E G A - F L O P S   A C C O U N T I N G
+
+ NB=Group-cutoff nonbonded kernels    NxN=N-by-N cluster Verlet kernels
+ RF=Reaction-Field  VdW=Van der Waals  QSTab=quadratic-spline table
+ W3=SPC/TIP3p  W4=TIP4p (single or pairs)
+ V&F=Potential and force  V=Potential only  F=Force only
+
+ Computing:                               M-Number         M-Flops  % Flops
+-----------------------------------------------------------------------------
+ Pair Search distance check          270670.128160     2436031.153     0.2
+ NxN RF Elec. + LJ [F]             33620848.913792  1277592258.724    97.8
+ NxN RF Elec. + LJ [V&F]             339628.209216    18339923.298     1.4
+ Shift-X                               5613.104488       33678.627     0.0
+ Bonds                                29899.510208     1764071.102     0.1
+ Angles                               22082.994530     3709943.081     0.3
+ Propers                                465.121786      106512.889     0.0
+ Impropers                              915.837145      190494.126     0.0
+ Pos. Restr.                            327.231699       16361.585     0.0
+ Virial                                5617.735168      101119.233     0.0
+ Stop-CM                               1122.686354       11226.864     0.0
+ Calc-Ekin                            11226.208976      303107.642     0.0
+ Lincs                                 3101.500941      186090.056     0.0
+ Lincs-Mat                           152560.094064      610240.376     0.0
+ Constraint-V                          6202.998868       55826.990     0.0
+ Constraint-Vir                         155.076328        3721.832     0.0
+ Virtual Site 3out                     4116.638325      358147.534     0.0
+ Virtual Site N                         140.462725        2106.941     0.0
+-----------------------------------------------------------------------------
+ Total                                              1305820862.054   100.0
+-----------------------------------------------------------------------------
+
+
+      R E A L   C Y C L E   A N D   T I M E   A C C O U N T I N G
+
+On 1 MPI rank, each using 8 OpenMP threads
+
+ Activity:              Num   Num      Call    Wall time         Giga-Cycles
+                        Ranks Threads  Count      (s)         total sum    %
+--------------------------------------------------------------------------------
+ Vsite constr.             1    8    2058061      88.103        360.884   4.9
+ Neighbor search           1    8     102904     294.917       1208.029  16.6
+ Launch PP GPU ops.        1    8    2058061      75.317        308.509   4.2
+ Force                     1    8    2058061     470.744       1928.247  26.4
+ Wait GPU NB local         1    8    2058061      14.318         58.647   0.8
+ NB X/F buffer ops.        1    8    4013218     183.658        752.292  10.3
+ Vsite spread              1    8    2160965      91.788        375.979   5.2
+ Write traj.               1    8         85       0.395          1.616   0.0
+ Update                    1    8    2058061      74.008        303.148   4.2
+ Constraints               1    8    2058063     418.345       1713.611  23.5
+ Rest                                             70.210        287.592   3.9
+--------------------------------------------------------------------------------
+ Total                                          1781.801       7298.556 100.0
+--------------------------------------------------------------------------------
+
+NOTE: 17 % of the run time was spent in pair search,
+      you might want to increase nstlist (this has no effect on accuracy)
+
+               Core t (s)   Wall t (s)        (%)
+       Time:    14254.403     1781.801      800.0
+                 (ns/day)    (hour/ns)
+Performance:     1995.919        0.012
+Finished mdrun on rank 0 Tue Apr  8 22:59:02 2025
+
