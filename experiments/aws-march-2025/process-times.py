@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import copy
 import random
 import argparse
 import json
@@ -115,11 +116,11 @@ def main():
 
     # Now let's look at times for jobs
     best_df = job_timings(indirs, outdir, workflow_times, times_df)
-    
+
     # We can't calculate cost for on prem
-    #indirs.pop()
-    #workflow_times = workflow_times[workflow_times.experiment != 'on-premises-gpu']
-    #best_df = best_df[best_df.experiment != 'on-premises-gpu']
+    # indirs.pop()
+    # workflow_times = workflow_times[workflow_times.experiment != 'on-premises-gpu']
+    # best_df = best_df[best_df.experiment != 'on-premises-gpu']
     calculate_costs(indirs, workflow_times, outdir, best_df)
 
 
@@ -183,8 +184,8 @@ def workflow_manager(indirs, outdir):
         xlabel=None,
         ylabel="Running Time (seconds)",
         rotation=360,
-        width=8,
-        height=5,
+        width=9,
+        height=4,
     )
 
     # The only meaningful comparison is the workflow running time to get 6 samples
@@ -300,6 +301,7 @@ def job_timings(indirs, outdir, workflow_times, pull_df):
         width=12,
         height=12,
     )
+
     # Compare the actual workflow time with the theoretical minimum
     # Note that we won't have this for mummi, so we instead use the mean time of a single mummi run and multiply the runs needed
     # First find the mlrunner saves we have (from flux) that reflect mummi runs on the corresponding instance types
@@ -335,6 +337,9 @@ def job_timings(indirs, outdir, workflow_times, pull_df):
         ]
         idx += 1
 
+    # Make a plot for job times
+    plot_job_times(mlrunner_times, createsim_times, outdir)
+
     # Calculate the hypothetical bests for each iteration and experiment - if we just ran 10 completions of each job
     # We also have to include container pulling, to be fair
     best_possible_times = {}
@@ -367,7 +372,7 @@ def job_timings(indirs, outdir, workflow_times, pull_df):
                 ]
                 .duration[0:10]
                 .tolist()
-            ) 
+            )
             # The best possible time is sum of 10 samples, divided by (distributed across) six nodes that are running
             best_possible_time = (
                 sum(createsim_best) + sum(cganalysis_best) + sum(mlrunner_best)
@@ -479,6 +484,129 @@ def job_timings(indirs, outdir, workflow_times, pull_df):
     return best_df
 
 
+def plot_job_times(mlrunner_times, createsim_times, outdir):
+    """
+    We previously used the wrapper to jobs (e.g., running kubernetes pod)
+    but for on premises we just have the recorded job times.
+    """
+    createsim_times["env"] = [
+        x.rsplit("-", 1)[0] for x in createsim_times.environment.values
+    ]
+    createsim_times["label"] = [
+        re.sub("-(gpu|cpu)", "", x).replace("-", " ")
+        for x in createsim_times.experiment.values
+    ]
+    img_outdir = os.path.join(outdir, "img")
+    me.make_plot(
+        createsim_times,
+        title="'Createsim' Times by Experiment",
+        ydimension="duration",
+        xdimension="env",
+        outdir=img_outdir,
+        ext="png",
+        plotname="createsim_times_by_experiment",
+        hue="label",
+        palette=me.colors,
+        plot_type="box",
+        xlabel=None,
+        ylabel="Duration (Seconds)",
+        rotation=360,
+        remove_x=True,
+        order=["cpu", "gpu"],
+        height=4,
+        width=6,
+        remove_legend=True,
+        ymin=0,
+        ymax=1200,
+        remove_y=False,
+    )
+
+    mlrunner_times["env"] = [
+        x.rsplit("-", 1)[0] for x in mlrunner_times.environment.values
+    ]
+    mlrunner_times["label"] = [
+        re.sub("-(gpu|cpu)", "", x).replace("-", " ")
+        for x in mlrunner_times.experiment.values
+    ]
+    mltimes = copy.deepcopy(mlrunner_times)
+    mltimes = mltimes[
+        mltimes.label.isin(
+            ["state machine", "flux state machine", "state machine autoscale"]
+        )
+    ]
+    me.make_plot(
+        mltimes,
+        title="'MLRunner' Times by Experiment",
+        ydimension="duration",
+        xdimension="env",
+        outdir=img_outdir,
+        ext="png",
+        plotname="mlrunner_times_by_experiment",
+        hue="label",
+        palette=me.colors,
+        plot_type="box",
+        xlabel=None,
+        ylabel="Duration (Seconds)",
+        rotation=360,
+        remove_x=True,
+        order=["cpu", "gpu"],
+        height=4,
+        width=6,
+        remove_legend=True,
+        ymin=0,
+        ymax=1200,
+        remove_y=False,
+    )
+
+    # Create one plot for mlrunner and createsim for the paper
+    fig, axes = plt.subplots(1, 2, sharey=True, figsize=(10, 4))
+    sns.set_style("whitegrid")
+    sns.boxplot(
+        mltimes,
+        ax=axes[0],
+        x="env",
+        y="duration",
+        hue="label",
+        palette=me.colors,
+        linewidth=1.8,
+        whis=[5, 95],
+        dodge=True,
+    )
+    axes[0].set_title("'MLRunner' Times by Experiment", fontsize=14)
+    axes[0].set_ylabel("Duration (seconds)", fontsize=14)
+    axes[0].set_xlabel("", fontsize=10)
+    axes[0].set_xticklabels(axes[0].get_xmajorticklabels(), fontsize=14)
+
+    sns.boxplot(
+        createsim_times,
+        ax=axes[1],
+        x="env",
+        y="duration",
+        hue="label",
+        palette=me.colors,
+        linewidth=1.8,
+        whis=[5, 95],
+        dodge=True,
+    )
+    axes[1].set_title("'Createsim' Times by Experiment", fontsize=14)
+    axes[1].set_xlabel("", fontsize=10)
+    axes[1].set_xticklabels(axes[1].get_xmajorticklabels(), fontsize=14)
+    plt.ylim(0, 1200)
+    plt.xticks(rotation=360)
+    axes[1].set_yticklabels(axes[1].get_yticks(), fontsize=14)
+    axes[0].set_yticklabels(axes[0].get_yticks(), fontsize=14)
+
+    # Remove legend title, don't need it
+    for ax in axes:
+        handles, labels = ax.get_legend_handles_labels()
+        ax.legend(handles=handles, labels=labels)
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(img_outdir, "job_times_combined.svg"))
+    plt.savefig(os.path.join(img_outdir, "job_times_combined.png"))
+    plt.clf()
+
+
 def count_outputs(indirs, outdir, completions=6):
     """
     Count number of outputs for analyses.
@@ -490,7 +618,7 @@ def count_outputs(indirs, outdir, completions=6):
         os.makedirs(img_outdir)
 
     # Remove hyphen
-    excess['experiment'] = [x.replace('-', ' ') for x in excess.experiment.values]
+    excess["experiment"] = [x.replace("-", " ") for x in excess.experiment.values]
 
     # Plot each
     me.make_plot(
@@ -595,10 +723,12 @@ def calculate_costs(indirs, workflow_times, outdir, best_df):
     for x in times.environment:
         if "on-premises" in x:
             cost_per_hour.append(0.6952)
+        # hpc7g
         elif "cpu" in x:
             cost_per_hour.append(1.683)
+        # px.2xlarge
         else:
-            cost_per_hour.append(3.06)        
+            cost_per_hour.append(3.06)
     times["cost_per_hour"] = cost_per_hour
 
     # Read in cluster nodes events (we only need this for autoscaling)
@@ -670,7 +800,7 @@ def calculate_costs(indirs, workflow_times, outdir, best_df):
                     total_times[experiment][iteration].append(
                         workflow_end_time - first_event
                     )
-   
+
     # Create entries for each iteration in static experiments
     for experiment in times.experiment.unique():
         if "autoscale" in experiment:
@@ -735,7 +865,7 @@ def calculate_costs(indirs, workflow_times, outdir, best_df):
         ext="png",
         plotname="workflow_total_cost_onpremises",
         hue="environment",
-        hue_order=['gpu', 'cpu'],
+        hue_order=["gpu", "cpu"],
         plot_type="bar",
         order=[
             "state machine \nautoscale",
@@ -762,7 +892,7 @@ def calculate_costs(indirs, workflow_times, outdir, best_df):
         ext="png",
         plotname="workflow_total_cost",
         hue="environment",
-        hue_order=['gpu', 'cpu'],
+        hue_order=["gpu", "cpu"],
         plot_type="bar",
         order=[
             "state machine \nautoscale",
