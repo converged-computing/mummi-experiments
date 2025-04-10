@@ -27,8 +27,11 @@ for environ in [
     "state machine",
     "state machine autoscale",
     "state machine flux",
+    "on premises"
 ]:
     colors[environ] = color_palette.pop(0)
+
+colors['flux state machine'] = colors['state machine flux']
 
 # Different plots use cpu/gpu
 for environ in ["cpu", "cpu autoscale", "gpu", "gpu autoscale"]:
