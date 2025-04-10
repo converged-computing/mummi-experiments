@@ -101,11 +101,13 @@ def main():
     mummi_indir = os.path.join(indir, "mummi-operator", "results")
     sm_indir = os.path.join(indir, "state-machine-operator-autoscale", "results")
     flux_sm_indir = os.path.join(indir, "state-machine-flux", "results", "processed")
+    on_prem_indir = os.path.join(indir, "on-prem", "results")
     indirs = [mummi_indir, sm_indir, flux_sm_indir]
     times_df = parse_pulling_times(indirs, outdir)
     me.plot_pulling_times(times_df, outdir)
 
     # Now let's count outputs (total and excess)
+    indirs.append(on_prem_indir)
     count_outputs(indirs, outdir, completions=args.completions)
 
     # Now look at times for the workflow manager
@@ -113,6 +115,11 @@ def main():
 
     # Now let's look at times for jobs
     best_df = job_timings(indirs, outdir, workflow_times, times_df)
+    
+    # We can't calculate cost for on prem
+    #indirs.pop()
+    #workflow_times = workflow_times[workflow_times.experiment != 'on-premises-gpu']
+    #best_df = best_df[best_df.experiment != 'on-premises-gpu']
     calculate_costs(indirs, workflow_times, outdir, best_df)
 
 
@@ -195,10 +202,12 @@ def combine_data_frames(indirs, filename):
     mummi = pandas.read_csv(os.path.join(indirs[0], filename), index_col=0)
     sm = pandas.read_csv(os.path.join(indirs[1], filename), index_col=0)
     sm_flux = pandas.read_csv(os.path.join(indirs[2], filename), index_col=0)
+    on_prem = pandas.read_csv(os.path.join(indirs[3], filename), index_col=0)
     mummi["operator"] = "mummi"
     sm["operator"] = "state-machine"
     sm_flux["operator"] = "flux-state-machine"
-    combined = pandas.concat([mummi, sm, sm_flux])
+    on_prem["operator"] = "on-premises"
+    combined = pandas.concat([mummi, sm, sm_flux, on_prem])
     # Save initial name for later backup
     combined["environment"] = combined["experiment"]
     combined["experiment"] = [
@@ -358,7 +367,7 @@ def job_timings(indirs, outdir, workflow_times, pull_df):
                 ]
                 .duration[0:10]
                 .tolist()
-            )
+            ) 
             # The best possible time is sum of 10 samples, divided by (distributed across) six nodes that are running
             best_possible_time = (
                 sum(createsim_best) + sum(cganalysis_best) + sum(mlrunner_best)
@@ -430,12 +439,13 @@ def job_timings(indirs, outdir, workflow_times, pull_df):
     best_df["labels"] = derive_pretty_labels(best_df.experiment.values)
 
     # Finally! Make a plot!
-    plt.figure(figsize=(8, 4))
+    plt.figure(figsize=(9, 4))
     order = [
         "state machine \nautoscale",
         "state machine",
         "flux\n state machine",
         "mummi",
+        "on premises",
     ]
     ax = sns.barplot(
         data=best_df, x="labels", y="actual_duration", hue="environment", order=order
@@ -475,7 +485,6 @@ def count_outputs(indirs, outdir, completions=6):
     """
     completed = combine_data_frames(indirs, "jobs-completed.csv")
     excess = combine_data_frames(indirs, "jobs-excess-completed.csv")
-    
     img_outdir = os.path.join(outdir, "img")
     if not os.path.exists(img_outdir):
         os.makedirs(img_outdir)
@@ -565,7 +574,11 @@ def calculate_costs(indirs, workflow_times, outdir, best_df):
         "state-machine-flux": read_json(
             os.path.join(indirs[2], "workflow-endpoint-times.json")
         ),
+        "on-premises": read_json(
+            os.path.join(indirs[3], "workflow-endpoint-times.json")
+        ),
     }
+
     times = workflow_times[
         workflow_times["global"].isin(["workflow_complete", "wfmanager_run_workflow"])
     ]
@@ -577,7 +590,15 @@ def calculate_costs(indirs, workflow_times, outdir, best_df):
     times.loc[:, "operator"] = operators
 
     # Add in hpc6a and p3dn costs
-    cost_per_hour = [2.88 if "cpu" in x else 3.06 for x in times.environment]
+    cost_per_hour = []
+    # Lassen cost is 0.0158 per core hour. So for 44 cores per node, 0.6952/hour.
+    for x in times.environment:
+        if "on-premises" in x:
+            cost_per_hour.append(0.6952)
+        elif "cpu" in x:
+            cost_per_hour.append(1.683)
+        else:
+            cost_per_hour.append(3.06)        
     times["cost_per_hour"] = cost_per_hour
 
     # Read in cluster nodes events (we only need this for autoscaling)
@@ -649,7 +670,7 @@ def calculate_costs(indirs, workflow_times, outdir, best_df):
                     total_times[experiment][iteration].append(
                         workflow_end_time - first_event
                     )
-
+   
     # Create entries for each iteration in static experiments
     for experiment in times.experiment.unique():
         if "autoscale" in experiment:
@@ -676,7 +697,9 @@ def calculate_costs(indirs, workflow_times, outdir, best_df):
             total_costs[experiment] = {}
         for iteration, uptimes in iterations.items():
             total_costs[experiment][iteration] = {}
-            if "cpu" in experiment:
+            if "on-premises" in experiment:
+                total_costs[experiment][iteration] = (sum(uptimes) / 60 / 60) * 0.6952
+            elif "cpu" in experiment:
                 total_costs[experiment][iteration] = (sum(uptimes) / 60 / 60) * 1.683
             else:
                 total_costs[experiment][iteration] = (sum(uptimes) / 60 / 60) * 3.06
@@ -710,8 +733,36 @@ def calculate_costs(indirs, workflow_times, outdir, best_df):
         xdimension="labels",
         outdir=os.path.join(outdir, "img"),
         ext="png",
+        plotname="workflow_total_cost_onpremises",
+        hue="environment",
+        hue_order=['gpu', 'cpu'],
+        plot_type="bar",
+        order=[
+            "state machine \nautoscale",
+            "state machine",
+            "flux\n state machine",
+            "mummi",
+            "on premises",
+        ],
+        xlabel=None,
+        ylabel="Cost ($)",
+        rotation=360,
+        width=8,
+        height=4,
+    )
+    print(cost_df.groupby(["environment", "labels"]).cost.mean())
+
+    # And without on premises
+    me.make_plot(
+        cost_df,
+        title="Total Cost to Run Workflow",
+        ydimension="cost",
+        xdimension="labels",
+        outdir=os.path.join(outdir, "img"),
+        ext="png",
         plotname="workflow_total_cost",
         hue="environment",
+        hue_order=['gpu', 'cpu'],
         plot_type="bar",
         order=[
             "state machine \nautoscale",
@@ -725,7 +776,6 @@ def calculate_costs(indirs, workflow_times, outdir, best_df):
         width=8,
         height=4,
     )
-    print(cost_df.groupby(["environment", "labels"]).cost.mean())
 
 
 if __name__ == "__main__":

@@ -65,6 +65,10 @@ mummi-gpu                    wfmanager_add_cgframes_to_ml             0.000059
                              wfmanager_run_workflow                8383.202545
                              wfmanager_setup                          0.049078
                              wfmanager_update_jobs                    3.020139
+on-premises-gpu              wfmanager_add_new_patches_mlserver      10.289648
+                             wfmanager_init_mlserver                 18.419045
+                             wfmanager_run_workflow                7921.181368
+                             wfmanager_update_jobs                    1.217027
 state-machine-cpu            cganalysis_success                    1788.600051
                              createsim_failure                       64.813726
                              createsim_success                      511.899269
@@ -80,11 +84,11 @@ state-machine-gpu            cganalysis_success                    1887.482003
                              createsim_success                      886.281643
                              mlrunner_success                       264.461762
                              workflow_complete                     5985.524573
-state-machine-gpu-autoscale  cganalysis_success                    1867.880881
+state-machine-gpu-autoscale  cganalysis_success                    1886.142956
                              createsim_failure                      204.304194
-                             createsim_success                      895.485270
-                             mlrunner_success                       264.951878
-                             workflow_complete                     5975.769484
+                             createsim_success                      899.218477
+                             mlrunner_success                       264.658255
+                             workflow_complete                     5985.909382
 ```
 
 ### Pull Times By Experiment
@@ -134,9 +138,9 @@ state-machine-flux-cpu-static  docker://633731392008.dkr.ecr.us-east-1.amazonaws
 state-machine-flux-gpu-static  docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-gpu               884.507000
                                docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-gpu              1281.552667
                                docker://633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlrunner-gpu                1189.660667
-state-machine-gpu-autoscale    633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-gpu                        153.199131
-                               633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-gpu                        142.300729
-                               633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlrunner-gpu                          349.490133
+state-machine-gpu-autoscale    633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-gpu                        160.406983
+                               633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-gpu                        145.960248
+                               633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlrunner-gpu                          348.996667
 state-machine-gpu-static       633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:cganalysis-gpu                        160.938367
                                633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:createsims-gpu                        138.825408
                                633731392008.dkr.ecr.us-east-1.amazonaws.com/mini-mummi:mlrunner-gpu                          348.829689
@@ -158,7 +162,6 @@ This was something I wanted to do (that I think is really interesting). If we ad
 
 ![results/actual-time-vs-theoretical.png](results/actual-time-vs-theoretical.png)
 
-Theoretical Best Duration
 
 ```
 Theoretical Best Duration
@@ -167,21 +170,19 @@ flux-state-machine  cpu            3772.726359
                     gpu            4164.779461
 mummi               cpu            3864.468212
                     gpu            4685.873165
+on-premises         gpu            4147.985994
 state-machine       cpu            4411.214031
-                    gpu            5322.892142
-```
+                    gpu            5341.307846
 
-Actual Durations:
-
-```
 Actual Duration
 operator            environment
 flux-state-machine  cpu            5453.411546
                     gpu            8396.296784
 mummi               cpu            8204.480468
                     gpu            8383.202545
+on-premises         gpu            7921.181368
 state-machine       cpu            5091.090084
-                    gpu            5980.647029
+                    gpu            5985.716978
 ```
 
 ### Uptime per node
@@ -234,12 +235,12 @@ We can generally see that with autoscaling, 2/6 nodes clean up earlier. This wil
             3528.4451377391815
         ],
         "1": [
-            5733.13568687439,
-            5981.89596581459,
-            3587.1356868743896,
-            5981.89596581459,
-            3572.1356868743896,
-            5981.89596581459
+            3590.0915966033936,
+            6012.31565952301,
+            6012.31565952301,
+            6012.31565952301,
+            3595.0915966033936,
+            6012.31565952301
         ]
     },
     "mummi-gpu": {
@@ -397,8 +398,35 @@ We can generally see that with autoscaling, 2/6 nodes clean up earlier. This wil
             8517.384448869705,
             8517.384448869705
         ]
+    },
+    "on-premises-gpu": {
+        "0": [
+            7966.996721029282,
+            7966.996721029282,
+            7966.996721029282,
+            7966.996721029282,
+            7966.996721029282,
+            7966.996721029282
+        ],
+        "1": [
+            7951.7755382061,
+            7951.7755382061,
+            7951.7755382061,
+            7951.7755382061,
+            7951.7755382061,
+            7951.7755382061
+        ],
+        "2": [
+            7844.771843671799,
+            7844.771843671799,
+            7844.771843671799,
+            7844.771843671799,
+            7844.771843671799,
+            7844.771843671799
+        ]
     }
 }
+
 ```
 
 ### Costs
@@ -417,7 +445,7 @@ Here are the final costs to get to 10 cganalysis completions. Note that we have 
     "state-machine-autoscale-gpu": {
         "2": 26.641778948354723,
         "0": 26.261729870343206,
-        "1": 26.212380714356897
+        "1": 26.549278956604002
     },
     "mummi-gpu": {
         "1": 42.7072835791111,
@@ -448,6 +476,11 @@ Here are the final costs to get to 10 cganalysis completions. Note that we have 
         "1": 42.39076024633083,
         "3": 42.633919859620285,
         "2": 43.4386606892355
+    },
+    "on-premises-gpu": {
+        "0": 9.231093534099262,
+        "1": 9.2134572569348,
+        "2": 9.089475642867725
     }
 }
 ```
