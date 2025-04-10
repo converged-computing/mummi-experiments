@@ -27,3 +27,9 @@ workflow after 10, if some CGAnalsysis are already running we do not kill them.
 Also, some structures are just valid createsims (CGAnalysis never ran in these).
 
 To find the valid CGanalysis, look for the presence of the file `cg_success`.
+They are also included in the list here.
+
+```console
+[nMaxCGAnalysis=10] We have computed ['structure_iter00_000000000004', 'structure_iter00_000000000001', 'structure_iter00_000000000002', 'structure_iter00_000000000007', 'structure_iter00_000000000003', 'structure_iter00_000000000008', 'structure_iter00_000000000014', 'structure_iter00_000000000010', 'structure_iter00_000000000012', 'structure_iter00_000000000005'] CGAnalysis
+We have computed 10 CGAnalysis, we stop the workflow
+```

@@ -86,6 +86,8 @@ def parse_createsim_times(df, samples, experiment, idx=0, iteration=0):
 def get_experiment_iteration(indir):
     """
     The experiment iteration is the numerical suffix.
+    
+    This function isn't used for on prem mummi.
     """
     dirname = os.path.basename(indir)
     try:
@@ -1213,6 +1215,7 @@ def make_plot(
     remove_y=False,
     remove_x=False,
     round_y=False,
+    hue_order=None,
     xmin=None,
     xmax=None,
     ymin=None,
@@ -1247,6 +1250,7 @@ def make_plot(
             x=xdimension,
             y=ydimension,
             hue=hue,
+            hue_order=hue_order,
             data=df,
             linewidth=0.8,
             palette=palette,
