@@ -12,6 +12,8 @@ import matplotlib.ticker as ticker
 timestamp_format = "%Y-%m-%dT%H:%M:%SZ"
 node_timestamp_format = "%Y-%m-%dT%H:%M:%S.%fZ"
 
+sns.set_theme(style="whitegrid", palette="tab10")
+
 
 def read_file(filename):
     with open(filename, "r") as fd:
@@ -27,11 +29,11 @@ for environ in [
     "state machine",
     "state machine autoscale",
     "state machine flux",
-    "on premises"
+    "on premises",
 ]:
     colors[environ] = color_palette.pop(0)
 
-colors['flux state machine'] = colors['state machine flux']
+colors["flux state machine"] = colors["state machine flux"]
 
 # Different plots use cpu/gpu
 for environ in ["cpu", "cpu autoscale", "gpu", "gpu autoscale"]:
@@ -89,7 +91,7 @@ def parse_createsim_times(df, samples, experiment, idx=0, iteration=0):
 def get_experiment_iteration(indir):
     """
     The experiment iteration is the numerical suffix.
-    
+
     This function isn't used for on prem mummi.
     """
     dirname = os.path.basename(indir)
@@ -1237,7 +1239,7 @@ def make_plot(
 
     ext = ext.strip(".")
     plt.figure(figsize=(width, height))
-    sns.set_style("dark")
+    sns.set_style("whitegrid")
     if plot_type == "violin":
         ax = plotfunc(
             x=xdimension,
@@ -1297,7 +1299,7 @@ def make_plot(
         plt.ylim(ymin, ymax)
     plt.title(title)
     if round_y:
-        ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.2f'))
+        ax.yaxis.set_major_formatter(ticker.FormatStrFormatter("%.2f"))
     ax.set_xlabel(xlabel, fontsize=10)
     ax.set_ylabel(ylabel, fontsize=10)
     ax.set_xticklabels(ax.get_xmajorticklabels(), fontsize=14)
