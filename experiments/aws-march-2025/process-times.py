@@ -18,6 +18,8 @@ import matplotlib.pylab as plt
 import pandas
 import seaborn as sns
 
+sns.set_theme(style="whitegrid", palette="tab10")
+
 timestamp_format = "%Y-%m-%dT%H:%M:%SZ"
 node_timestamp_format = "%Y-%m-%dT%H:%M:%S.%fZ"
 
@@ -383,6 +385,15 @@ def job_timings(indirs, outdir, workflow_times, pull_df):
             experiment_name = experiment
             if "autoscale" not in experiment:
                 experiment_name = f"{experiment}-static"
+
+            # Flux didn't pull containers
+            if "flux" in experiment_name:
+                pull_time = 0
+                best_possible_times[experiment][iteration] = (
+                    best_possible_time + pull_time
+                )
+                continue
+
             pull_time = (
                 pull_df[
                     (pull_df.experiment == experiment_name)
@@ -446,16 +457,16 @@ def job_timings(indirs, outdir, workflow_times, pull_df):
     # Finally! Make a plot!
     plt.figure(figsize=(9, 4))
     order = [
+        "flux\n state machine",
         "state machine \nautoscale",
         "state machine",
-        "flux\n state machine",
         "mummi",
         "on premises",
     ]
     ax = sns.barplot(
         data=best_df, x="labels", y="actual_duration", hue="environment", order=order
     )
-    sns.set_style("dark")
+    sns.set_style("whitegrid")
     sns.barplot(
         ax=ax,
         data=best_df,
@@ -499,7 +510,7 @@ def plot_job_times(mlrunner_times, createsim_times, outdir):
     img_outdir = os.path.join(outdir, "img")
     me.make_plot(
         createsim_times,
-        title="'Createsim' Times by Experiment",
+        title="Createsim Times by Experiment",
         ydimension="duration",
         xdimension="env",
         outdir=img_outdir,
@@ -536,7 +547,7 @@ def plot_job_times(mlrunner_times, createsim_times, outdir):
     ]
     me.make_plot(
         mltimes,
-        title="'MLRunner' Times by Experiment",
+        title="MLRunner Times by Experiment",
         ydimension="duration",
         xdimension="env",
         outdir=img_outdir,
@@ -559,7 +570,17 @@ def plot_job_times(mlrunner_times, createsim_times, outdir):
     )
 
     # Create one plot for mlrunner and createsim for the paper
-    fig, axes = plt.subplots(1, 2, sharey=True, figsize=(10, 4))
+    # fig, axes = plt.subplots(1, 2, sharey=True, figsize=(10, 4))
+
+    # For paper plot, we need to move legend outside to see the content
+    fig = plt.figure(figsize=(12, 4))
+    gs = plt.GridSpec(1, 3, width_ratios=[2, 2, 0.5])
+    axes = []
+    mlrunner_ax = fig.add_subplot(gs[0, 0])
+    axes.append(mlrunner_ax)
+    axes.append(fig.add_subplot(gs[0, 1], sharey=mlrunner_ax))
+    axes.append(fig.add_subplot(gs[0, 2]))
+
     sns.set_style("whitegrid")
     sns.boxplot(
         mltimes,
@@ -572,10 +593,9 @@ def plot_job_times(mlrunner_times, createsim_times, outdir):
         whis=[5, 95],
         dodge=True,
     )
-    axes[0].set_title("'MLRunner' Times by Experiment", fontsize=14)
-    axes[0].set_ylabel("Duration (seconds)", fontsize=14)
-    axes[0].set_xlabel("", fontsize=10)
-    axes[0].set_xticklabels(axes[0].get_xmajorticklabels(), fontsize=14)
+    axes[0].set_title("MLRunner Times by Experiment", fontsize=15)
+    axes[0].set_ylabel("Duration (seconds)", fontsize=15)
+    axes[0].set_xlabel("")
 
     sns.boxplot(
         createsim_times,
@@ -588,18 +608,20 @@ def plot_job_times(mlrunner_times, createsim_times, outdir):
         whis=[5, 95],
         dodge=True,
     )
-    axes[1].set_title("'Createsim' Times by Experiment", fontsize=14)
-    axes[1].set_xlabel("", fontsize=10)
-    axes[1].set_xticklabels(axes[1].get_xmajorticklabels(), fontsize=14)
+    axes[1].set_title("Createsim Times by Experiment", fontsize=15)
     plt.ylim(0, 1200)
     plt.xticks(rotation=360)
-    axes[1].set_yticklabels(axes[1].get_yticks(), fontsize=14)
-    axes[0].set_yticklabels(axes[0].get_yticks(), fontsize=14)
+    axes[1].set_ylabel("")
+    axes[1].set_xlabel("")
 
-    # Remove legend title, don't need it
-    for ax in axes:
-        handles, labels = ax.get_legend_handles_labels()
-        ax.legend(handles=handles, labels=labels)
+    # Second plot has all colors
+    handles, labels = axes[1].get_legend_handles_labels()
+    axes[2].legend(
+        handles, labels, loc="center left", bbox_to_anchor=(-0.5, 0.5), frameon=False
+    )
+    for ax in axes[0:2]:
+        ax.get_legend().remove()
+    axes[2].axis("off")
 
     plt.tight_layout()
     plt.savefig(os.path.join(img_outdir, "job_times_combined.svg"))
@@ -620,7 +642,7 @@ def count_outputs(indirs, outdir, completions=6):
     # Remove hyphen
     excess["experiment"] = [x.replace("-", " ") for x in excess.experiment.values]
 
-    # Plot each
+    # Plot each.
     me.make_plot(
         excess,
         title="Excess Jobs by Experiment",
@@ -637,6 +659,40 @@ def count_outputs(indirs, outdir, completions=6):
         rotation=360,
         remove_x=True,
     )
+
+    # For paper plot, we need to move legend outside to see the content
+    fig = plt.figure(figsize=(8, 3))
+    gs = plt.GridSpec(1, 2, width_ratios=[2, 0.5])
+    axes = []
+    axes.append(fig.add_subplot(gs[0, 0]))
+    axes.append(fig.add_subplot(gs[0, 1]))
+
+    # fig, axes = plt.subplots(1, 2, sharey=True, figsize=(18, 3.3))
+    sns.set_style("whitegrid")
+    sns.barplot(
+        excess,
+        ax=axes[0],
+        x="job",
+        y="count",
+        hue="experiment",
+    )
+    axes[0].set_title("Excess Jobs by Experiment", fontsize=12)
+    axes[0].set_ylabel("Excess Completed (count)", fontsize=12)
+    axes[0].set_xlabel("")
+    axes[0].set_yscale("log")
+
+    handles, labels = axes[0].get_legend_handles_labels()
+    axes[1].legend(
+        handles, labels, loc="center left", bbox_to_anchor=(-0.1, 0.5), frameon=False
+    )
+    for ax in axes[0:1]:
+        ax.get_legend().remove()
+    axes[1].axis("off")
+
+    plt.xticks(rotation=360)
+    plt.tight_layout()
+    plt.savefig(os.path.join(img_outdir, "excess-jobs-paper-plot.svg"))
+    plt.clf()
 
     me.make_plot(
         completed,
@@ -868,9 +924,9 @@ def calculate_costs(indirs, workflow_times, outdir, best_df):
         hue_order=["gpu", "cpu"],
         plot_type="bar",
         order=[
+            "flux\n state machine",
             "state machine \nautoscale",
             "state machine",
-            "flux\n state machine",
             "mummi",
             "on premises",
         ],
@@ -895,9 +951,9 @@ def calculate_costs(indirs, workflow_times, outdir, best_df):
         hue_order=["gpu", "cpu"],
         plot_type="bar",
         order=[
+            "flux\n state machine",
             "state machine \nautoscale",
             "state machine",
-            "flux\n state machine",
             "mummi",
         ],
         xlabel=None,

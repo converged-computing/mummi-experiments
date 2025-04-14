@@ -75,7 +75,7 @@ def main():
 
     # Note that we add the pulling times here because they were not included in the experiment
     # and need to be.
-    manager_df = add_pulling_times(manager_df, times_df, outdir)
+    # manager_df = add_pulling_times(manager_df, times_df, outdir)
     
     # Finally, add running times
     add_job_running_times(times_df, outdir)

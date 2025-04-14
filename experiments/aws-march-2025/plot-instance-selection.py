@@ -87,7 +87,7 @@ def plot_timings(cs_df, cg_df, outdir):
 
     fig, axes = plt.subplots(2, 1, sharex=True, figsize=(10, 6))
     sns.set_style("whitegrid")
-    sns.stripplot(
+    sns.swarmplot(
         cs_df,
         linewidth=1,
         ax=axes[0],
@@ -95,11 +95,12 @@ def plot_timings(cs_df, cg_df, outdir):
         x="instance",
         hue="spot",
         order=order,
+        size=7,
     )
     axes[0].set_title("Automated Selection of Instance Types", fontsize=14)
     axes[0].set_ylabel("Simulation Setup Cost ($)", fontsize=12)
 
-    sns.stripplot(
+    sns.swarmplot(
         cg_df,
         ax=axes[1],
         linewidth=1,
@@ -107,6 +108,7 @@ def plot_timings(cs_df, cg_df, outdir):
         x="instance",
         hue="spot",
         order=order,
+        size=7,
     )
     # axes[1].set_title("Gromacs Simulation NS By Instance Type", fontsize=14)
     axes[1].set_ylabel("Cost Per Simulation NS ($)", fontsize=12)
